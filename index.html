@@ -625,6 +625,26 @@
 
   async function deleteTrade(id) {
     if (!confirm('Delete this trade?')) return;
+
+    // Get screenshot URL before deleting the record
+    const trade = trades.find(t => t.id === id);
+    if (trade && trade.screenshot) {
+      try {
+        // Extract filename from Supabase storage URL
+        // URL format: .../storage/v1/object/public/charts/filename.png
+        const url = trade.screenshot;
+        const match = url.match(/\/charts\/(.+)$/);
+        if (match) {
+          const filename = match[1];
+          await db.storage.from('charts').remove([filename]);
+          console.log('Deleted chart:', filename);
+        }
+      } catch (e) {
+        console.warn('Could not delete screenshot:', e);
+        // Don't block trade deletion if screenshot cleanup fails
+      }
+    }
+
     await db.from('trades').delete().eq('id', id);
     await loadTrades();
   }
