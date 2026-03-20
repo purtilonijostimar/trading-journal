@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ksheftr Live</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --border:   #30363d;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --green:    #3fb950;
+    --red:      #f85149;
+    --yellow:   #d29922;
+    --blue:     #58a6ff;
+    --purple:   #bc8cff;
+    --orange:   #ffa657;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; }
+
+  /* ── Header ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.05em; }
+  .logo span { color: var(--blue); }
+  .header-stats { display: flex; gap: 24px; align-items: center; }
+  .stat { text-align: center; }
+  .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-value { font-size: 1rem; font-weight: 600; margin-top: 2px; }
+  .regime-badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.75rem;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .regime-bullish    { background: rgba(63,185,80,.2);  color: var(--green);  border: 1px solid var(--green); }
+  .regime-bearish    { background: rgba(248,81,73,.2);  color: var(--red);    border: 1px solid var(--red); }
+  .regime-high_vol   { background: rgba(210,153,34,.2); color: var(--yellow); border: 1px solid var(--yellow); }
+  .regime-choppy     { background: rgba(139,148,158,.2);color: var(--muted);  border: 1px solid var(--muted); }
+  .regime-gap_and_go { background: rgba(88,166,255,.2); color: var(--blue);   border: 1px solid var(--blue); }
+  .regime-news_shock { background: rgba(188,140,255,.2);color: var(--purple); border: 1px solid var(--purple); }
+  .regime-low_volume { background: rgba(255,166,87,.2); color: var(--orange); border: 1px solid var(--orange); }
+  .regime-unknown    { background: rgba(139,148,158,.2);color: var(--muted);  border: 1px solid var(--muted); }
+
+  .refresh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ── Main ── */
+  main { padding: 16px 20px; }
+  .section-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Position grid ── */
+  .positions-grid { display: grid; gap: 16px; }
+  .positions-grid.count-1 { grid-template-columns: 1fr; }
+  .positions-grid.count-2 { grid-template-columns: 1fr 1fr; }
+  .positions-grid.count-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .positions-grid.count-4,.positions-grid.count-5 { grid-template-columns: 1fr 1fr; }
+
+  .pos-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .pos-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .pos-ticker { font-size: 1.1rem; font-weight: 700; }
+  .pos-direction {
+    padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .dir-long  { background: rgba(63,185,80,.2);  color: var(--green); }
+  .dir-short { background: rgba(248,81,73,.2);  color: var(--red); }
+  .pos-pnl { font-size: 1rem; font-weight: 700; }
+  .pnl-pos { color: var(--green); }
+  .pnl-neg { color: var(--red); }
+
+  .pos-chart { width: 100%; height: 220px; }
+
+  .pos-meta {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border);
+  }
+  .meta-item { text-align: center; }
+  .meta-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .meta-value { font-size: 0.85rem; font-weight: 600; margin-top: 2px; }
+
+  /* ── R-progress bar ── */
+  .r-bar-wrap { padding: 6px 14px 10px; }
+  .r-bar-labels { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--muted); margin-bottom: 4px; }
+  .r-bar-track { height: 6px; background: var(--border); border-radius: 3px; position: relative; }
+  .r-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .r-bar-marker { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--yellow); border-radius: 1px; }
+
+  /* ── Close button ── */
+  .pos-actions { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .btn-close {
+    flex: 1; padding: 7px; border: 1px solid var(--red); border-radius: 6px;
+    background: rgba(248,81,73,.1); color: var(--red); font-size: 0.75rem;
+    font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em;
+    transition: background 0.2s;
+  }
+  .btn-close:hover { background: rgba(248,81,73,.25); }
+
+  /* ── Watchlist ── */
+  .watchlist { margin-top: 20px; }
+  .watchlist-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .watch-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .watch-ticker { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+  .watch-meta { font-size: 0.7rem; color: var(--muted); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted); font-size: 0.9rem;
+  }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* ── Error ── */
+  .error-banner {
+    background: rgba(248,81,73,.1); border: 1px solid var(--red);
+    border-radius: 8px; padding: 10px 16px; margin-bottom: 16px;
+    color: var(--red); font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">K<span>sheftr</span> Live</div>
+  <div class="header-stats">
+    <div class="stat">
+      <div class="stat-label">Daily P&L</div>
+      <div class="stat-value" id="daily-pnl">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Trades</div>
+      <div class="stat-value" id="trades-today">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Open</div>
+      <div class="stat-value" id="open-count">—</div>
+    </div>
+    <div id="regime-badge" class="regime-badge regime-unknown">—</div>
+    <div class="refresh-dot" title="Live — refreshes every 30s"></div>
+  </div>
+</header>
+
+<main>
+  <div id="error-banner" class="error-banner" style="display:none"></div>
+
+  <div id="positions-section">
+    <div class="section-title">Open Positions</div>
+    <div id="positions-grid" class="positions-grid count-0"></div>
+  </div>
+
+  <div class="watchlist" id="watchlist-section" style="display:none">
+    <div class="section-title">Watchlist</div>
+    <div id="watchlist-grid" class="watchlist-grid"></div>
+  </div>
+</main>
+
+<script>
+const SERVER = 'http://localhost:5000';
+const REFRESH_MS = 30000; // 30 seconds
+
+let charts = {}; // symbol → { chart, candleSeries, vwapSeries }
+
+// ── Formatting helpers ─────────────────────────────────────────────────────
+function fmtPnl(v) {
+  const s = v >= 0 ? '+' : '';
+  return `${s}€${Math.abs(v).toFixed(2)}`;
+}
+function fmtR(r) {
+  const s = r >= 0 ? '+' : '';
+  return `${s}${r.toFixed(2)}R`;
+}
+function regimeLabel(r) {
+  const map = {
+    bullish:'BULLISH', bearish:'BEARISH', high_vol:'HIGH VOL',
+    choppy:'CHOPPY', gap_and_go:'GAP & GO', news_shock:'NEWS SHOCK',
+    low_volume:'LOW VOL', unknown:'—',
+  };
+  // handle compound like news_shock+bullish
+  const base = r.split('+')[0];
+  return map[base] || r.toUpperCase();
+}
+
+// ── Fetch state & render ───────────────────────────────────────────────────
+async function refresh() {
+  try {
+    const res = await fetch(`${SERVER}/state`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    document.getElementById('error-banner').style.display = 'none';
+    render(data);
+  } catch (e) {
+    const b = document.getElementById('error-banner');
+    b.style.display = 'block';
+    b.textContent = `⚠️ Cannot reach dashboard server at ${SERVER}. Make sure dashboard_server.py is running.`;
+  }
+}
+
+function render(data) {
+  // Header
+  const pnl = data.daily_pnl || 0;
+  const pnlEl = document.getElementById('daily-pnl');
+  pnlEl.textContent = fmtPnl(pnl);
+  pnlEl.className = `stat-value ${pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}`;
+
+  document.getElementById('trades-today').textContent = data.trades_today || 0;
+
+  const trades = data.open_trades || [];
+  document.getElementById('open-count').textContent = trades.length;
+
+  // Regime badge
+  const regime = data.regime || 'unknown';
+  const badge = document.getElementById('regime-badge');
+  badge.textContent = regimeLabel(regime);
+  badge.className = `regime-badge regime-${regime.split('+')[0]}`;
+
+  // Positions
+  renderPositions(trades);
+
+  // Watchlist (signals_fired shown as placeholder)
+  const fired = data.signals_fired || [];
+  renderWatchlist(fired);
+}
+
+function renderPositions(trades) {
+  const grid = document.getElementById('positions-grid');
+
+  if (trades.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="big">👁</div>
+        No open positions — bot is watching the market
+      </div>`;
+    grid.className = 'positions-grid count-0';
+    return;
+  }
+
+  grid.className = `positions-grid count-${Math.min(trades.length, 5)}`;
+
+  // Remove cards for closed positions
+  const currentSymbols = trades.map(t => t.ticker || t.symbol);
+  grid.querySelectorAll('.pos-card').forEach(card => {
+    if (!currentSymbols.includes(card.dataset.symbol)) card.remove();
+  });
+
+  trades.forEach(pos => {
+    const symbol = pos.ticker || pos.symbol || '?';
+    const existing = grid.querySelector(`[data-symbol="${symbol}"]`);
+
+    if (existing) {
+      // Update P&L and R-progress only
+      updateCard(existing, pos);
+    } else {
+      const card = buildCard(pos);
+      grid.appendChild(card);
+      // Fetch candles and build chart
+      fetchAndBuildChart(symbol, pos, card.querySelector('.pos-chart'));
+    }
+  });
+}
+
+function buildCard(pos) {
+  const symbol = pos.ticker || pos.symbol || '?';
+  const pnl    = pos.live_pnl || 0;
+  const r      = pos.r_progress || 0;
+
+  const card = document.createElement('div');
+  card.className = 'pos-card';
+  card.dataset.symbol = symbol;
+  card.innerHTML = `
+    <div class="pos-header">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pos-ticker">${symbol}</span>
+        <span class="pos-direction dir-${pos.direction}">${pos.direction}</span>
+      </div>
+      <span class="pos-pnl ${pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}" data-pnl>${fmtPnl(pnl)}</span>
+    </div>
+    <div class="pos-chart" id="chart-${symbol}"></div>
+    <div class="r-bar-wrap">
+      <div class="r-bar-labels">
+        <span>Stop (0R)</span>
+        <span data-r>${fmtR(r)}</span>
+        <span>Target (${((pos.target - pos.entry) / Math.abs(pos.entry - pos.stop)).toFixed(2)}R)</span>
+      </div>
+      <div class="r-bar-track">
+        <div class="r-bar-fill" data-rfill style="width:${rPct(r)}%;background:${rColor(r)}"></div>
+        <div class="r-bar-marker" style="left:${targetPct(pos)}%"></div>
+      </div>
+    </div>
+    <div class="pos-meta">
+      <div class="meta-item">
+        <div class="meta-label">Entry</div>
+        <div class="meta-value">$${pos.entry?.toFixed(2)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Stop</div>
+        <div class="meta-value" style="color:var(--red)">$${pos.stop?.toFixed(2)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Target</div>
+        <div class="meta-value" style="color:var(--green)">$${pos.target?.toFixed(2)}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Shares</div>
+        <div class="meta-value">${pos.shares}</div>
+      </div>
+    </div>
+    <div class="pos-actions">
+      <button class="btn-close" onclick="closePosition('${symbol}')">✕ Close ${symbol}</button>
+    </div>
+  `;
+  return card;
+}
+
+function updateCard(card, pos) {
+  const pnl = pos.live_pnl || 0;
+  const r   = pos.r_progress || 0;
+
+  const pnlEl = card.querySelector('[data-pnl]');
+  pnlEl.textContent = fmtPnl(pnl);
+  pnlEl.className = `pos-pnl ${pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}`;
+
+  const rEl = card.querySelector('[data-r]');
+  if (rEl) rEl.textContent = fmtR(r);
+
+  const rfill = card.querySelector('[data-rfill]');
+  if (rfill) { rfill.style.width = `${rPct(r)}%`; rfill.style.background = rColor(r); }
+}
+
+function rPct(r) {
+  // 0R = 0%, 2.13R = 100% (clamped)
+  return Math.max(0, Math.min(100, (r / 2.1337) * 100));
+}
+function targetPct(pos) {
+  const totalR = (pos.target - pos.entry) / Math.abs(pos.entry - pos.stop);
+  return 100; // target marker always at right
+}
+function rColor(r) {
+  if (r < 0) return 'var(--red)';
+  if (r >= 1.5) return 'var(--green)';
+  return 'var(--blue)';
+}
+
+// ── Chart builder ──────────────────────────────────────────────────────────
+async function fetchAndBuildChart(symbol, pos, container) {
+  try {
+    const res = await fetch(`${SERVER}/candles/${symbol}`);
+    const data = await res.json();
+    buildChart(symbol, pos, container, data.candles || [], data.vwap);
+  } catch (e) {
+    container.innerHTML = `<div style="color:var(--muted);font-size:0.75rem;padding:10px">Chart unavailable</div>`;
+  }
+}
+
+function buildChart(symbol, pos, container, candles, vwap) {
+  if (!candles.length) {
+    container.innerHTML = `<div style="color:var(--muted);font-size:0.75rem;padding:10px;text-align:center">No candle data</div>`;
+    return;
+  }
+
+  const chart = LightweightCharts.createChart(container, {
+    width:  container.offsetWidth,
+    height: 220,
+    layout: { background: { color: '#161b22' }, textColor: '#8b949e' },
+    grid:   { vertLines: { color: '#21262d' }, horzLines: { color: '#21262d' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#30363d' },
+    timeScale: { borderColor: '#30363d', timeVisible: true, secondsVisible: false },
+  });
+
+  const candleSeries = chart.addCandlestickSeries({
+    upColor:   '#3fb950', downColor: '#f85149',
+    borderUpColor: '#3fb950', borderDownColor: '#f85149',
+    wickUpColor:   '#3fb950', wickDownColor:   '#f85149',
+  });
+  candleSeries.setData(candles);
+
+  // VWAP line
+  if (vwap) {
+    const vwapSeries = chart.addLineSeries({ color: '#d29922', lineWidth: 1, lineStyle: 2, title: 'VWAP' });
+    vwapSeries.setData(candles.map(c => ({ time: c.time, value: vwap })));
+  }
+
+  // Entry line
+  if (pos.entry) {
+    const entrySeries = chart.addLineSeries({ color: '#58a6ff', lineWidth: 1, lineStyle: 0, title: 'Entry' });
+    entrySeries.setData(candles.map(c => ({ time: c.time, value: pos.entry })));
+  }
+
+  // Stop line
+  if (pos.stop) {
+    const stopSeries = chart.addLineSeries({ color: '#f85149', lineWidth: 1, lineStyle: 3, title: 'Stop' });
+    stopSeries.setData(candles.map(c => ({ time: c.time, value: pos.stop })));
+  }
+
+  // Target line
+  if (pos.target) {
+    const targetSeries = chart.addLineSeries({ color: '#3fb950', lineWidth: 1, lineStyle: 3, title: 'Target' });
+    targetSeries.setData(candles.map(c => ({ time: c.time, value: pos.target })));
+  }
+
+  chart.timeScale().fitContent();
+  charts[symbol] = chart;
+
+  // Resize observer
+  const ro = new ResizeObserver(() => {
+    chart.applyOptions({ width: container.offsetWidth });
+  });
+  ro.observe(container);
+}
+
+// ── Watchlist ──────────────────────────────────────────────────────────────
+function renderWatchlist(fired) {
+  const section = document.getElementById('watchlist-section');
+  const grid    = document.getElementById('watchlist-grid');
+  if (!fired.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  grid.innerHTML = fired.map(sym => `
+    <div class="watch-card">
+      <div class="watch-ticker">${sym}</div>
+      <div class="watch-meta">Signal fired today</div>
+    </div>
+  `).join('');
+}
+
+// ── Close position ─────────────────────────────────────────────────────────
+async function closePosition(symbol) {
+  if (!confirm(`Close ${symbol} now? This will write CLOSE_${symbol}.txt to the bot folder.`)) return;
+  try {
+    const res = await fetch(`${SERVER}/close/${symbol}`, { method: 'POST' });
+    if (res.ok) alert(`✅ Close command sent for ${symbol}`);
+    else alert(`⚠️ Failed to send close command`);
+  } catch (e) {
+    alert(`⚠️ Server not reachable`);
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>
