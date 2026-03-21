@@ -33,10 +33,7 @@
   .container { position:relative; z-index:1; }
 
   header { background:rgba(15,17,23,0.75); border-bottom:1px solid rgba(255,255,255,0.06); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%); }
-  .logo { display:flex; align-items:center; gap:0; line-height:1; }
-  .logo-k { font-size:22px; font-weight:900; letter-spacing:-1px; color:#fff; }
-  .logo-sheftr { font-size:22px; font-weight:300; letter-spacing:2px; color:rgba(255,255,255,0.65); text-transform:uppercase; }
-  .logo-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); margin-left:4px; margin-bottom:2px; flex-shrink:0; align-self:flex-end; }
+  .logo { font-size:14px; font-weight:500; letter-spacing:0.22em; color:rgba(255,255,255,0.8); text-transform:uppercase; }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
   .live-dot::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; box-shadow:0 0 6px var(--green); }
@@ -614,9 +611,7 @@
 <body>
 
 <header>
-  <div class="logo">
-    <span class="logo-k">K</span><span class="logo-sheftr">sheftr</span><span class="logo-dot"></span>
-  </div>
+  <div class="logo">Ksheftr</div>
   <div class="header-right">
     <span class="live-dot" id="liveStatus">Live</span>
     <button class="btn btn-secondary" onclick="exportData()">↓ Export</button>
