@@ -76,10 +76,9 @@
     pointer-events: none; z-index: 0;
     overflow: hidden;
     isolation: isolate;
-    display: none;
   }
-  @media (max-width: 768px) {
-    .blob-stage { display: block !important; }
+  @media (min-width: 769px) {
+    .blob-stage { opacity: 0.12; }
   }
   .blob-a, .blob-b, .blob-teal, .blob-warm {
     position: absolute;
