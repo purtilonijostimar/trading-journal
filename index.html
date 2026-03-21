@@ -627,7 +627,7 @@
   .trade-card-mobile.win, .trade-card-mobile.loss, .trade-card-mobile.open {}
 
   .tcm-accent-bar { flex-shrink:0; }
-  .tcm-body { flex:1; padding:14px 0 14px 14px; min-width:0; }
+  .tcm-body { flex:1; padding:14px 12px 14px 14px; min-width:0; }
 
   .tcm-perf {
     border-radius:10px; padding:10px 12px;
@@ -1154,8 +1154,8 @@
 
         const statItem = (label, val, col) => `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-            <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px">${label}</span>
             <span style="font-size:14px;font-weight:700;color:${col};letter-spacing:-.2px">${val}</span>
+            <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px">${label}</span>
           </div>`;
 
         const chartHtml = t.screenshot
@@ -1188,7 +1188,7 @@
               ${statItem('Entry', '$'+parseFloat(t.entry||0).toFixed(2), 'rgba(255,255,255,0.75)')}
               ${statItem('Exit',  t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—', 'rgba(255,255,255,0.75)')}
             </div>
-            <div style="border-radius:6px 14px 14px 6px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);position:relative;align-self:stretch">${chartHtml}</div>
+            <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);position:relative;align-self:stretch">${chartHtml}</div>
           </div>
           </div><!-- /.tcm-body -->
         </div>`;
