@@ -821,7 +821,8 @@
         const rCol   = rVal === null ? 'var(--text3)' : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
         const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}` : 'Open';
         const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
-        const rStr   = rVal !== null ? `${cutEarly ? '⚡ ' : ''}${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
+        const cutBadge = cutEarly ? `<span style="display:inline-block;font-size:9px;font-weight:700;background:rgba(245,158,11,.2);color:var(--yellow);border-radius:3px;padding:0 4px;vertical-align:middle;margin-right:3px;line-height:16px">CUT</span>` : '';
+        const rStr   = rVal !== null ? `${cutBadge}${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
         const tags   = parseTags(t.tags);
         const regime = tags.regime ? `<span class="regime-pill" style="font-size:10px">${tags.regime}</span>` : '';
         const chart  = t.screenshot
@@ -852,14 +853,14 @@
               <div style="font-size:13px;font-weight:600;color:var(--text2)">$${parseFloat(t.size||0).toFixed(0)}</div>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:80px 72px 1fr;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <div style="display:grid;grid-template-columns:86px auto 1fr;align-items:start;gap:6px 16px;padding-top:8px;border-top:1px solid var(--border)">
             <div>
               <div style="font-size:10px;color:var(--text3);margin-bottom:1px">P&L</div>
               <div style="font-size:15px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
             </div>
             <div>
               <div style="font-size:10px;color:var(--text3);margin-bottom:1px">R</div>
-              <div style="font-size:15px;font-weight:700;color:${rCol};white-space:nowrap">${rStr}</div>
+              <div style="font-size:15px;font-weight:700;color:${rCol};white-space:nowrap;display:flex;align-items:center;line-height:1.2">${rStr}</div>
             </div>
             <div>
               <div style="font-size:10px;color:var(--text3);margin-bottom:1px">SETUP</div>
