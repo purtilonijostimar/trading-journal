@@ -13,8 +13,7 @@
 
   /* ── Reset ── */
   * { margin:0; padding:0; box-sizing:border-box; }
-  html { overflow-x:hidden; }
-  body { overflow-x:hidden; }
+  html, body { overflow-x: hidden; max-width: 100%; }
 
   /* ── Design tokens ── */
   :root {
@@ -76,11 +75,15 @@
     position: fixed; inset: 0;
     pointer-events: none; z-index: 0;
     overflow: hidden;
+    contain: strict;
   }
   body::before, body::after, .blob-teal, .blob-warm {
     content: ''; position: absolute; border-radius: 50%;
     pointer-events: none;
     mix-blend-mode: screen;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
   @keyframes aurora-a {
     0%   { transform: translate(0, 0)      scale(1);    }
