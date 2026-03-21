@@ -187,22 +187,28 @@
 
   /* ── Logo ── */
   .logo {
+    position: relative;
     font-size: 18px; font-weight: 600;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #ffffff;
-    animation: logo-heartbeat 60s ease-in-out infinite;
   }
-  @keyframes logo-heartbeat {
-    0%, 87%  { color:#ffffff; text-shadow:none; letter-spacing:0.22em; }
-    91.5%    { color:#00dcff;
-               text-shadow:0 0 12px rgba(0,184,255,0.9),0 0 28px rgba(0,184,255,0.5),0 0 48px rgba(0,184,255,0.2);
-               letter-spacing:0.235em; }
-    93.5%    { color:#00b8ff;
-               text-shadow:0 0 10px rgba(0,184,255,0.8),0 0 22px rgba(0,184,255,0.4),0 0 2px rgba(255,230,0,0.15);
-               letter-spacing:0.235em; }
-    98%      { color:rgba(255,255,255,0.96); text-shadow:0 0 6px rgba(0,184,255,0.15); letter-spacing:0.22em; }
-    100%     { color:#ffffff; text-shadow:none; letter-spacing:0.22em; }
+  .logo-w {
+    color: #ffffff;
+  }
+  .logo-b {
+    position: absolute; inset: 0;
+    background: linear-gradient(125deg, #00b8ff 0%, #00dcff 45%, #ffe600 120%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0;
+    animation: logo-brand-fade 20s cubic-bezier(0.4,0,0.2,1) infinite;
+  }
+  @keyframes logo-brand-fade {
+    0%, 75%  { opacity: 0; }
+    82%      { opacity: 1; }
+    93%      { opacity: 1; }
+    100%     { opacity: 0; }
   }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
@@ -752,7 +758,7 @@
 <body>
 
 <header>
-  <div class="logo">K$eftr</div>
+  <div class="logo"><span class="logo-w">K$eftr</span><span class="logo-b">K$eftr</span></div>
   <div class="header-right">
     <span class="live-dot" id="liveStatus">Live</span>
     <button class="btn btn-secondary" onclick="exportData()">↓ Export</button>
