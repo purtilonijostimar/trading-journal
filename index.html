@@ -666,19 +666,21 @@
     z-index: -1;
   }
   /* ── Background dollar watermark ── */
+  .dollar-wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+  }
   .bg-dollar {
-    position: absolute;
-    top: 50%; left: 0;
-    width: 100%;
-    text-align: center;
-    transform: translateY(-50%);
     font-size: 90vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 600;
     letter-spacing: 0;
     line-height: 1;
-    pointer-events: none;
-    z-index: 2;
     color: #000000;
     user-select: none;
   }
@@ -695,7 +697,8 @@
   </div>
 </header>
 
-<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div><div class="bg-dollar">$</div></div>
+<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div></div>
+<div class="dollar-wrap"><span class="bg-dollar">$</span></div>
 <div class="container">
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="statTotal">—</div></div>
