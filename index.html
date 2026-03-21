@@ -2503,36 +2503,24 @@
 (function(){
   const field = document.getElementById('dollarField');
   if (!field) return;
-  const W = window.innerWidth, H = window.innerHeight * 2; // 2x height for scroll
-  const sizes = [48, 64, 80, 100, 130, 160, 200, 260];
-  const placed = []; // [{cx, cy, r}] bounding circles
-
-  function overlaps(cx, cy, r) {
-    for (const p of placed) {
-      const dx = cx - p.cx, dy = cy - p.cy;
-      if (Math.sqrt(dx*dx + dy*dy) < (r + p.r) * 1.15) return true;
-    }
-    return false;
-  }
+  const W = window.innerWidth;
+  const H = document.documentElement.scrollHeight || window.innerHeight * 2;
+  const SIZE    = 52;          // px — single uniform size
+  const CELL_X  = 110;         // horizontal spacing
+  const CELL_Y  = 90;          // vertical spacing
+  const OPACITY = 0.88;
 
   let html = '';
-  const count = 120;
-  for (let i = 0; i < count; i++) {
-    const size = sizes[Math.floor(Math.random() * sizes.length)];
-    const r = size * 0.55; // approx half-width of $ glyph
-    let cx, cy, tries = 0;
-    do {
-      cx = r + Math.random() * (W - r * 2);
-      cy = r + Math.random() * (H - r * 2);
-      tries++;
-    } while (overlaps(cx, cy, r) && tries < 40);
-    if (tries >= 40) continue; // skip if no space found
-    placed.push({cx, cy, r});
-    const x = (cx / W * 100).toFixed(2);
-    const y = (cy / H * 100).toFixed(2);
-    const rot = Math.floor(Math.random() * 360);
-    const opacity = (0.85 + Math.random() * 0.05).toFixed(2);
-    html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:translate(-50%,-50%) rotate(${rot}deg);opacity:${opacity}">$</span>`;
+  const rows = Math.ceil(H / CELL_Y) + 1;
+  const cols = Math.ceil(W / CELL_X) + 1;
+
+  for (let r = 0; r < rows; r++) {
+    const offsetX = (r % 2 === 1) ? CELL_X / 2 : 0; // brick offset on odd rows
+    for (let c = 0; c < cols; c++) {
+      const x = c * CELL_X + offsetX;
+      const y = r * CELL_Y;
+      html += `<span class="bg-dollar" style="position:absolute;left:${x}px;top:${y}px;font-size:${SIZE}px;opacity:${OPACITY};transform:translate(-50%,-50%)">$</span>`;
+    }
   }
   field.innerHTML = html;
 })();
