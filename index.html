@@ -627,7 +627,7 @@
   .trade-card-mobile.win, .trade-card-mobile.loss, .trade-card-mobile.open {}
 
   .tcm-accent-bar { flex-shrink:0; }
-  .tcm-body { flex:1; padding:14px; min-width:0; }
+  .tcm-body { flex:1; padding:14px 0 14px 14px; min-width:0; }
 
   .tcm-perf {
     border-radius:10px; padding:10px 12px;
@@ -1188,7 +1188,7 @@
               ${statItem('Entry', '$'+parseFloat(t.entry||0).toFixed(2), 'rgba(255,255,255,0.75)')}
               ${statItem('Exit',  t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—', 'rgba(255,255,255,0.75)')}
             </div>
-            <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);aspect-ratio:4/3">${chartHtml}</div>
+            <div style="border-radius:8px 16px 16px 8px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);aspect-ratio:4/3;margin-right:0">${chartHtml}</div>
           </div>
           </div><!-- /.tcm-body -->
         </div>`;
