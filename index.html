@@ -251,14 +251,45 @@
 
   /* Journal */
   .entry-list { display:flex; flex-direction:column; gap:16px; }
-  .entry-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
-  .entry-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-  .entry-meta { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .entry-date { font-size:12px; color:var(--text3); }
-  .entry-ticker { font-weight:700; font-size:16px; }
-  .entry-body { color:var(--text2); line-height:1.6; font-size:13px; }
-  .entry-lesson { margin-top:12px; padding:10px; background:rgba(79,124,255,0.08); border-radius:6px; border-left:2px solid var(--accent); font-size:12px; color:var(--text); }
-  .entry-lesson strong { color:var(--accent); }
+  /* ── Journal toolbar ── */
+  .journal-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
+  .journal-filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .jf-btn { padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .jf-btn.active { background:var(--accent); border-color:var(--accent); color:white; }
+  .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
+
+  /* ── Journal entry cards ── */
+  .entry-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--border);
+    transition: border-color .15s;
+  }
+  .entry-card.win  { border-left-color: var(--green); }
+  .entry-card.loss { border-left-color: var(--red); }
+  .entry-card.open { border-left-color: var(--accent); }
+
+  .entry-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px; }
+  .entry-left { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0; }
+  .entry-ticker { font-weight:800; font-size:17px; flex-shrink:0; }
+  .entry-date { font-size:11px; color:var(--text3); white-space:nowrap; flex-shrink:0; padding-top:3px; }
+
+  .entry-perf { display:grid; grid-template-columns:repeat(3,auto); gap:12px 18px; margin-bottom:12px; padding:10px 12px; background:var(--surface2); border-radius:8px; }
+  .entry-perf-item label { display:block; font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
+  .entry-perf-item span  { font-size:14px; font-weight:700; }
+
+  .entry-body { color:var(--text2); line-height:1.6; font-size:13px; margin-bottom:10px; }
+
+  .entry-lesson { padding:10px 12px; background:rgba(79,124,255,0.07); border-radius:8px; border-left:3px solid var(--accent); font-size:13px; color:var(--text); line-height:1.5; }
+  .entry-lesson-label { font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+
+  .entry-no-lesson { display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(245,158,11,.06); border-radius:8px; border:1px dashed rgba(245,158,11,.3); font-size:12px; color:var(--yellow); cursor:pointer; }
+  .entry-no-lesson:hover { background:rgba(245,158,11,.1); }
+
+  .entry-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:10px; }
   .pattern-badge { padding:3px 8px; border-radius:5px; font-size:11px; font-weight:600; background:rgba(124,92,255,0.15); color:var(--accent2); }
 
   .loading { text-align:center; padding:40px; color:var(--text3); }
@@ -369,9 +400,13 @@
     .form-actions { flex-direction: column-reverse; }
     .form-actions .btn { width: 100%; padding: 14px; font-size: 15px; }
 
-    /* ── Journal entries ── */
-    .journal-entries { gap: 12px; }
-    .journal-entry   { padding: 14px; border-radius: 10px; }
+    /* ── Journal ── */
+    .journal-toolbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .journal-filters { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; scrollbar-width: none; padding-bottom: 2px; }
+    .journal-filters::-webkit-scrollbar { display: none; }
+    .jf-btn { min-height: 36px; }
+    .entry-card { padding: 14px; }
+    .entry-perf { gap: 8px 12px; }
 
     /* ── Live panel stats ── */
     #panel-live .stat-card { padding: 10px 12px; }
@@ -508,7 +543,18 @@
 
   <!-- JOURNAL TAB -->
   <div class="panel" id="panel-journal">
-    <div id="journalList" class="entry-list"></div>
+    <!-- Journal toolbar -->
+    <div class="journal-toolbar">
+      <div class="journal-filters">
+        <button class="jf-btn active" data-jf="all"    onclick="setJournalFilter('all',this)">All</button>
+        <button class="jf-btn"        data-jf="win"    onclick="setJournalFilter('win',this)">Wins</button>
+        <button class="jf-btn"        data-jf="loss"   onclick="setJournalFilter('loss',this)">Losses</button>
+        <button class="jf-btn"        data-jf="noted"  onclick="setJournalFilter('noted',this)">📝 With Notes</button>
+        <button class="jf-btn"        data-jf="blank"  onclick="setJournalFilter('blank',this)">⚠️ No Lesson</button>
+      </div>
+      <div id="journalCount" style="font-size:12px;color:var(--text3)"></div>
+    </div>
+    <div id="journalList"></div>
     <div id="journalEmpty" class="empty-state" style="display:none">
       <div class="empty-icon">📝</div>
       <p>No journal entries yet</p>
@@ -922,31 +968,121 @@
   }
 
   // ── Journal ───────────────────────────────────────────────────────────────
+  let _journalFilter = 'all';
+  function setJournalFilter(f, el) {
+    _journalFilter = f;
+    document.querySelectorAll('.jf-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderJournal();
+  }
+
+  // Strip auto-generated metadata echo from reasoning field
+  function cleanReasoning(text) {
+    if (!text) return '';
+    // Remove "Bot: xxx | Regime: xxx | Pattern: xxx" patterns — that's just tag data
+    const cleaned = text
+      .replace(/Bot:\s*\S+\s*\|?\s*/gi, '')
+      .replace(/Regime:\s*\S+\s*\|?\s*/gi, '')
+      .replace(/Pattern:\s*\S+\s*\|?\s*/gi, '')
+      .replace(/^\s*\|\s*/g, '')
+      .trim();
+    return cleaned;
+  }
+
   function renderJournal() {
-    const entries = trades.filter(t => t.reasoning || t.lesson);
-    const list    = document.getElementById('journalList');
-    const empty   = document.getElementById('journalEmpty');
-    if (!entries.length) { list.innerHTML=''; empty.style.display='block'; return; }
+    const list  = document.getElementById('journalList');
+    const empty = document.getElementById('journalEmpty');
+    const count = document.getElementById('journalCount');
+
+    // All trades are journal entries — filter by user preference
+    let entries = [...trades].reverse();  // newest first
+    if (_journalFilter === 'win')   entries = entries.filter(t => t.result === 'win');
+    if (_journalFilter === 'loss')  entries = entries.filter(t => t.result === 'loss');
+    if (_journalFilter === 'noted') entries = entries.filter(t => t.reasoning || t.lesson);
+    if (_journalFilter === 'blank') entries = entries.filter(t => !t.lesson && t.result !== 'open');
+
+    if (!entries.length) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      count.textContent = '';
+      return;
+    }
     empty.style.display = 'none';
+    count.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+
+    const TARGET_R = 2.1337;
+
     list.innerHTML = entries.map(t => {
-      const tags = parseTags(t.tags);
-      const patternHtml = tags.pattern ? `<span class="pattern-badge">${tags.pattern}</span>` : '';
-      const regimeHtml  = tags.regime  ? `<span class="regime-pill">${tags.regime}</span>` : '';
-      return `
-      <div class="entry-card">
-        <div class="entry-header">
-          <div class="entry-meta">
+      const tags     = parseTags(t.tags);
+      const pnl      = calcPnl(t);
+      const rVal     = calcR(t);
+      const pnlCol   = pnl === null ? 'var(--text3)' : pnl >= 0 ? 'var(--green)' : 'var(--red)';
+      const rCol     = rVal === null ? 'var(--text3)' : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
+      const pnlStr   = pnl  !== null ? `${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}` : '—';
+      const rStr     = rVal !== null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
+      const dateStr  = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+
+      const reasoning = cleanReasoning(t.reasoning);
+      const hasNotes  = reasoning || t.lesson;
+
+      const patternHtml = tags.pattern
+        ? `<span class="pattern-badge" style="font-size:10px">${tags.pattern.replace(/_/g,' ')}</span>` : '';
+      const regimeHtml  = tags.regime
+        ? `<span class="regime-pill" style="font-size:10px">${tags.regime.replace(/[_+]/g,' ')}</span>` : '';
+
+      const lessonHtml = t.lesson
+        ? `<div class="entry-lesson"><div class="entry-lesson-label">💡 Lesson</div>${t.lesson}</div>`
+        : (t.result !== 'open'
+          ? `<div class="entry-no-lesson" onclick="promptLesson('${t.id}')">✏️ Add a lesson — what would you do differently?</div>`
+          : '');
+
+      const chart = t.screenshot
+        ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer">`
+        : '';
+
+      return `<div class="entry-card ${t.result}">
+        <div class="entry-top">
+          <div class="entry-left">
             <span class="entry-ticker">${t.ticker.toUpperCase()}</span>
             <span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span>
             <span class="badge badge-${t.result}">${t.result}</span>
-            ${regimeHtml}${patternHtml}
+            ${regimeHtml}
           </div>
-          <span class="entry-date">${t.date}</span>
+          <span class="entry-date">${dateStr}</span>
         </div>
-        ${t.reasoning ? `<div class="entry-body">${t.reasoning}</div>` : ''}
-        ${t.lesson    ? `<div class="entry-lesson"><strong>💡 Lesson:</strong> ${t.lesson}</div>` : ''}
+
+        <div class="entry-perf">
+          <div class="entry-perf-item">
+            <label>P&L</label>
+            <span style="color:${pnlCol}">${pnlStr}</span>
+          </div>
+          <div class="entry-perf-item">
+            <label>R</label>
+            <span style="color:${rCol}">${rStr}</span>
+          </div>
+          <div class="entry-perf-item">
+            <label>Setup</label>
+            <span style="color:var(--text2);font-size:12px">${fmtSetup(t.setup)}</span>
+          </div>
+        </div>
+
+        ${reasoning ? `<div class="entry-body">${reasoning}</div>` : ''}
+        ${lessonHtml}
+        ${patternHtml ? `<div class="entry-tags">${patternHtml}</div>` : ''}
+        ${chart}
       </div>`;
     }).join('');
+  }
+
+  function promptLesson(id) {
+    const t = trades.find(x => x.id === id);
+    if (!t) return;
+    const lesson = prompt(`Add a lesson for ${t.ticker.toUpperCase()} ${t.date}:\nWhat would you do differently?`);
+    if (!lesson || !lesson.trim()) return;
+    // Save via update
+    db.from('trades').update({ lesson: lesson.trim() }).eq('id', id).then(({ error }) => {
+      if (!error) { const idx = trades.findIndex(x => x.id === id); if (idx >= 0) trades[idx].lesson = lesson.trim(); renderJournal(); }
+    });
   }
 
   // ── Analytics ─────────────────────────────────────────────────────────────
