@@ -131,25 +131,21 @@
     100% { transform: translateY(-50%); }
   }
   .dollar-wrap {
-    position: fixed; inset: 0;
+    position: fixed; inset: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 0;
-    height: 200vh;
+    overflow: visible;
     animation: float-up 50s linear infinite;
-    overflow: hidden;
   }
   .bg-dollar {
-    position: absolute;
-    top: 50%; left: 0; width: 100%;
-    text-align: center;
-    transform: translateY(-50%) rotate(5deg);
-    font-size: 102vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 600; letter-spacing: 0; line-height: 1;
-    color: rgba(0,0,0,0);
-    -webkit-text-stroke: 10px #000000;
-    text-stroke: 10px #000000;
-    paint-order: stroke fill;
-    user-select: none;
+    font-weight: 600;
+    font-size: 102vw;
+    fill: none;
+    stroke: #000000;
+    stroke-width: 10px;
+    transform: rotate(5deg);
+    transform-origin: 50% 50%;
+    transform-box: fill-box;
   }
 
   .container {
@@ -745,7 +741,9 @@
 </header>
 
 <div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div></div>
-<div class="dollar-wrap"><span class="bg-dollar">$</span></div>
+<svg class="dollar-wrap" id="dollarSvg" xmlns="http://www.w3.org/2000/svg">
+  <text class="bg-dollar" x="50%" y="54%" dominant-baseline="middle" text-anchor="middle">$</text>
+</svg>
 <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
   <rect width="100%" height="100%" filter="url(#noise)" opacity="0.06"/>
