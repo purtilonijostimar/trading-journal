@@ -304,18 +304,22 @@
   }
 
   .entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  /* New compact header row with inline stats */
+  .entry-header-row { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .entry-inline-stat { display:inline-flex; align-items:center; gap:5px; }
+  .entry-inline-label { font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:.4px; }
+  .entry-stat-sep { display:inline-block; width:1px; height:14px; background:rgba(255,255,255,0.12); margin:0 6px; vertical-align:middle; }
   .entry-left { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0; }
   .entry-ticker { font-weight:800; font-size:17px; flex-shrink:0; }
   .entry-date { font-size:11px; color:var(--text3); white-space:nowrap; flex-shrink:0; padding-top:3px; }
 
-  .entry-perf { display:grid; grid-template-columns:repeat(3,auto); gap:12px 18px; margin-bottom:12px; padding:10px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-  .entry-perf-item label { display:block; font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
-  .entry-perf-item span  { font-size:14px; font-weight:700; }
+  /* .entry-perf retired — stats now inline in header row */
 
   .entry-body { color:var(--text2); line-height:1.6; font-size:13px; margin-bottom:10px; }
 
-  .entry-lesson { padding:10px 12px; background:rgba(79,124,255,0.07); border-radius:8px; border-left:3px solid var(--accent); font-size:13px; color:var(--text); line-height:1.5; }
-  .entry-lesson-label { font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+  .entry-lesson { padding:14px 16px; background:rgba(79,124,255,0.08); border-radius:10px; border-left:3px solid var(--accent); box-shadow:inset 0 1px 0 rgba(79,124,255,0.1); }
+  .entry-lesson-label { font-size:10px; font-weight:700; color:#93c5fd; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+  .entry-lesson-text { font-size:15px; font-weight:500; color:rgba(255,255,255,0.88); line-height:1.6; }
 
   .entry-no-lesson { display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(245,158,11,.06); border-radius:8px; border:1px dashed rgba(245,158,11,.3); font-size:12px; color:var(--yellow); cursor:pointer; }
   .entry-no-lesson:hover { background:rgba(245,158,11,.1); }
@@ -1120,7 +1124,7 @@
         ? `<span class="regime-pill" style="font-size:10px">${tags.regime.replace(/[_+]/g,' ')}</span>` : '';
 
       const lessonHtml = t.lesson
-        ? `<div class="entry-lesson"><div class="entry-lesson-label">💡 Lesson</div>${t.lesson}</div>`
+        ? `<div class="entry-lesson"><div class="entry-lesson-label">💡 Lesson</div><div class="entry-lesson-text">${t.lesson}</div></div>`
         : (t.result !== 'open'
           ? `<div class="entry-no-lesson" onclick="promptLesson('${t.id}')">✏️ Add a lesson — what would you do differently?</div>`
           : '');
@@ -1129,20 +1133,25 @@
         ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer">`
         : '';
 
+      // ── Single merged header row: ticker + badges + stats + date ──
+      const statsInline = `
+        <span class="entry-stat-sep"></span>
+        <span class="entry-inline-stat"><span class="entry-inline-label">P&amp;L</span><span style="color:${pnlCol};font-weight:700">${pnlStr}</span></span>
+        <span class="entry-stat-sep"></span>
+        <span class="entry-inline-stat"><span class="entry-inline-label">R</span><span style="color:${rCol};font-weight:700">${rStr}</span></span>
+        <span class="entry-stat-sep"></span>
+        <span class="entry-inline-stat"><span class="entry-inline-label">Setup</span><span style="color:rgba(255,255,255,0.6);font-weight:600">${fmtSetup(t.setup)}</span></span>`;
+
       const leftCol = `
-        <div class="entry-top">
+        <div class="entry-header-row">
           <div class="entry-left">
             <span class="entry-ticker">${t.ticker.toUpperCase()}</span>
             <span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span>
             <span class="badge badge-${t.result}">${t.result}</span>
             ${regimeHtml}
+            ${statsInline}
           </div>
           <span class="entry-date">${dateStr}</span>
-        </div>
-        <div class="entry-perf">
-          <div class="entry-perf-item"><label>P&L</label><span style="color:${pnlCol}">${pnlStr}</span></div>
-          <div class="entry-perf-item"><label>R</label><span style="color:${rCol}">${rStr}</span></div>
-          <div class="entry-perf-item"><label>Setup</label><span style="color:var(--text2);font-size:12px">${fmtSetup(t.setup)}</span></div>
         </div>
         ${reasoning ? `<div class="entry-body">${reasoning}</div>` : ''}
         ${lessonHtml}
