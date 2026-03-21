@@ -303,7 +303,7 @@
     box-shadow: 0 4px 28px rgba(79,124,255,0.12), inset 0 1px 0 rgba(255,255,255,0.07);
   }
 
-  .entry-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px; }
+  .entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .entry-left { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0; }
   .entry-ticker { font-weight:800; font-size:17px; flex-shrink:0; }
   .entry-date { font-size:11px; color:var(--text3); white-space:nowrap; flex-shrink:0; padding-top:3px; }
@@ -319,6 +319,18 @@
 
   .entry-no-lesson { display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(245,158,11,.06); border-radius:8px; border:1px dashed rgba(245,158,11,.3); font-size:12px; color:var(--yellow); cursor:pointer; }
   .entry-no-lesson:hover { background:rgba(245,158,11,.1); }
+
+  /* ── Journal two-column layout ── */
+  .entry-two-col { display:grid; grid-template-columns:1fr 280px; gap:16px; min-height:160px; }
+  .entry-col-left { display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .entry-col-right { flex-shrink:0; }
+  .entry-screenshot { border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.07); height:100%; min-height:140px; }
+  .entry-screenshot-empty { display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.02); }
+  @media (max-width:768px) {
+    .entry-two-col { grid-template-columns:1fr; }
+    .entry-col-right { height:100px; }
+    .entry-screenshot { height:100px; min-height:unset; }
+  }
 
   .entry-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:10px; }
   .pattern-badge { padding:3px 8px; border-radius:5px; font-size:11px; font-weight:600; background:rgba(124,92,255,0.15); color:var(--accent2); }
@@ -590,40 +602,20 @@
 
   <!-- TRADES TAB -->
   <div class="panel active" id="panel-trades">
-    <div class="table-wrapper">
-      <div class="table-header">
-        <div class="table-title">Trade Log</div>
-        <div class="table-filters">
-          <select id="filterStatus" onchange="renderTrades()" style="padding:6px 10px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text)">
-            <option value="">All trades</option>
-            <option value="win">Wins</option>
-            <option value="loss">Losses</option>
-            <option value="open">Open</option>
-          </select>
-        </div>
+    <div class="journal-toolbar" style="margin-bottom:16px">
+      <div class="journal-filters">
+        <select id="filterStatus" onchange="renderTrades()" style="padding:7px 12px;font-size:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--text)">
+          <option value="">All trades</option>
+          <option value="win">Wins</option>
+          <option value="loss">Losses</option>
+          <option value="open">Open</option>
+        </select>
       </div>
-      <div id="tradesLoading" class="loading">Loading trades...</div>
-      <div style="overflow-x:auto">
-        <table id="tradesTable" style="display:none">
-          <colgroup>
-            <col class="col-date"><col class="col-ticker"><col class="col-side">
-            <col class="col-entry"><col class="col-exit"><col class="col-size">
-            <col class="col-stop"><col class="col-target"><col class="col-pnl">
-            <col class="col-r"><col class="col-result"><col class="col-setup"><col class="col-tags">
-            <col class="col-chart"><col class="col-actions">
-          </colgroup>
-          <thead><tr>
-            <th>Date</th><th>Ticker</th><th>Side</th>
-            <th>Entry</th><th>Exit</th><th>Size</th>
-            <th>Stop</th><th>Target</th><th>P&amp;L</th>
-            <th>R</th><th>Result</th><th>Setup</th><th>Tags</th>
-            <th>Chart</th><th></th>
-          </tr></thead>
-          <tbody id="tradesBody"></tbody>
-        </table>
-      </div>
-      <!-- Mobile card list (shown instead of table on small screens) -->
-      <div id="tradeCards" style="display:none;padding:12px"></div>
+      <div id="tradesCount" style="font-size:12px;color:var(--text3)"></div>
+    </div>
+    <div id="tradesLoading" class="loading">Loading trades...</div>
+    <table id="tradesTable" style="display:none"><tbody id="tradesBody"></tbody></table>
+    <div id="tradeCards"></div>
 
       <div id="tradesEmpty" class="empty-state" style="display:none">
         <div class="empty-icon">📋</div>
@@ -935,6 +927,9 @@
     const tbody    = document.getElementById('tradesBody');
     document.getElementById('tradesLoading').style.display = 'none';
 
+    const countEl = document.getElementById('tradesCount');
+    if (countEl) countEl.textContent = `${filtered.length} trade${filtered.length!==1?'s':''}`;
+
     if (filtered.length === 0) {
       document.getElementById('tradesTable').style.display = 'none';
       document.getElementById('tradesEmpty').style.display  = 'block';
@@ -945,11 +940,16 @@
 
     const isMobile = window.innerWidth <= 768;
 
-    if (isMobile) {
-      // ── Mobile: card layout ──────────────────────────────────────────────
+    {
+      // ── Card layout — always (table retired) ─────────────────────────────
       document.getElementById('tradesTable').style.display = 'none';
       const cardsEl = document.getElementById('tradeCards');
       cardsEl.style.display = 'block';
+      // Two-column grid on desktop
+      cardsEl.style.display      = 'grid';
+      cardsEl.style.gridTemplateColumns = isMobile ? '1fr' : '1fr 1fr';
+      cardsEl.style.gap          = '12px';
+      cardsEl.style.padding      = isMobile ? '0' : '0';
 
       const TARGET_R = 2.1337;
       cardsEl.innerHTML = filtered.map(t => {
@@ -989,7 +989,7 @@
           </div>
 
           <!-- Perf pill box -->
-          <div class="tcm-perf" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 8px">
+          <div class="tcm-perf" style="display:grid;grid-template-columns:repeat(${isMobile?4:6},1fr);gap:10px 8px">
             <div>
               <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">P&L</div>
               <div style="font-size:15px;font-weight:800;color:${pnlCol};white-space:nowrap;letter-spacing:-.3px">${pnlStr}</div>
@@ -1006,59 +1006,21 @@
               <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Exit</div>
               <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(255,255,255,0.85)">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
             </div>
+            ${!isMobile ? `
+            <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Stop</div>
+              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(239,68,68,0.7)">${t.stop ? '$'+parseFloat(t.stop).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Target</div>
+              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(34,197,94,0.7)">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
+            </div>` : ''}
           </div>
 
           ${chart}
         </div>`;
       }).join('');
 
-    } else {
-      // ── Desktop: table layout ────────────────────────────────────────────
-      document.getElementById('tradeCards').style.display = 'none';
-      document.getElementById('tradesTable').style.display = 'table';
-
-      const resultBadges = {
-        win:       '<span class="badge badge-win">Win</span>',
-        loss:      '<span class="badge badge-loss">Loss</span>',
-        open:      '<span class="badge badge-open">Open</span>',
-        breakeven: '<span class="badge badge-be">B/E</span>',
-      };
-
-      tbody.innerHTML = filtered.map(t => {
-        const pnl    = calcPnl(t);
-        const pnlStr = pnl !== null
-          ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}</span>`
-          : '<span style="color:var(--text3)">Open</span>';
-        const rVal  = calcR(t);
-        const TARGET_R = 2.1337;
-        const rStr  = rVal !== null
-          ? (() => {
-              const col = rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
-              const flag = (t.result === 'win' && rVal < 0.5) ? ' ⚡' : '';
-              return `<span style="color:${col};font-weight:600;font-size:12px">${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R${flag}</span>`;
-            })()
-          : '<span style="color:var(--text3)">—</span>';
-        const chartCell = t.screenshot
-          ? `<img class="chart-thumb" src="${t.screenshot}" alt="chart" onclick="openLightbox('${t.screenshot}')">`
-          : `<span class="no-chart">—</span>`;
-        return `<tr>
-          <td style="color:var(--text2);font-size:12px">${t.date}</td>
-          <td><strong>${t.ticker.toUpperCase()}</strong></td>
-          <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
-          <td>$${parseFloat(t.entry).toFixed(2)}</td>
-          <td>${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</td>
-          <td style="color:var(--text2)">$${parseFloat(t.size).toFixed(0)}</td>
-          <td style="color:var(--text3);font-size:12px">${t.stop  ? '$'+parseFloat(t.stop).toFixed(2)  : '<span style="color:var(--text3)">—</span>'}</td>
-          <td style="color:var(--text3);font-size:12px">${t.target? '$'+parseFloat(t.target).toFixed(2): '<span style="color:var(--text3)">—</span>'}</td>
-          <td>${pnlStr}</td>
-          <td>${rStr}</td>
-          <td>${resultBadges[t.result]||''}</td>
-          <td><span class="setup-label" title="${t.setup||''}">${fmtSetup(t.setup)}</span></td>
-          <td>${renderTagPills(t.tags)}</td>
-          <td>${chartCell}</td>
-          <td><button class="btn btn-danger" onclick="deleteTrade('${t.id}')">Delete</button></td>
-        </tr>`;
-      }).join('');
     }
   }
 
@@ -1135,7 +1097,7 @@
         ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer">`
         : '';
 
-      return `<div class="entry-card ${t.result}">
+      const leftCol = `
         <div class="entry-top">
           <div class="entry-left">
             <span class="entry-ticker">${t.ticker.toUpperCase()}</span>
@@ -1145,26 +1107,24 @@
           </div>
           <span class="entry-date">${dateStr}</span>
         </div>
-
         <div class="entry-perf">
-          <div class="entry-perf-item">
-            <label>P&L</label>
-            <span style="color:${pnlCol}">${pnlStr}</span>
-          </div>
-          <div class="entry-perf-item">
-            <label>R</label>
-            <span style="color:${rCol}">${rStr}</span>
-          </div>
-          <div class="entry-perf-item">
-            <label>Setup</label>
-            <span style="color:var(--text2);font-size:12px">${fmtSetup(t.setup)}</span>
-          </div>
+          <div class="entry-perf-item"><label>P&L</label><span style="color:${pnlCol}">${pnlStr}</span></div>
+          <div class="entry-perf-item"><label>R</label><span style="color:${rCol}">${rStr}</span></div>
+          <div class="entry-perf-item"><label>Setup</label><span style="color:var(--text2);font-size:12px">${fmtSetup(t.setup)}</span></div>
         </div>
-
         ${reasoning ? `<div class="entry-body">${reasoning}</div>` : ''}
         ${lessonHtml}
-        ${patternHtml ? `<div class="entry-tags">${patternHtml}</div>` : ''}
-        ${chart}
+        ${patternHtml ? `<div class="entry-tags">${patternHtml}</div>` : ''}`;
+
+      const rightCol = t.screenshot
+        ? `<div class="entry-screenshot"><img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block"></div>`
+        : `<div class="entry-screenshot entry-screenshot-empty"><span style="font-size:24px;opacity:0.2">📷</span></div>`;
+
+      return `<div class="entry-card ${t.result}">
+        <div class="entry-two-col">
+          <div class="entry-col-left">${leftCol}</div>
+          <div class="entry-col-right">${rightCol}</div>
+        </div>
       </div>`;
     }).join('');
   }
