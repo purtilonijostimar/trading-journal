@@ -2504,7 +2504,7 @@
   const field = document.getElementById('dollarField');
   if (!field) return;
   // Grid-based scatter: divide viewport into cells, jitter within each
-  const cols = 7, rows = 10;
+  const cols = 12, rows = 16;
   const sizes = [18, 24, 32, 44, 60, 80, 110];
   let html = '';
   for (let r = 0; r < rows; r++) {
@@ -2514,17 +2514,17 @@
       const y = (r * cellH) + (Math.random() * cellH * 0.8);
       const size = sizes[Math.floor(Math.random() * sizes.length)];
       const rot  = (Math.random() * 60) - 30;
-      const opacity = 0.10 + Math.random() * 0.15;
+      const opacity = 0.35 + Math.random() * 0.15;
       html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:${opacity.toFixed(2)}"></span>`;
     }
   }
   // Scatter a few large accent ones
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 12; i++) {
     const x = 5 + Math.random() * 90;
     const y = 5 + Math.random() * 90;
     const size = 100 + Math.floor(Math.random() * 80);
     const rot  = (Math.random() * 70) - 35;
-    html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:0.08"></span>`;
+    html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:0.25"></span>`;
   }
   field.innerHTML = html.replace(/></g, '>$<');
 })();
