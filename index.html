@@ -192,19 +192,21 @@
     text-transform: uppercase;
     /* Wide gradient: branded on left, white in centre, branded on right */
     /* background-size:300% so the white band sweeps left→right over 60s */
-    background: linear-gradient(
-      90deg,
-      #ffffff  0%,
-      #ffffff 33%,
-      rgba(0,184,255,0.30) 38%,
-      rgba(0,220,255,0.30) 47%,
-      rgba(255,230,0,0.30) 50%,
-      rgba(0,220,255,0.30) 53%,
-      rgba(0,184,255,0.30) 62%,
-      #ffffff 67%,
-      #ffffff 100%
-    );
-    background-size: 300% 100%;
+    background:
+      linear-gradient(
+        90deg,
+        #ffffff  0%,
+        #ffffff 33%,
+        rgba(0,184,255,0.40) 38%,
+        rgba(0,220,255,0.40) 47%,
+        rgba(255,230,0,0.40) 50%,
+        rgba(0,220,255,0.40) 53%,
+        rgba(0,184,255,0.40) 62%,
+        #ffffff 67%,
+        #ffffff 100%
+      ) left / 300% 100%,
+      #ffffff;
+    background-size: 300% 100%, auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
