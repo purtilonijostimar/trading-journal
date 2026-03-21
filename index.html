@@ -70,6 +70,7 @@
   .col-stop    { width:72px; }
   .col-target  { width:72px; }
   .col-pnl     { width:84px; }
+  .col-r       { width:56px; }
   .col-result  { width:68px; }
   .col-setup   { width:120px; }
   .col-tags    { width:160px; }
@@ -123,6 +124,30 @@
 
   /* Analytics */
   .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+
+  /* ── Phase gate ── */
+  .phase-gate-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px; }
+  .phase-gate-title { font-size:13px; font-weight:700; margin-bottom:16px; color:var(--text); }
+  .phase-gate-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .phase-item { display:flex; flex-direction:column; gap:6px; }
+  .phase-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
+  .phase-bar-wrap { flex:1; }
+  .phase-bar-track { height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .phase-bar-fill { height:100%; border-radius:4px; transition:width 0.5s; background:var(--accent); }
+  .phase-bar-fill.done { background:var(--green); }
+  .phase-bar-fill.warn { background:var(--yellow); }
+  .phase-val { font-size:12px; font-weight:600; color:var(--text); }
+  .phase-status { margin-top:12px; font-size:12px; padding:8px 12px; border-radius:8px; text-align:center; font-weight:600; }
+  .phase-status.locked   { background:rgba(100,116,139,.12); color:var(--text3); }
+  .phase-status.unlocked { background:rgba(34,197,94,.12); color:var(--green); border:1px solid rgba(34,197,94,.3); }
+
+  /* ── R distribution chart ── */
+  .r-dist-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; }
+  .r-dist-ticker { width:52px; color:var(--text3); font-size:11px; font-weight:600; text-align:right; flex-shrink:0; }
+  .r-dist-track { flex:1; height:12px; background:var(--border); border-radius:6px; position:relative; }
+  .r-dist-fill  { height:100%; border-radius:6px; position:absolute; left:0; top:0; }
+  .r-dist-marker { position:absolute; top:-3px; width:2px; height:18px; background:rgba(255,255,255,.25); border-radius:1px; }
+  .r-dist-val   { width:48px; text-align:right; font-weight:600; font-size:11px; flex-shrink:0; }
   .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
   .chart-title { font-weight:700; margin-bottom:16px; font-size:14px; }
   .bar-chart { display:flex; flex-direction:column; gap:10px; }
@@ -237,14 +262,14 @@
             <col class="col-date"><col class="col-ticker"><col class="col-side">
             <col class="col-entry"><col class="col-exit"><col class="col-size">
             <col class="col-stop"><col class="col-target"><col class="col-pnl">
-            <col class="col-result"><col class="col-setup"><col class="col-tags">
+            <col class="col-r"><col class="col-result"><col class="col-setup"><col class="col-tags">
             <col class="col-chart"><col class="col-actions">
           </colgroup>
           <thead><tr>
             <th>Date</th><th>Ticker</th><th>Side</th>
             <th>Entry</th><th>Exit</th><th>Size</th>
             <th>Stop</th><th>Target</th><th>P&amp;L</th>
-            <th>Result</th><th>Setup</th><th>Tags</th>
+            <th>R</th><th>Result</th><th>Setup</th><th>Tags</th>
             <th>Chart</th><th></th>
           </tr></thead>
           <tbody id="tradesBody"></tbody>
@@ -301,11 +326,47 @@
 
 <!-- ANALYTICS TAB -->
   <div class="panel" id="panel-analytics">
+    <!-- Phase Gate -->
+    <div class="phase-gate-card" id="phaseGate">
+      <div class="phase-gate-title">🎯 Phase Gate — Paper → Live</div>
+      <div class="phase-gate-grid">
+        <div class="phase-item">
+          <div class="phase-label">Trades</div>
+          <div class="phase-bar-wrap">
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill" id="gateTradesBar"></div>
+            </div>
+          </div>
+          <div class="phase-val" id="gateTradesVal">—/30</div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-label">Profit Factor</div>
+          <div class="phase-bar-wrap">
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill" id="gatePFBar"></div>
+            </div>
+          </div>
+          <div class="phase-val" id="gatePFVal">—/1.5</div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-label">Avg Winner R</div>
+          <div class="phase-bar-wrap">
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill" id="gateRBar"></div>
+            </div>
+          </div>
+          <div class="phase-val" id="gateRVal">—/2.13R</div>
+        </div>
+      </div>
+      <div class="phase-status" id="phaseStatus"></div>
+    </div>
+
     <div class="analytics-grid">
       <div class="chart-card"><div class="chart-title">Win Rate by Setup</div><div class="bar-chart" id="setupChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Direction</div><div class="bar-chart" id="directionChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Regime</div><div class="bar-chart" id="regimeChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Time of Day</div><div class="bar-chart" id="timeChart"></div></div>
+      <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">📐 R Achievement (exit R vs 2.13R target)</div><div id="rDistChart"></div></div>
       <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">💡 Insights</div><div class="insight-list" id="insightList"></div></div>
     </div>
   </div>
@@ -491,6 +552,16 @@
         ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}</span>`
         : '<span style="color:var(--text3)">Open</span>';
 
+      const rVal  = calcR(t);
+      const TARGET_R = 2.1337;
+      const rStr  = rVal !== null
+        ? (() => {
+            const col = rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
+            const flag = (t.result === 'win' && rVal < 0.5) ? ' ⚡' : '';  // cut early indicator
+            return `<span style="color:${col};font-weight:600;font-size:12px">${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R${flag}</span>`;
+          })()
+        : '<span style="color:var(--text3)">—</span>';
+
       const chartCell = t.screenshot
         ? `<img class="chart-thumb" src="${t.screenshot}" alt="chart" onclick="openLightbox('${t.screenshot}')">`
         : `<span class="no-chart">—</span>`;
@@ -505,6 +576,7 @@
         <td style="color:var(--text3);font-size:12px">${t.stop  ? '$'+parseFloat(t.stop).toFixed(2)  : '<span style="color:var(--text3)">—</span>'}</td>
         <td style="color:var(--text3);font-size:12px">${t.target? '$'+parseFloat(t.target).toFixed(2): '<span style="color:var(--text3)">—</span>'}</td>
         <td>${pnlStr}</td>
+        <td>${rStr}</td>
         <td>${resultBadges[t.result]||''}</td>
         <td><span class="setup-label" title="${t.setup||''}">${fmtSetup(t.setup)}</span></td>
         <td>${renderTagPills(t.tags)}</td>
@@ -558,8 +630,108 @@
       }).join('');
   }
 
+  function calcR(t) {
+    const entry  = parseFloat(t.entry)  || 0;
+    const stop   = parseFloat(t.stop)   || 0;
+    const exit_  = parseFloat(t.exit)   || 0;
+    const risk   = Math.abs(entry - stop);
+    if (!risk || !exit_) return null;
+    const move = t.direction === 'long' ? exit_ - entry : entry - exit_;
+    return move / risk;
+  }
+
+  function renderPhaseGate(closed) {
+    const wins    = closed.filter(t => t.result === 'win');
+    const losses  = closed.filter(t => t.result === 'loss');
+    const grossW  = wins.map(t => calcPnl(t) || 0).reduce((a,b)=>a+b,0);
+    const grossL  = Math.abs(losses.map(t => calcPnl(t) || 0).reduce((a,b)=>a+b,0));
+    const pf      = grossL > 0 ? grossW / grossL : (grossW > 0 ? 99 : 0);
+    const winRs   = wins.map(t => calcR(t)).filter(r => r !== null);
+    const avgWinR = winRs.length ? winRs.reduce((a,b)=>a+b,0)/winRs.length : 0;
+
+    const TARGET_TRADES = 30, TARGET_PF = 1.5, TARGET_R = 2.1337;
+
+    // Trades bar
+    const tradePct = Math.min(100, closed.length / TARGET_TRADES * 100);
+    const tradeDone = closed.length >= TARGET_TRADES;
+    document.getElementById('gateTradesBar').style.width  = tradePct + '%';
+    document.getElementById('gateTradesBar').className    = 'phase-bar-fill' + (tradeDone ? ' done' : '');
+    document.getElementById('gateTradesVal').textContent  = `${closed.length}/${TARGET_TRADES}`;
+
+    // PF bar
+    const pfPct  = Math.min(100, pf / TARGET_PF * 100);
+    const pfDone = pf >= TARGET_PF;
+    document.getElementById('gatePFBar').style.width = pfPct + '%';
+    document.getElementById('gatePFBar').className   = 'phase-bar-fill' + (pfDone ? ' done' : pfPct > 60 ? ' warn' : '');
+    document.getElementById('gatePFVal').textContent = `${pf === 99 ? '∞' : pf.toFixed(2)}/${TARGET_PF}`;
+
+    // Avg winner R bar
+    const rPct  = Math.min(100, avgWinR / TARGET_R * 100);
+    const rDone = avgWinR >= TARGET_R;
+    document.getElementById('gateRBar').style.width = rPct + '%';
+    document.getElementById('gateRBar').className   = 'phase-bar-fill' + (rDone ? ' done' : rPct > 60 ? ' warn' : '');
+    document.getElementById('gateRVal').textContent = `${avgWinR.toFixed(2)}R/${TARGET_R}R`;
+
+    // Status
+    const allDone = tradeDone && pfDone;
+    const statusEl = document.getElementById('phaseStatus');
+    statusEl.className = 'phase-status ' + (allDone ? 'unlocked' : 'locked');
+    statusEl.textContent = allDone
+      ? '🟢 Phase gate PASSED — live trading criteria met'
+      : `🔒 ${TARGET_TRADES - closed.length} more trades needed` +
+        (!pfDone ? ` · PF needs ${(TARGET_PF - pf).toFixed(2)} more` : '') +
+        (!rDone  ? ` · Avg winner R: ${avgWinR.toFixed(2)}R (target ${TARGET_R}R)` : '');
+  }
+
+  function renderRDist(closed) {
+    const TARGET_R = 2.1337;
+    const el = document.getElementById('rDistChart');
+    const withR = closed
+      .map(t => ({ t, r: calcR(t) }))
+      .filter(x => x.r !== null)
+      .sort((a,b) => b.r - a.r);
+
+    if (!withR.length) {
+      el.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:4px 0">Need entry, exit and stop data to calculate R.</p>';
+      return;
+    }
+
+    // Min R for scale (cap at -1.5R for display)
+    const minR = Math.max(-1.5, Math.min(0, ...withR.map(x => x.r)));
+    const maxR = TARGET_R;
+    const range = maxR - minR;
+
+    el.innerHTML = withR.map(({ t, r }) => {
+      const clampedR = Math.max(minR, Math.min(maxR, r));
+      const zeroX    = Math.abs(minR) / range * 100;   // where 0R sits on the bar
+      const fillX    = (clampedR - minR) / range * 100; // where exit sits
+
+      const isNeg    = r < 0;
+      const color    = r < 0 ? 'var(--red)' : r >= TARGET_R ? 'var(--green)' : r >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
+      const rLabel   = (r >= 0 ? '+' : '') + r.toFixed(2) + 'R';
+      const rColor   = r < 0 ? 'var(--red)' : r >= TARGET_R ? 'var(--green)' : 'var(--text)';
+      const ticker   = (t.ticker || '?').toUpperCase();
+
+      // The fill: from zero-point to exit-point
+      const fillLeft  = isNeg ? fillX  : zeroX;
+      const fillWidth = Math.abs(fillX - zeroX);
+
+      return `<div class="r-dist-row">
+        <div class="r-dist-ticker" title="${t.date}">${ticker}</div>
+        <div class="r-dist-track">
+          <div class="r-dist-fill" style="left:${fillLeft}%;width:${fillWidth}%;background:${color};opacity:0.75"></div>
+          <div class="r-dist-marker" style="left:${zeroX}%" title="Entry (0R)"></div>
+          <div class="r-dist-marker" style="left:99%;background:rgba(34,197,94,.5)" title="Target (${TARGET_R}R)"></div>
+        </div>
+        <div class="r-dist-val" style="color:${rColor}">${rLabel}</div>
+      </div>`;
+    }).join('');
+  }
+
   function renderAnalytics() {
     const closed = trades.filter(t => t.result !== 'open');
+    renderPhaseGate(closed);
+    renderRDist(closed);
 
     // Setup chart
     const setups = {};
@@ -603,26 +775,65 @@
     });
     makeBarChart('timeChart', times);
 
-    // Insights
+    // Insights — data-driven, grounded in real patterns
     const insights = [];
-    if (!trades.length) { insights.push({icon:'🚀',text:'Log your first trade to start building insights.'}); }
-    else {
-      const wr = closed.length ? closed.filter(t=>t.result==='win').length/closed.length*100 : 0;
-      const pnls = closed.map(calcPnl).filter(v=>v!==null);
-      const totalPnl = pnls.reduce((a,b)=>a+b,0);
-      if (closed.length >= 5 && wr < 40) insights.push({icon:'⚠️', text:`Win rate is ${wr.toFixed(0)}% — below break-even. Review your entry criteria.`});
-      if (closed.length >= 5 && wr > 60) insights.push({icon:'✅', text:`Strong ${wr.toFixed(0)}% win rate. Focus on letting winners run to full target.`});
-      if (closed.length >= 3 && totalPnl < 0 && wr > 50) insights.push({icon:'📐', text:`Positive win rate but negative P&L — winners smaller than losers. R:R needs work.`});
+    if (!trades.length) {
+      insights.push({icon:'🚀', text:'Log your first trade to start building insights.'});
+    } else {
+      const wr      = closed.length ? closed.filter(t=>t.result==='win').length/closed.length*100 : 0;
+      const pnls    = closed.map(calcPnl).filter(v=>v!==null);
+      const totalPnl= pnls.reduce((a,b)=>a+b,0);
+      const winRs   = closed.filter(t=>t.result==='win').map(t=>calcR(t)).filter(r=>r!==null);
+      const avgWinR = winRs.length ? winRs.reduce((a,b)=>a+b,0)/winRs.length : 0;
+      const TARGET_R = 2.1337;
 
-      // Best regime
-      const bestRegime = Object.entries(regimes).filter(([,d])=>d.total>=2).sort((a,b)=>(b[1].wins/b[1].total)-(a[1].wins/a[1].total))[0];
-      if (bestRegime) insights.push({icon:'🎯', text:`Best regime: ${bestRegime[0]} (${Math.round(bestRegime[1].wins/bestRegime[1].total*100)}% win rate, ${bestRegime[1].total} trades).`});
+      // R:R gap — most critical insight
+      if (winRs.length >= 3 && avgWinR < TARGET_R * 0.75) {
+        insights.push({icon:'📐', text:`Avg winner is ${avgWinR.toFixed(2)}R vs ${TARGET_R}R target — winners are being cut early. Check VWAP breach rule and exit logic.`});
+      } else if (winRs.length >= 3 && avgWinR >= TARGET_R * 0.9) {
+        insights.push({icon:'✅', text:`Winners averaging ${avgWinR.toFixed(2)}R — close to target. Exit logic is working.`});
+      }
+
+      // Win rate
+      if (closed.length >= 5 && wr < 40) insights.push({icon:'⚠️', text:`Win rate ${wr.toFixed(0)}% — below break-even threshold. Entry criteria need tightening.`});
+      if (closed.length >= 5 && wr >= 60) insights.push({icon:'💪', text:`${wr.toFixed(0)}% win rate across ${closed.length} trades — edge is real. Focus on holding winners.`});
+
+      // P&L vs win rate divergence
+      if (closed.length >= 5 && totalPnl < 0 && wr > 50)
+        insights.push({icon:'⚡', text:`${wr.toFixed(0)}% win rate but negative P&L — losers bigger than winners. R:R needs work.`});
+
+      // Afternoon pattern (Insight #006)
+      const aftTrades = closed.filter(t => { const tg = parseTags(t.tags); return tg.time === 'afternoon'; });
+      const aftWins   = aftTrades.filter(t => t.result === 'win');
+      if (aftTrades.length >= 3) {
+        const aftWR = aftWins.length / aftTrades.length * 100;
+        const aftPnl = aftTrades.map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0);
+        if (aftWR < 45)
+          insights.push({icon:'🕐', text:`Afternoon trades: ${aftWR.toFixed(0)}% WR (${aftWins.length}W/${aftTrades.length-aftWins.length}L) €${aftPnl.toFixed(0)} — underperforming. Insight #006 active: afternoon penalty applied to signals.`});
+      }
 
       // Best setup
-      const bestSetup = Object.entries(setups).filter(([,d])=>d.total>=2).sort((a,b)=>(b[1].wins/b[1].total)-(a[1].wins/a[1].total))[0];
-      if (bestSetup) insights.push({icon:'⚡', text:`Best setup: ${bestSetup[0]} (${Math.round(bestSetup[1].wins/bestSetup[1].total*100)}% win rate, ${bestSetup[1].total} trades).`});
+      const bestSetup = Object.entries(setups).filter(([,d])=>d.total>=3).sort((a,b)=>(b[1].wins/b[1].total)-(a[1].wins/a[1].total))[0];
+      if (bestSetup) insights.push({icon:'🎯', text:`Best setup: ${bestSetup[0]} at ${Math.round(bestSetup[1].wins/bestSetup[1].total*100)}% WR (${bestSetup[1].total} trades).`});
 
-      if (!insights.length) insights.push({icon:'📈', text:`${closed.length} trades logged. Patterns emerge after 20+ trades — keep going.`});
+      // Worst setup with enough data
+      const worstSetup = Object.entries(setups).filter(([,d])=>d.total>=3).sort((a,b)=>(a[1].wins/a[1].total)-(b[1].wins/b[1].total))[0];
+      if (worstSetup && worstSetup[0] !== (bestSetup||[''])[0]) {
+        const wWR = Math.round(worstSetup[1].wins/worstSetup[1].total*100);
+        if (wWR < 45) insights.push({icon:'🔻', text:`Weakest setup: ${worstSetup[0]} at ${wWR}% WR (${worstSetup[1].total} trades). Watch this one.`});
+      }
+
+      // Phase gate proximity
+      const grossW = closed.filter(t=>t.result==='win').map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0);
+      const grossL = Math.abs(closed.filter(t=>t.result==='loss').map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0));
+      const pf = grossL > 0 ? grossW/grossL : 0;
+      if (closed.length >= 20 && closed.length < 30)
+        insights.push({icon:'🏁', text:`${30-closed.length} trades to go until phase gate check. Current PF: ${pf.toFixed(2)} (need ≥1.5).`});
+      if (closed.length >= 30 && pf >= 1.5)
+        insights.push({icon:'🟢', text:`Phase gate met — 30 trades logged, PF ${pf.toFixed(2)}. Ready for live evaluation.`});
+
+      if (!insights.length)
+        insights.push({icon:'📈', text:`${closed.length} trades logged. Patterns will surface after 10+ trades per setup — keep going.`});
     }
     document.getElementById('insightList').innerHTML = insights.map(i=>`
       <div class="insight-item"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('');
