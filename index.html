@@ -179,10 +179,7 @@
   .live-dot.err::before { background:var(--red); box-shadow:0 0 6px var(--red); }
 
 
-  /* ── Desktop: tone down blobs significantly ── */
-  @media (min-width: 769px) {
-    .blob-stage { opacity: 0.06 !important; }
-  }
+
   /* ── Glass surface — shared recipe ── */
   .stat-card, .table-wrapper, .chart-card,
   .phase-gate-card, .streak-card, .entry-card {
@@ -739,6 +736,24 @@
 </header>
 
 <div class="blob-stage"><div class="blob-a"></div><div class="blob-b"></div><div class="blob-teal"></div><div class="blob-warm"></div></div>
+<script>
+(function(){
+  function applyBlobIntensity() {
+    var stage = document.querySelector('.blob-stage');
+    if (!stage) return;
+    if (window.innerWidth > 768) {
+      stage.style.opacity = '0.07';
+      stage.style.filter  = 'blur(40px)';
+    } else {
+      stage.style.opacity = '';
+      stage.style.filter  = '';
+    }
+  }
+  applyBlobIntensity();
+  window.addEventListener('resize', applyBlobIntensity);
+})();
+</script>
+
 <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
   <rect width="100%" height="100%" filter="url(#noise)" opacity="0.06"/>
