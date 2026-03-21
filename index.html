@@ -541,9 +541,11 @@
     .journal-filters::-webkit-scrollbar { display:none; }
     .jf-btn   { min-height:36px; }
     .entry-card { padding:14px; border-radius:10px; }
-    .entry-two-col  { grid-template-columns:1fr; }
-    .entry-col-right { height:100px; }
-    .entry-screenshot { height:100px; min-height:unset; }
+    .entry-two-col   { grid-template-columns:1fr; position:relative; }
+    .entry-col-left  { padding-right:72px; }
+    .entry-col-right { position:absolute; top:0; right:0; width:64px; height:48px; }
+    .entry-screenshot { height:48px; min-height:unset; border-radius:8px; }
+    .entry-screenshot-empty { display:none; }
 
     .live-stats-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .live-stats-row > div:last-child { grid-column:1/-1; }
