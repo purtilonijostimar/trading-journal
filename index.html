@@ -850,22 +850,20 @@
               <div style="font-size:13px;font-weight:600;color:var(--text2)">$${parseFloat(t.size||0).toFixed(0)}</div>
             </div>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)">
-            <div style="display:flex;gap:16px;align-items:center">
-              <div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">P&L</div>
-                <div style="font-size:15px;font-weight:700;color:${pnlCol}">${pnlStr}</div>
-              </div>
-              <div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">R</div>
-                <div style="font-size:15px;font-weight:700;color:${rCol}">${rStr}</div>
-              </div>
-              <div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">SETUP</div>
-                <div style="font-size:12px;color:var(--text2)">${fmtSetup(t.setup)}</div>
-              </div>
+          <div style="display:grid;grid-template-columns:72px 68px 1fr auto;align-items:center;gap:8px;padding-top:8px;border-top:1px solid var(--border)">
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">P&L</div>
+              <div style="font-size:15px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
             </div>
-            ${regime}
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">R</div>
+              <div style="font-size:15px;font-weight:700;color:${rCol};white-space:nowrap">${rStr}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">SETUP</div>
+              <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fmtSetup(t.setup)}</div>
+            </div>
+            <div>${regime}</div>
           </div>
           ${chart}
         </div>`;
