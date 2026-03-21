@@ -33,8 +33,10 @@
   .container { position:relative; z-index:1; }
 
   header { background:rgba(15,17,23,0.75); border-bottom:1px solid rgba(255,255,255,0.06); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%); }
-  .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; letter-spacing:-0.5px; }
-  .logo-icon { width:32px; height:32px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:white; letter-spacing:-1px; }
+  .logo { display:flex; align-items:center; gap:0; line-height:1; }
+  .logo-k { font-size:22px; font-weight:900; letter-spacing:-1px; color:#fff; }
+  .logo-sheftr { font-size:22px; font-weight:300; letter-spacing:2px; color:rgba(255,255,255,0.65); text-transform:uppercase; }
+  .logo-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); margin-left:4px; margin-bottom:2px; flex-shrink:0; align-self:flex-end; }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
   .live-dot::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; box-shadow:0 0 6px var(--green); }
@@ -73,7 +75,7 @@
 
   table { width:100%; border-collapse:collapse; table-layout:fixed; }
   th { padding:12px 12px; text-align:left; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.03); white-space:nowrap; }
-  td { padding:12px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; overflow:hidden; }
+  td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; overflow:hidden; }
   tr:last-child td { border-bottom:none; }
   tr:hover td { background:rgba(79,124,255,0.03); }
 
@@ -613,8 +615,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-icon">K</div>
-    Ksheftr
+    <span class="logo-k">K</span><span class="logo-sheftr">sheftr</span><span class="logo-dot"></span>
   </div>
   <div class="header-right">
     <span class="live-dot" id="liveStatus">Live</span>
@@ -1041,7 +1042,10 @@
               <span class="badge badge-${t.result}">${t.result}</span>
               ${regimePill}
             </div>
-            <span style="font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap;flex-shrink:0">${dateStr}</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <span style="font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap">${dateStr}</span>
+              <button onclick="deleteTrade('${t.id}')" style="width:22px;height:22px;border-radius:50%;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:rgba(239,68,68,0.7);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;line-height:1">✕</button>
+            </div>
           </div>
           <!-- Body: stats left, chart right -->
           <div style="display:grid;grid-template-columns:1fr 44%;gap:12px;align-items:stretch">
@@ -1052,10 +1056,6 @@
               ${statItem('Exit',  t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—', 'rgba(255,255,255,0.75)')}
             </div>
             <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)">${chartHtml}</div>
-          </div>
-          <!-- Delete -->
-          <div style="margin-top:10px;display:flex;justify-content:flex-end">
-            <button class="btn btn-danger" style="font-size:11px;padding:4px 10px" onclick="deleteTrade('${t.id}')">Delete</button>
           </div>
           </div><!-- /.tcm-body -->
         </div>`;
@@ -1076,7 +1076,7 @@
           <thead><tr>
             <th>Date</th><th>Ticker</th><th>Side</th><th>Setup</th>
             <th>P&amp;L</th><th>R</th><th>Entry</th><th>Exit</th>
-            <th>Stop</th><th>Target</th><th></th>
+            <th>Stop</th><th>Target</th><th>Chart</th><th></th>
           </tr></thead>`);
       }
 
@@ -1085,18 +1085,23 @@
         const regimeBadge = regime
           ? `<span style="font-size:10px;color:rgba(147,197,253,0.8);background:rgba(79,124,255,.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(79,124,255,.15)">${regime.replace(/[_+]/g,' ')}</span>` : '';
 
+        const chartThumb = t.screenshot
+          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
+          : `<span style="opacity:0.2;font-size:16px">📷</span>`;
+
         return `<tr style="background:${bgTint}">
-          <td style="color:rgba(255,255,255,0.45);font-size:12px;white-space:nowrap">${dateStr}</td>
-          <td><strong style="font-size:14px;letter-spacing:-.2px">${t.ticker.toUpperCase()}</strong></td>
+          <td style="color:rgba(255,255,255,0.4);font-size:11px;white-space:nowrap">${dateStr}</td>
+          <td><strong style="font-size:14px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</strong></td>
           <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
-          <td style="font-size:12px;color:rgba(255,255,255,0.55)">${fmtSetup(t.setup)}${regimeBadge ? ' '+regimeBadge : ''}</td>
-          <td><span style="font-weight:700;color:${pnlCol}">${pnlStr}</span></td>
-          <td><span style="font-weight:700;color:${rCol}">${rStr}</span></td>
-          <td style="color:rgba(255,255,255,0.7);font-size:13px">$${parseFloat(t.entry||0).toFixed(2)}</td>
-          <td style="color:rgba(255,255,255,0.7);font-size:13px">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.3">—</span>'}</td>
-          <td style="color:rgba(239,68,68,0.65);font-size:12px">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.3">—</span>'}</td>
-          <td style="color:rgba(34,197,94,0.65);font-size:12px">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.3">—</span>'}</td>
-          <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px" onclick="deleteTrade('${t.id}')">Delete</button></td>
+          <td style="font-size:12px;color:rgba(255,255,255,0.6);white-space:nowrap">${fmtSetup(t.setup)}${regimeBadge ? '&nbsp;'+regimeBadge : ''}</td>
+          <td><span style="font-weight:800;font-size:13px;color:${pnlCol}">${pnlStr}</span></td>
+          <td><span style="font-weight:800;font-size:13px;color:${rCol}">${rStr}</span></td>
+          <td style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</td>
+          <td style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.25">—</span>'}</td>
+          <td style="color:rgba(239,68,68,0.6);font-size:11px">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.25">—</span>'}</td>
+          <td style="color:rgba(34,197,94,0.6);font-size:11px">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.25">—</span>'}</td>
+          <td>${chartThumb}</td>
+          <td style="text-align:right"><button class="btn btn-danger" style="font-size:10px;padding:3px 8px;opacity:0.7" onclick="deleteTrade('${t.id}')">✕</button></td>
         </tr>`;
       }).join('');
 
