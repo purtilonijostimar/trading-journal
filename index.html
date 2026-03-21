@@ -31,11 +31,11 @@
     --red:       #ef4444;
     --yellow:    #f59e0b;
 
-    /* Semantic colours — bright (for text on glass) */
-    --green-b:   #22c55e;
-    --red-b:     #ef4444;
-    --yellow-b:  #fbbf24;
-    --blue-b:    #93c5fd;
+    /* Aliases kept for compatibility */
+    --green-b:   var(--green);
+    --red-b:     var(--red);
+    --yellow-b:  var(--yellow);
+    --blue-b:    var(--accent);
 
     /* Text */
     --text:      #e2e8f0;
@@ -280,9 +280,9 @@
   .gauge-wrap  { display:flex; flex-direction:column; gap:8px; }
   .gauge-track { height:20px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
   .gauge-fill  { height:100%; border-radius:10px; transition:width .5s; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; }
-  .gauge-fill.safe   { background:rgba(34,197,94,.3);  color:var(--green-b); }
-  .gauge-fill.warn   { background:rgba(234,179,8,.35); color:var(--yellow-b); }
-  .gauge-fill.danger { background:rgba(239,68,68,.4);  color:var(--red-b); }
+  .gauge-fill.safe   { background:rgba(34,197,94,.3);  color:var(--green); }
+  .gauge-fill.warn   { background:rgba(234,179,8,.35); color:var(--yellow); }
+  .gauge-fill.danger { background:rgba(239,68,68,.4);  color:var(--red); }
   .gauge-meta  { display:flex; justify-content:space-between; font-size:12px; color:var(--text3); }
 
   /* Rolling performance */
@@ -292,8 +292,8 @@
   .rolling-stat { display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:5px; }
   .rolling-stat .label { color:var(--text3); }
   .rolling-stat .val   { font-weight:600; }
-  .delta-up   { font-size:10px; margin-left:4px; color:var(--green-b); }
-  .delta-down { font-size:10px; margin-left:4px; color:var(--red-b); }
+  .delta-up   { font-size:10px; margin-left:4px; color:var(--green); }
+  .delta-down { font-size:10px; margin-left:4px; color:var(--red); }
 
   /* Bar charts (shared by Setup, Direction, Regime, DOW) */
   .bar-chart { display:flex; flex-direction:column; gap:8px; }
@@ -301,9 +301,9 @@
   .bar-label { width:96px; font-size:12px; color:rgba(255,255,255,0.5); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .bar-track { flex:1; background:rgba(255,255,255,0.05); border-radius:8px; height:32px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
   .bar-fill  { height:100%; border-radius:8px; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; transition:width 0.5s; min-width:60px; white-space:nowrap; }
-  .bar-fill.green  { background:rgba(34,197,94,0.35);  color:var(--green-b); }
-  .bar-fill.yellow { background:rgba(251,191,36,0.3);  color:var(--yellow-b); }
-  .bar-fill.red    { background:rgba(239,68,68,0.3);   color:var(--red-b); }
+  .bar-fill.green  { background:rgba(34,197,94,0.25);  color:var(--green); }
+  .bar-fill.yellow { background:rgba(251,191,36,0.3);  color:var(--yellow); }
+  .bar-fill.red    { background:rgba(239,68,68,0.2);   color:var(--red); }
   .bar-fill.blue   { background:rgba(79,124,255,0.3);  color:var(--blue-b); }
   .bar-n     { width:24px; text-align:right; font-size:11px; color:rgba(255,255,255,0.3); flex-shrink:0; }
 
@@ -312,8 +312,8 @@
   .dow-label     { width:32px; color:rgba(255,255,255,0.5); font-size:12px; font-weight:600; flex-shrink:0; }
   .dow-bar-track { flex:1; height:32px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
   .dow-bar-fill  { height:100%; border-radius:8px; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; white-space:nowrap; }
-  .dow-bar-fill.pos { background:rgba(34,197,94,.35); color:var(--green-b); }
-  .dow-bar-fill.neg { background:rgba(239,68,68,.3);  color:var(--red-b); }
+  .dow-bar-fill.pos { background:rgba(34,197,94,.25); color:var(--green); }
+  .dow-bar-fill.neg { background:rgba(239,68,68,.2);  color:var(--red); }
   .dow-n { width:24px; text-align:right; color:rgba(255,255,255,0.3); font-size:11px; flex-shrink:0; }
 
   /* Signal funnel */
@@ -323,8 +323,8 @@
   .funnel-track { flex:1; height:28px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden; }
   .funnel-fill  { height:100%; border-radius:6px; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:600; white-space:nowrap; transition:width .4s; }
   .funnel-fill.detected { background:rgba(99,179,237,.25); color:#90cdf4; }
-  .funnel-fill.approved { background:rgba(34,197,94,.25);  color:var(--green-b); }
-  .funnel-fill.rejected { background:rgba(239,68,68,.2);   color:var(--red-b); }
+  .funnel-fill.approved { background:rgba(34,197,94,.25);  color:var(--green); }
+  .funnel-fill.rejected { background:rgba(239,68,68,.2);   color:var(--red); }
   .funnel-pct  { width:44px; font-size:11px; color:var(--text3); text-align:right; flex-shrink:0; }
   .funnel-sub  { margin-top:12px; display:flex; gap:24px; flex-wrap:wrap; }
   .funnel-sub-item { font-size:12px; color:var(--text3); }
@@ -371,14 +371,14 @@
 
   /* ══ JOURNAL ══════════════════════════════════════════════════ */
 
-  .entry-list { display:flex; flex-direction:column; gap:16px; }
+  .entry-list { display:flex; flex-direction:column; gap:24px; }
   .journal-toolbar  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
   .journal-filters  { display:flex; gap:6px; flex-wrap:wrap; }
   .jf-btn { padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
   .jf-btn.active { background:var(--accent); border-color:var(--accent); color:white; }
   .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
 
-  .entry-card { padding:16px; }
+  .entry-card { padding:20px; }
   .entry-card.win, .entry-card.loss, .entry-card.open {} /* neutral — colour lives in values */
 
   /* Two-column layout */
@@ -941,9 +941,9 @@
     const deriveRow = t => {
       const pnl    = calcPnl(t);
       const rVal   = calcR(t);
-      const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#22c55e' : '#ef4444';
+      const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? 'var(--green)' : 'var(--red)';
       const rCol   = rVal === null ? 'rgba(255,255,255,0.4)'
-                   : rVal < 0 ? '#ef4444' : rVal >= TARGET_R ? '#22c55e'
+                   : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)'
                    : rVal >= 1.0 ? '#fbbf24' : '#93c5fd';
       const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : 'Open';
       const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
@@ -982,7 +982,7 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block;min-height:110px">`
           : `<div style="width:100%;height:100%;min-height:110px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
 
-        const barCol = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#93c5fd';
+        const barCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
         return `<div class="trade-card-mobile ${t.result}">
           <div class="tcm-accent-bar" style="width:4px;background:${barCol}"></div>
@@ -1043,7 +1043,7 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
           : `<span style="opacity:0.15;font-size:16px">📷</span>`;
 
-        const accentCol = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#93c5fd';
+        const accentCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
         return `<tr>
           <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
@@ -1056,8 +1056,8 @@
           <td><span style="font-weight:800;font-size:13px;color:${rCol}">${rStr}</span></td>
           <td style="color:var(--text2);font-size:12px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</td>
           <td style="color:var(--text2);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="color:var(--red-b);font-size:12px;font-weight:600">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="color:var(--green-b);font-size:12px;font-weight:600">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
+          <td style="color:var(--red);font-size:12px;font-weight:600">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.2">—</span>'}</td>
+          <td style="color:var(--green);font-size:12px;font-weight:600">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
           <td style="text-align:right"><button onclick="deleteTrade('${t.id}')" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button></td>
         </tr>`;
       }).join('');
@@ -1325,11 +1325,11 @@
     const cellColor = (wins, total) => {
       if (!total) return { bg:'rgba(255,255,255,0.03)', text:'rgba(255,255,255,0.2)' };
       const wr = wins / total;
-      if (wr >= 0.65) return { bg:'rgba(34,197,94,0.35)',  text:'#22c55e' };
-      if (wr >= 0.50) return { bg:'rgba(34,197,94,0.18)',  text:'#86efac' };
+      if (wr >= 0.65) return { bg:'rgba(34,197,94,0.35)',  text:'var(--green)' };
+      if (wr >= 0.50) return { bg:'rgba(34,197,94,0.18)',  text:'var(--green-b)' };
       if (wr >= 0.40) return { bg:'rgba(251,191,36,0.2)',  text:'#fbbf24' };
-      if (wr >= 0.30) return { bg:'rgba(239,68,68,0.18)',  text:'#fca5a5' };
-      return              { bg:'rgba(239,68,68,0.30)',  text:'#ef4444' };
+      if (wr >= 0.30) return { bg:'rgba(239,68,68,0.18)',  text:'var(--red-b)' };
+      return              { bg:'rgba(239,68,68,0.30)',  text:'var(--red)' };
     };
 
     const cols = DAYS.length + 1; // +1 for row label
@@ -1358,7 +1358,7 @@
 
     // Legend
     const legend = `<div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
-      ${[['≥65%','rgba(34,197,94,0.35)','#22c55e'],['50–65%','rgba(34,197,94,0.18)','#86efac'],['40–50%','rgba(251,191,36,0.2)','#fbbf24'],['30–40%','rgba(239,68,68,0.18)','#fca5a5'],['<30%','rgba(239,68,68,0.30)','#ef4444'],['No data','rgba(255,255,255,0.03)','rgba(255,255,255,0.3)']].map(([label,bg,col])=>
+      ${[['≥65%','rgba(34,197,94,0.35)','var(--green)'],['50–65%','rgba(34,197,94,0.18)','#86efac'],['40–50%','rgba(251,191,36,0.2)','#fbbf24'],['30–40%','rgba(239,68,68,0.18)','#fca5a5'],['<30%','rgba(239,68,68,0.30)','var(--red)'],['No data','rgba(255,255,255,0.03)','rgba(255,255,255,0.3)']].map(([label,bg,col])=>
         `<div style="display:flex;align-items:center;gap:5px">
           <div style="width:14px;height:14px;border-radius:4px;background:${bg};border:1px solid rgba(255,255,255,0.08)"></div>
           <span style="font-size:10px;color:${col};font-weight:600">${label}</span>
@@ -1485,7 +1485,7 @@
     for (let i = 0; i < ptCoords.length - 1; i++) {
       const [x0,y0] = ptCoords[i],   v0 = points[i].v;
       const [x1,y1] = ptCoords[i+1], v1 = points[i+1].v;
-      const col  = (v0 + v1) / 2 >= 0 ? '#22c55e' : '#ef4444';
+      const col  = (v0 + v1) / 2 >= 0 ? 'var(--green)' : 'var(--red)';
       const glow = (v0 + v1) / 2 >= 0 ? 'glow-green' : 'glow-red';
       // Base line + glow overlay
       lineSegs.push(
@@ -2345,15 +2345,15 @@
       timeScale: { borderColor:'#2e3347', timeVisible:true, secondsVisible:false },
     });
     const cs = chart.addCandlestickSeries({
-      upColor:'#22c55e', downColor:'#ef4444',
-      borderUpColor:'#22c55e', borderDownColor:'#ef4444',
-      wickUpColor:'#22c55e', wickDownColor:'#ef4444'
+      upColor:'var(--green)', downColor:'var(--red)',
+      borderUpColor:'var(--green)', borderDownColor:'var(--red)',
+      wickUpColor:'var(--green)', wickDownColor:'var(--red)'
     });
     cs.setData(candles);
     if (vwap)      { const vs = chart.addLineSeries({color:'#f59e0b',lineWidth:1,lineStyle:2,title:'VWAP'});   vs.setData(candles.map(c=>({time:c.time,value:vwap}))); }
     if (pos.entry) { const es = chart.addLineSeries({color:'#4f7cff',lineWidth:1,title:'Entry'});              es.setData(candles.map(c=>({time:c.time,value:pos.entry}))); }
-    if (pos.stop)  { const ss = chart.addLineSeries({color:'#ef4444',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
-    if (pos.target){ const ts = chart.addLineSeries({color:'#22c55e',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
+    if (pos.stop)  { const ss = chart.addLineSeries({color:'var(--red)',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
+    if (pos.target){ const ts = chart.addLineSeries({color:'var(--green)',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
     chart.timeScale().fitContent();
     liveCharts[sym] = chart;
     // Bug fix #4: store observer so we can disconnect on card remove
