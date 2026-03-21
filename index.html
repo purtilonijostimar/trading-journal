@@ -245,7 +245,8 @@
 
   /* ══ ANALYTICS ══════════════════════════════════════════════ */
 
-  .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; min-width:0; }
+  .analytics-grid > * { min-width:0; overflow:hidden; }
   .chart-card  { padding:20px; }
   .chart-title { font-weight:700; margin-bottom:16px; font-size:14px; }
 
@@ -568,6 +569,9 @@
     .streak-val  { font-size:15px; }
     .chart-title { font-size:12px; }
     .bar-row     { font-size:11px; }
+    .bar-label   { width:72px; font-size:11px; }
+    .bar-track   { min-width:0; }
+    .bar-n       { display:none; }
   }
 </style>
 </head>
