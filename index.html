@@ -736,14 +736,16 @@
 
   // ── Live Dashboard ─────────────────────────────────────────────────────────
   const LIVE_SERVER = 'http://localhost:5000';
-  let liveTimer = null;
-  let liveCharts = {};
-  let liveInited = false;
+  let liveTimer   = null;
+  let liveCharts  = {};      // sym → LightweightCharts instance
+  let liveObservers = {};    // sym → ResizeObserver (cleanup on card remove)
+  let liveInited  = false;
+  let liveColCount = 0;      // track last col count to avoid layout thrash
+  let liveLastEmpty = false; // track empty state to avoid wiping live cards on blip
 
   function initLive() {
     if (liveInited) return;
     liveInited = true;
-    // Load Lightweight Charts if not already loaded
     if (!window.LightweightCharts) {
       const s = document.createElement('script');
       s.src = 'https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js';
@@ -761,47 +763,78 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       document.getElementById('live-error').style.display = 'none';
-      renderLive(data);
       document.getElementById('live-dot').style.background = 'var(--green)';
       document.getElementById('live-status').textContent = 'Live';
+      renderLive(data);
     } catch(e) {
       const err = document.getElementById('live-error');
       err.style.display = 'block';
       err.textContent = `⚠️ Cannot reach dashboard server at ${LIVE_SERVER}. Make sure dashboard_server.py is running (update.bat starts it automatically).`;
       document.getElementById('live-dot').style.background = 'var(--red)';
       document.getElementById('live-status').textContent = 'Disconnected';
+      // Do NOT wipe cards on disconnect — keep showing last known state
     }
   }
 
+  function liveGetSym(pos) {
+    // Bug fix #5: normalise ticker/symbol key inconsistency
+    return (pos.ticker || pos.symbol || '').trim();
+  }
+
   function renderLive(data) {
+    // Stats
     const pnl = data.daily_pnl || 0;
     const pnlEl = document.getElementById('live-daily-pnl');
     pnlEl.textContent = (pnl >= 0 ? '+' : '') + '€' + Math.abs(pnl).toFixed(2);
     pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'green' : 'red');
-
     document.getElementById('live-trades-today').textContent = data.trades_today || 0;
 
     const trades = data.open_trades || [];
     document.getElementById('live-open-count').textContent = trades.length;
 
     const regime = (data.regime || 'unknown').split('+')[0];
-    const regimeEl = document.getElementById('live-regime');
-    regimeEl.innerHTML = `<span class="regime-pill regime-${regime}">${regime.replace('_',' ').toUpperCase()}</span>`;
+    document.getElementById('live-regime').innerHTML =
+      `<span class="regime-pill regime-${regime}">${regime.replace(/_/g,' ').toUpperCase()}</span>`;
 
     const grid = document.getElementById('live-positions');
-    const cols = trades.length === 0 ? 1 : trades.length === 1 ? 1 : trades.length === 2 ? 2 : 3;
-    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
+    // Bug fix #2: empty state — only show "no positions" if we're genuinely empty
+    // AND it's not a single-poll blip (server returned [] while trades were being updated)
     if (!trades.length) {
-      grid.innerHTML = '<div class="live-empty">👁 No open positions — bot is watching</div>';
+      // Remove cards that are no longer in state
+      const existing = grid.querySelectorAll('.pos-card');
+      existing.forEach(c => liveRemoveCard(c.dataset.sym));
+      if (!grid.querySelector('.pos-card')) {
+        if (!liveLastEmpty) {
+          grid.innerHTML = '<div class="live-empty">👁 No open positions — bot is watching</div>';
+          liveLastEmpty = true;
+        }
+      }
       return;
     }
+    liveLastEmpty = false;
 
-    const current = trades.map(t => t.ticker || t.symbol);
-    grid.querySelectorAll('.pos-card').forEach(c => { if (!current.includes(c.dataset.sym)) c.remove(); });
+    // Remove the empty placeholder if it exists
+    const emptyEl = grid.querySelector('.live-empty');
+    if (emptyEl) emptyEl.remove();
 
+    // Bug fix #3: only update grid columns when count changes
+    const cols = trades.length === 1 ? 1 : trades.length === 2 ? 2 : 3;
+    if (cols !== liveColCount) {
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      liveColCount = cols;
+    }
+
+    // Bug fix #1 + #5: remove cards for closed positions using normalised key
+    const current = trades.map(liveGetSym);
+    grid.querySelectorAll('.pos-card').forEach(c => {
+      if (!current.includes(c.dataset.sym)) liveRemoveCard(c.dataset.sym);
+    });
+
+    // Add or update
     trades.forEach(pos => {
-      const sym = pos.ticker || pos.symbol || '?';
+      const sym = liveGetSym(pos);
+      if (!sym) return;
       const existing = grid.querySelector(`[data-sym="${sym}"]`);
       if (existing) {
         liveUpdateCard(existing, pos);
@@ -813,15 +846,34 @@
     });
   }
 
+  // Bug fix #4: clean up chart + observer when card is removed
+  function liveRemoveCard(sym) {
+    if (!sym) return;
+    // Destroy chart
+    if (liveCharts[sym]) {
+      try { liveCharts[sym].remove(); } catch(e) {}
+      delete liveCharts[sym];
+    }
+    // Disconnect resize observer
+    if (liveObservers[sym]) {
+      try { liveObservers[sym].disconnect(); } catch(e) {}
+      delete liveObservers[sym];
+    }
+    // Remove DOM card
+    const card = document.querySelector(`[data-sym="${sym}"]`);
+    if (card) card.remove();
+  }
+
   function liveBuildCard(pos) {
-    const sym = pos.ticker || pos.symbol || '?';
-    const pnl = pos.live_pnl || 0;
-    const r   = pos.r_progress || 0;
+    const sym  = liveGetSym(pos);
+    const pnl  = pos.live_pnl || 0;
+    const r    = pos.r_progress || 0;
     const rPct = Math.max(0, Math.min(100, (r / 2.1337) * 100));
     const rCol = r < 0 ? 'var(--red)' : r >= 1.5 ? 'var(--green)' : 'var(--accent)';
 
     const card = document.createElement('div');
-    card.className = 'pos-card'; card.dataset.sym = sym;
+    card.className = 'pos-card';
+    card.dataset.sym = sym;
     card.innerHTML = `
       <div class="pos-card-header">
         <div style="display:flex;gap:8px;align-items:center">
@@ -853,13 +905,15 @@
   }
 
   function liveUpdateCard(card, pos) {
-    const pnl = pos.live_pnl || 0;
-    const r   = pos.r_progress || 0;
+    const pnl  = pos.live_pnl || 0;
+    const r    = pos.r_progress || 0;
     const rPct = Math.max(0, Math.min(100, (r / 2.1337) * 100));
     const rCol = r < 0 ? 'var(--red)' : r >= 1.5 ? 'var(--green)' : 'var(--accent)';
     const pnlEl = card.querySelector('[data-pnl]');
-    pnlEl.textContent = (pnl>=0?'+':'')+'€'+Math.abs(pnl).toFixed(2);
-    pnlEl.className = pnl>=0?'green':'red';
+    if (pnlEl) {
+      pnlEl.textContent = (pnl>=0?'+':'')+'€'+Math.abs(pnl).toFixed(2);
+      pnlEl.className = pnl>=0?'green':'red';
+    }
     const rEl = card.querySelector('[data-r]');
     if (rEl) { rEl.textContent = (r>=0?'+':'')+r.toFixed(2)+'R'; rEl.style.color = rCol; }
     const rf = card.querySelector('[data-rfill]');
@@ -872,7 +926,7 @@
       const data = await res.json();
       liveDrawChart(sym, pos, container, data.candles||[], data.vwap);
     } catch(e) {
-      container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">Chart unavailable — server offline</div>';
+      container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">Chart unavailable</div>';
     }
   }
 
@@ -881,6 +935,11 @@
       container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">No data</div>';
       return;
     }
+    // Destroy existing chart if present (Bug fix #4)
+    if (liveCharts[sym]) {
+      try { liveCharts[sym].remove(); } catch(e) {}
+      delete liveCharts[sym];
+    }
     const chart = LightweightCharts.createChart(container, {
       width: container.offsetWidth, height: 220,
       layout: { background:{color:'#1a1d27'}, textColor:'#64748b' },
@@ -888,22 +947,39 @@
       rightPriceScale: { borderColor:'#2e3347' },
       timeScale: { borderColor:'#2e3347', timeVisible:true, secondsVisible:false },
     });
-    const cs = chart.addCandlestickSeries({ upColor:'#22c55e', downColor:'#ef4444', borderUpColor:'#22c55e', borderDownColor:'#ef4444', wickUpColor:'#22c55e', wickDownColor:'#ef4444' });
+    const cs = chart.addCandlestickSeries({
+      upColor:'#22c55e', downColor:'#ef4444',
+      borderUpColor:'#22c55e', borderDownColor:'#ef4444',
+      wickUpColor:'#22c55e', wickDownColor:'#ef4444'
+    });
     cs.setData(candles);
-    if (vwap) { const vs = chart.addLineSeries({color:'#f59e0b',lineWidth:1,lineStyle:2,title:'VWAP'}); vs.setData(candles.map(c=>({time:c.time,value:vwap}))); }
-    if (pos.entry) { const es = chart.addLineSeries({color:'#4f7cff',lineWidth:1,title:'Entry'}); es.setData(candles.map(c=>({time:c.time,value:pos.entry}))); }
-    if (pos.stop)  { const ss = chart.addLineSeries({color:'#ef4444',lineWidth:1,lineStyle:3,title:'Stop'});  ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
+    if (vwap)      { const vs = chart.addLineSeries({color:'#f59e0b',lineWidth:1,lineStyle:2,title:'VWAP'});   vs.setData(candles.map(c=>({time:c.time,value:vwap}))); }
+    if (pos.entry) { const es = chart.addLineSeries({color:'#4f7cff',lineWidth:1,title:'Entry'});              es.setData(candles.map(c=>({time:c.time,value:pos.entry}))); }
+    if (pos.stop)  { const ss = chart.addLineSeries({color:'#ef4444',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
     if (pos.target){ const ts = chart.addLineSeries({color:'#22c55e',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
     chart.timeScale().fitContent();
     liveCharts[sym] = chart;
-    new ResizeObserver(()=>chart.applyOptions({width:container.offsetWidth})).observe(container);
+    // Bug fix #4: store observer so we can disconnect on card remove
+    if (liveObservers[sym]) { try { liveObservers[sym].disconnect(); } catch(e) {} }
+    const obs = new ResizeObserver(() => chart.applyOptions({width:container.offsetWidth}));
+    obs.observe(container);
+    liveObservers[sym] = obs;
   }
 
   async function liveClose(sym) {
     if (!confirm(`Close ${sym}? This writes a close command to the bot.`)) return;
     try {
       const r = await fetch(`${LIVE_SERVER}/close/${sym}`, {method:'POST'});
-      alert(r.ok ? `✅ Close command sent for ${sym}` : '⚠️ Failed');
+      if (r.ok) {
+        // Bug fix #1: remove card immediately on successful close command
+        // Don't wait for next poll — gives instant visual feedback
+        liveRemoveCard(sym);
+        // Decrement open count
+        const el = document.getElementById('live-open-count');
+        if (el) el.textContent = Math.max(0, parseInt(el.textContent||'0') - 1);
+      } else {
+        alert('⚠️ Close command failed');
+      }
     } catch(e) { alert('⚠️ Server not reachable'); }
   }
 </script>
