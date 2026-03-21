@@ -194,27 +194,23 @@
     /* background-size:300% so the white band sweeps left→right over 60s */
     background: linear-gradient(
       90deg,
-      #00b8ff   0%,
-      #00dcff  12%,
-      #ffe600  22%,
-      #ffffff  35%,
-      #ffffff  45%,
-      #ffe600  58%,
-      #00dcff  68%,
-      #00b8ff  80%,
+      #ffffff  0%,
+      #ffffff 28%,
+      #ffe600 34%,
+      #00dcff 45%,
+      #00b8ff 58%,
       #00b8ff 100%
     );
-    background-size: 300% 100%;
+    background-size: 280% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: logo-wipe 60s linear infinite;
   }
   @keyframes logo-wipe {
-    0%     { background-position: 100% 0; }   /* branded — start */
-    2.5%   { background-position:   0% 0; }   /* wipe done (~1.5s snappy) */
-    2.51%  { background-position: 100% 0; }   /* instant snap back to branded */
-    100%   { background-position: 100% 0; }   /* hold branded for ~58s */
+    0%     { background-position: 100% 0; }   /* branded (instant snap at loop) */
+    2.5%   { background-position:   0% 0; }   /* wipe to full white (~1.5s) */
+    100%   { background-position:   0% 0; }   /* hold full white ~57s */
   }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
