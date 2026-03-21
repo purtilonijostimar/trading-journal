@@ -82,11 +82,50 @@
     .blob-stage { display: block !important; }
   }
   .blob-a, .blob-b, .blob-teal, .blob-warm {
+    position: absolute;
     border-radius: 50%;
     pointer-events: none;
     mix-blend-mode: screen;
     will-change: transform;
     backface-visibility: hidden;
+  }
+  .blob-a {
+    width: 80vw; height: 80vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.55) 0%, transparent 65%);
+    filter: blur(90px);
+    top: -20%; left: -20%;
+    animation: aurora-a 22s ease-in-out infinite;
+  }
+  .blob-b {
+    width: 70vw; height: 70vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.45) 0%, transparent 65%);
+    filter: blur(80px);
+    bottom: -15%; right: -15%;
+    animation: aurora-b 28s ease-in-out infinite;
+  }
+  .blob-teal {
+    width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.35) 0%, transparent 65%);
+    filter: blur(70px);
+    top: 30%; right: -10%;
+    animation: aurora-a 34s ease-in-out infinite reverse;
+  }
+  .blob-warm {
+    width: 55vw; height: 55vw;
+    background: radial-gradient(circle, rgba(0,210,255,0.30) 0%, transparent 65%);
+    filter: blur(85px);
+    bottom: -10%; left: -10%;
+    animation: aurora-b 19s ease-in-out infinite reverse;
+  }
+  @keyframes aurora-a {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33%      { transform: translate(8vw,6vh) scale(1.08); }
+    66%      { transform: translate(-5vw,10vh) scale(0.95); }
+  }
+  @keyframes aurora-b {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33%      { transform: translate(-7vw,-8vh) scale(1.05); }
+    66%      { transform: translate(6vw,-4vh) scale(1.1); }
   }
 
   .container {
@@ -2496,5 +2535,3 @@
 
 </body>
 </html>
-<!-- deploy trigger -->
-
