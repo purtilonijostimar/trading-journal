@@ -543,10 +543,10 @@
   .entry-card.win, .entry-card.loss, .entry-card.open {} /* neutral — colour lives in values */
 
   /* Two-column layout */
-  .entry-two-col   { display:grid; grid-template-columns:1fr 280px; gap:16px; min-height:160px; }
+  .entry-two-col   { display:grid; grid-template-columns:1fr 80px; gap:16px; min-height:auto; align-items:start; }
   .entry-col-left  { display:flex; flex-direction:column; gap:10px; min-width:0; }
   .entry-col-right { flex-shrink:0; }
-  .entry-screenshot { border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.05); height:100%; min-height:140px; }
+  .entry-screenshot { border-radius:50%; overflow:hidden; border:2px solid rgba(255,255,255,0.08); width:72px; height:72px; flex-shrink:0; }
   .entry-screenshot-empty { display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.02); }
 
   /* Header row: ticker + badges + inline stats */
@@ -703,7 +703,7 @@
     .entry-two-col   { grid-template-columns:1fr; position:relative; }
     .entry-col-left  { padding-right:72px; }
     .entry-col-right { position:absolute; top:0; right:0; width:64px; height:48px; }
-    .entry-screenshot { height:48px; min-height:unset; border-radius:8px; }
+    .entry-screenshot { width:52px; height:52px; min-height:unset; border-radius:50%; top:14px; right:14px; }
     .entry-screenshot-empty { display:none; }
     .entry-lesson, .entry-no-lesson { margin-right:-72px; }
 
@@ -1343,7 +1343,7 @@
         ${patternHtml ? `<div class="entry-tags">${patternHtml}</div>` : ''}`;
 
       const rightCol = t.screenshot
-        ? `<div class="entry-screenshot"><img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block"></div>`
+        ? `<div class="entry-screenshot"><img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;cursor:pointer;display:block"></div>`
         : `<div class="entry-screenshot entry-screenshot-empty"><span style="font-size:24px;opacity:0.2">📷</span></div>`;
 
       return `<div class="entry-card ${t.result}">
