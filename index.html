@@ -26,6 +26,7 @@
 
     /* Accent colours */
     --accent:    #00b8ff;
+    --accent-grad: linear-gradient(125deg, #00b8ff 0%, #00d0ff 50%, #ffe600 130%);
     --accent2:   #7c5cff;
 
     /* Semantic colours — base (for backgrounds/tints) */
@@ -129,9 +130,13 @@
     -webkit-backdrop-filter: blur(32px) saturate(220%);
   }
   .logo {
-    font-size: 18px; font-weight: 500;
-    letter-spacing: 0.22em; color: rgba(255,255,255,0.8);
+    font-size: 18px; font-weight: 600;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
+    background: linear-gradient(115deg, #00b8ff 0%, #00dcff 45%, #ffe600 120%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
@@ -146,8 +151,8 @@
     padding: 8px 16px; border-radius: 8px; border: none;
     cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s;
   }
-  .btn-primary   { background:var(--accent); color:#001a2e; font-weight:700; }
-  .btn-primary:hover { background:#00a0e8; }
+  .btn-primary   { background:var(--accent-grad); color:#001a2e; font-weight:700; border:none; }
+  .btn-primary:hover { background:linear-gradient(125deg, #00a0e8 0%, #00c0ee 50%, #f0d800 130%); }
   .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
   .btn-secondary:hover { background:var(--border); }
   .btn-danger {
@@ -237,7 +242,7 @@
     font-weight:600; font-size:13px; color:var(--text2);
     transition:all 0.15s; border:none; background:transparent;
   }
-  .tab.active { background:var(--accent); color:#001a2e; font-weight:700; }
+  .tab.active { background:var(--accent-grad); color:#001a2e; font-weight:700; }
   .tab:hover:not(.active) { color:var(--text); }
 
   /* ── Panels ── */
@@ -335,7 +340,7 @@
   .phase-item       { display:flex; flex-direction:column; gap:6px; }
   .phase-label      { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
   .phase-bar-track  { height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
-  .phase-bar-fill   { height:100%; border-radius:4px; transition:width 0.5s; background:var(--accent); }
+  .phase-bar-fill   { height:100%; border-radius:4px; transition:width 0.5s; background:var(--accent-grad); }
   .phase-bar-fill.done { background:var(--green); }
   .phase-bar-fill.warn { background:var(--yellow); }
   .phase-val    { font-size:12px; font-weight:600; color:var(--text); }
@@ -410,7 +415,7 @@
   .funnel-sub-item strong { color:var(--text); }
   .funnel-date-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
   .funnel-date-btn { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:12px; cursor:pointer; }
-  .funnel-date-btn.active { border-color:var(--accent); color:var(--accent); }
+  .funnel-date-btn.active { border-image:var(--accent-grad) 1; color:var(--accent); }
 
   /* Setup × Regime matrix */
   .matrix-wrap  { overflow-x:auto; }
@@ -454,7 +459,7 @@
   .journal-toolbar  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
   .journal-filters  { display:flex; gap:6px; flex-wrap:wrap; }
   .jf-btn { padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
-  .jf-btn.active { background:var(--accent); border-color:var(--accent); color:#001a2e; font-weight:700; }
+  .jf-btn.active { background:var(--accent-grad); border-color:transparent; color:#001a2e; font-weight:700; }
   .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
 
   .entry-card { padding:20px; }
@@ -558,7 +563,7 @@
   .fab {
     display:none; position:fixed; bottom:24px; right:20px;
     width:56px; height:56px; border-radius:50%;
-    background:var(--accent); color:#001a2e;
+    background:var(--accent-grad); color:#001a2e;
     font-size:26px; font-weight:300; border:none; cursor:pointer;
     box-shadow:0 4px 20px rgba(0,184,255,0.5); z-index:150;
     align-items:center; justify-content:center; transition:transform 0.15s, box-shadow 0.15s;
