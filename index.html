@@ -17,10 +17,10 @@
   /* ── Design tokens ── */
   :root {
     /* Surfaces */
-    --bg:        #0f1117;
-    --surface:   #1a1d27;
-    --surface2:  #242838;
-    --border:    #2e3347;
+    --bg:        #000000;
+    --surface:   #0a0a0a;
+    --surface2:  #111111;
+    --border:    #1e1e1e;
 
     /* Accent colours */
     --accent:    #00b8ff;
@@ -43,7 +43,7 @@
     --text3:     #64748b;
 
     /* Glass surface recipe */
-    --glass-bg:      rgba(20,24,36,0.45);
+    --glass-bg:      rgba(0,0,0,0.45);
     --glass-border:  rgba(255,255,255,0.05);
     --glass-shadow:  0 2px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06);
     --glass-blur:    blur(20px) saturate(200%);
@@ -97,7 +97,7 @@
 
   /* ── Header ── */
   header {
-    background: rgba(15,17,23,0.75);
+    background: rgba(0,0,0,0.6);
     border-bottom: 1px solid rgba(255,255,255,0.04);
     padding: 16px max(32px, calc((100vw - 1400px) / 2 + 32px));
     display: flex; align-items: center; justify-content: space-between;
@@ -171,7 +171,7 @@
   /* ── Tabs ── */
   .tabs {
     display:flex; gap:4px; margin-bottom:24px;
-    background:rgba(20,24,36,0.55); border:1px solid rgba(255,255,255,0.05);
+    background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05);
     border-radius:10px; padding:4px; width:fit-content;
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);
@@ -238,7 +238,7 @@
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal {
-    background: rgba(20,23,34,0.85);
+    background: rgba(0,0,0,0.7);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 16px; width:640px; max-height:90vh; overflow-y:auto; padding:28px;
     backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
@@ -378,7 +378,7 @@
 
   /* Insights */
   .insight-list { display:flex; flex-direction:column; gap:12px; }
-  .insight-item { display:flex; align-items:flex-start; gap:12px; padding:12px; background:rgba(36,40,56,0.7); border-radius:8px; border-left:3px solid var(--accent); }
+  .insight-item { display:flex; align-items:flex-start; gap:12px; padding:12px; background:rgba(0,0,0,0.35); border-radius:8px; border-left:3px solid var(--accent); }
   .insight-icon { font-size:18px; flex-shrink:0; }
   .insight-text { font-size:13px; color:var(--text2); line-height:1.5; }
 
@@ -434,7 +434,7 @@
 
   .live-stats-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
   .pos-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(20,24,36,0.45);
+    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 14px; overflow:hidden;
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
@@ -478,7 +478,7 @@
 
   .trade-card-mobile {
     border-radius:16px; padding:0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(20,24,36,0.45);
+    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.05);
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
     box-shadow: 0 2px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
@@ -492,7 +492,7 @@
 
   .tcm-perf {
     border-radius:10px; padding:10px 12px;
-    background:rgba(255,255,255,0.03);
+    background:rgba(255,255,255,0.04);
     border:1px solid rgba(255,255,255,0.04);
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
   }
@@ -2370,7 +2370,7 @@
     }
     const chart = LightweightCharts.createChart(container, {
       width: container.offsetWidth, height: 220,
-      layout: { background:{color:'#1a1d27'}, textColor:'#64748b' },
+      layout: { background:{color:'#000000'}, textColor:'#64748b' },
       grid: { vertLines:{color:'#2e3347'}, horzLines:{color:'#2e3347'} },
       rightPriceScale: { borderColor:'#2e3347' },
       timeScale: { borderColor:'#2e3347', timeVisible:true, secondsVisible:false },
