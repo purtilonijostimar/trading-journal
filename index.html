@@ -668,9 +668,11 @@
   /* ── Background dollar watermark ── */
   .bg-dollar {
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 110vw;
+    top: 50%; left: 0;
+    width: 100%;
+    text-align: center;
+    transform: translateY(-50%);
+    font-size: 90vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 600;
     letter-spacing: 0;
@@ -679,7 +681,6 @@
     z-index: 2;
     color: #000000;
     user-select: none;
-    white-space: nowrap;
   }
 </style>
 </head>
