@@ -178,6 +178,26 @@
   }
   .live-dot.err::before { background:var(--red); box-shadow:0 0 6px var(--red); }
 
+
+  /* ── Desktop: tone down blobs significantly ── */
+  @media (min-width: 769px) {
+    body::before {
+      background: radial-gradient(circle, rgba(0,184,255,0.18) 0%, transparent 65%);
+      filter: blur(120px);
+    }
+    body::after {
+      background: radial-gradient(circle, rgba(0,184,255,0.14) 0%, transparent 65%);
+      filter: blur(110px);
+    }
+    .blob-teal {
+      background: radial-gradient(circle, rgba(0,184,255,0.10) 0%, transparent 65%);
+      filter: blur(100px);
+    }
+    .blob-warm {
+      background: radial-gradient(circle, rgba(0,210,255,0.10) 0%, transparent 65%);
+      filter: blur(110px);
+    }
+  }
   /* ── Glass surface — shared recipe ── */
   .stat-card, .table-wrapper, .chart-card,
   .phase-gate-card, .streak-card, .entry-card {
