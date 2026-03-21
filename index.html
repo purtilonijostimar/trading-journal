@@ -1153,9 +1153,9 @@
           ? `<span style="font-size:10px;font-weight:600;color:rgba(147,197,253,0.9);background:rgba(0,184,255,.2);padding:2px 7px;border-radius:4px;border:1px solid rgba(0,184,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px">${regime.replace(/[_+]/g,' ')}</span>` : '';
 
         const statItem = (label, val, col) => `
-          <div style="margin-bottom:10px">
-            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">${label}</div>
-            <div style="font-size:16px;font-weight:800;color:${col};letter-spacing:-.3px;line-height:1.1">${val}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px">${label}</span>
+            <span style="font-size:14px;font-weight:700;color:${col};letter-spacing:-.2px">${val}</span>
           </div>`;
 
         const chartHtml = t.screenshot
