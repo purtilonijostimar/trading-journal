@@ -160,6 +160,23 @@
   .eq-zero { stroke:var(--border); stroke-width:1; stroke-dasharray:4 4; }
   .eq-label { font-size:10px; fill:var(--text3); }
 
+  /* ── Signal funnel ── */
+  .funnel-wrap { display:flex; flex-direction:column; gap:6px; }
+  .funnel-stage { display:flex; align-items:center; gap:12px; }
+  .funnel-label { width:90px; font-size:12px; color:var(--text3); text-align:right; flex-shrink:0; }
+  .funnel-track { flex:1; height:28px; background:var(--border); border-radius:6px; overflow:hidden; position:relative; }
+  .funnel-fill  { height:100%; border-radius:6px; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:600; white-space:nowrap; transition:width .4s; }
+  .funnel-fill.detected { background:rgba(99,179,237,.25); color:#90cdf4; }
+  .funnel-fill.approved { background:rgba(34,197,94,.25);  color:var(--green); }
+  .funnel-fill.rejected { background:rgba(239,68,68,.2);   color:var(--red); }
+  .funnel-pct  { width:44px; font-size:11px; color:var(--text3); text-align:right; flex-shrink:0; }
+  .funnel-sub  { margin-top:12px; display:flex; gap:24px; flex-wrap:wrap; }
+  .funnel-sub-item { font-size:12px; color:var(--text3); }
+  .funnel-sub-item strong { color:var(--text); }
+  .funnel-date-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+  .funnel-date-btn { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:12px; cursor:pointer; }
+  .funnel-date-btn.active { border-color:var(--accent); color:var(--accent); }
+
   /* ── Setup × Regime matrix ── */
   .matrix-wrap { overflow-x:auto; }
   .matrix-table { border-collapse:collapse; width:100%; font-size:12px; }
@@ -406,6 +423,12 @@
       <div class="chart-card"><div class="chart-title">Win Rate by Direction</div><div class="bar-chart" id="directionChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Regime</div><div class="bar-chart" id="regimeChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Time of Day</div><div class="bar-chart" id="timeChart"></div></div>
+
+      <!-- Signal funnel — full width -->
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-title">🔭 Signal Funnel</div>
+        <div id="funnelChart"></div>
+      </div>
 
       <!-- Setup × Regime matrix — full width -->
       <div class="chart-card" style="grid-column:1/-1">
@@ -809,6 +832,103 @@
     </svg>`;
   }
 
+  // ── Signal Funnel ──────────────────────────────────────────────────────────
+  let _signalLogs = null;  // cached signal log data
+
+  async function fetchSignalLogs(dateFilter) {
+    try {
+      let q = db.from('signal_log').select('stage,setup,reject_reason,time_bucket,regime,confidence,date').order('ts', {ascending:false}).limit(500);
+      if (dateFilter) q = q.eq('date', dateFilter);
+      const { data, error } = await q;
+      if (error) return null;
+      return data;
+    } catch { return null; }
+  }
+
+  async function renderFunnel(dateFilter) {
+    const el = document.getElementById('funnelChart');
+    el.innerHTML = '<p style="color:var(--text3);font-size:13px">Loading…</p>';
+
+    const logs = await fetchSignalLogs(dateFilter);
+    if (!logs || !logs.length) {
+      el.innerHTML = `<p style="color:var(--text3);font-size:13px">No signal log data yet.
+        <br><span style="font-size:11px;opacity:0.7">signal_log table will populate after Monday's session.</span></p>`;
+      return;
+    }
+
+    const detected = logs.filter(l => l.stage === 'detected').length;
+    const approved = logs.filter(l => l.stage === 'approved').length;
+    const rejected = logs.filter(l => l.stage === 'rejected').length;
+    const total    = detected + rejected;  // detected = went to risk check; total funnel top
+
+    // Rejection breakdown
+    const rejReasons = {};
+    logs.filter(l=>l.stage==='rejected').forEach(l => {
+      const r = l.reject_reason || 'unknown';
+      rejReasons[r] = (rejReasons[r]||0) + 1;
+    });
+    const topReasons = Object.entries(rejReasons).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+    // Time bucket breakdown for approved
+    const byTime = {};
+    logs.filter(l=>l.stage==='approved').forEach(l => {
+      const t = l.time_bucket || 'unknown';
+      byTime[t] = (byTime[t]||0) + 1;
+    });
+
+    // Approval rate
+    const approvalRate = total > 0 ? (approved/total*100).toFixed(0) : 0;
+    const fillRate     = approved > 0 ? (approved/approved*100).toFixed(0) : 0; // placeholder until fills tracked separately
+
+    // Unique dates in data for filter buttons
+    const dates = [...new Set(logs.map(l=>l.date))].sort().reverse().slice(0,7);
+
+    const dateButtons = ['All', ...dates].map(d => {
+      const isActive = (d==='All' && !dateFilter) || d===dateFilter;
+      return `<button class="funnel-date-btn${isActive?' active':''}" onclick="renderFunnel(${d==='All'?'null':"'"+d+"'"})">${d==='All'?'All time':d.slice(5)}</button>`;
+    }).join('');
+
+    const w = (n, max) => max > 0 ? Math.max(4, Math.round(n/max*100)) : 4;
+    const maxN = Math.max(total, approved, rejected, 1);
+
+    const reasonHtml = topReasons.map(([r,n]) =>
+      `<div class="funnel-sub-item"><strong>${n}</strong> ${r.replace(/_/g,' ')}</div>`
+    ).join('');
+
+    const timeHtml = Object.entries(byTime).map(([t,n]) =>
+      `<div class="funnel-sub-item"><strong>${n}</strong> in ${t}</div>`
+    ).join('');
+
+    el.innerHTML = `
+      <div class="funnel-date-row">${dateButtons}</div>
+      <div class="funnel-wrap">
+        <div class="funnel-stage">
+          <div class="funnel-label">Detected</div>
+          <div class="funnel-track">
+            <div class="funnel-fill detected" style="width:${w(total,maxN)}%">${total} signals</div>
+          </div>
+          <div class="funnel-pct"></div>
+        </div>
+        <div class="funnel-stage">
+          <div class="funnel-label">Approved</div>
+          <div class="funnel-track">
+            <div class="funnel-fill approved" style="width:${w(approved,maxN)}%">${approved} trades placed</div>
+          </div>
+          <div class="funnel-pct">${approvalRate}%</div>
+        </div>
+        <div class="funnel-stage">
+          <div class="funnel-label">Rejected</div>
+          <div class="funnel-track">
+            <div class="funnel-fill rejected" style="width:${w(rejected,maxN)}%">${rejected} blocked</div>
+          </div>
+          <div class="funnel-pct">${total>0?(rejected/total*100).toFixed(0):0}%</div>
+        </div>
+      </div>
+      ${topReasons.length ? `<div class="funnel-sub"><div class="funnel-sub-item" style="color:var(--red)"><strong>Rejections:</strong></div>${reasonHtml}</div>` : ''}
+      ${Object.keys(byTime).length ? `<div class="funnel-sub"><div class="funnel-sub-item" style="color:var(--green)"><strong>Approved by time:</strong></div>${timeHtml}</div>` : ''}
+    `;
+  }
+
   function renderMatrix(closed) {
     const el = document.getElementById('matrixChart');
     if (!closed.length) { el.innerHTML='<p style="color:var(--text3);font-size:13px">No closed trades yet.</p>'; return; }
@@ -956,11 +1076,12 @@
     }).join('');
   }
 
-  function renderAnalytics() {
+  async function renderAnalytics() {
     const closed = trades.filter(t => t.result !== 'open');
     renderStreakRow(closed);
     renderPhaseGate(closed);
     renderEquityCurve(closed);
+    renderFunnel(null);   // async — loads independently
     renderMatrix(closed);
     renderRDist(closed);
 
