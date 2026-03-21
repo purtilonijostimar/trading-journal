@@ -195,24 +195,25 @@
     background: linear-gradient(
       90deg,
       #ffffff  0%,
-      #ffffff 28%,
-      #00b8ff 35%,
-      #00b8ff 63%,
-      #00dcff 72%,
-      #ffe600 82%,
-      #00dcff 90%,
-      #00b8ff 100%
+      #ffffff 32%,
+      #00b8ff 40%,
+      #00dcff 50%,
+      #ffe600 58%,
+      #00dcff 65%,
+      #00b8ff 73%,
+      #ffffff 80%,
+      #ffffff 100%
     );
-    background-size: 280% 100%;
+    background-size: 300% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: logo-wipe 60s linear infinite;
   }
   @keyframes logo-wipe {
-    0%     { background-position: 100% 0; }   /* branded (instant snap at loop) */
-    2.5%   { background-position:   0% 0; }   /* wipe to full white (~1.5s) */
-    100%   { background-position:   0% 0; }   /* hold full white ~57s */
+    0%     { background-position:   0% 0; }   /* full white */
+    4%     { background-position: 100% 0; }   /* branded sheen sweeps through → white */
+    100%   { background-position: 100% 0; }   /* hold full white ~57s */
   }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
