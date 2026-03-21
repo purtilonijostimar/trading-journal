@@ -711,6 +711,33 @@
 
     100% { transform: translateY(-50%); }
   }
+
+  @media (min-width: 769px) {
+    .blob-stage { opacity: 0.12; }
+
+    /* Reposition blobs to edges and give them edge-travel animations */
+    .blob-a    { width:70vw; height:70vw; top:-35vw;  left:0;    animation: edge-top    28s ease-in-out infinite; }
+    .blob-b    { width:70vw; height:70vw; bottom:-35vw;right:0;   animation: edge-bottom 32s ease-in-out infinite; }
+    .blob-teal { width:60vw; height:60vw; top:0;      right:-30vw;animation: edge-right  24s ease-in-out infinite; }
+    .blob-warm { width:60vw; height:60vw; bottom:0;   left:-30vw; animation: edge-left   36s ease-in-out infinite; }
+
+    @keyframes edge-top {
+      0%,100% { transform: translateX(-15vw); }
+      50%     { transform: translateX(55vw);  }
+    }
+    @keyframes edge-bottom {
+      0%,100% { transform: translateX(15vw);  }
+      50%     { transform: translateX(-55vw); }
+    }
+    @keyframes edge-right {
+      0%,100% { transform: translateY(-15vh); }
+      50%     { transform: translateY(60vh);  }
+    }
+    @keyframes edge-left {
+      0%,100% { transform: translateY(15vh);  }
+      50%     { transform: translateY(-60vh); }
+    }
+  }
 </style>
 </head>
 <body>
