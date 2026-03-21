@@ -435,10 +435,14 @@
   .trade-card-mobile {
     background: var(--surface);
     border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
     border-radius: 14px;
     padding: 14px;
     margin-bottom: 10px;
   }
+  .trade-card-mobile.win  { border-left-color: var(--green); }
+  .trade-card-mobile.loss { border-left-color: var(--red); }
+  .trade-card-mobile.open { border-left-color: var(--accent); }
 
   .fab {
     display: none;
@@ -875,44 +879,41 @@
           ? `<img src="${t.screenshot}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer" onclick="openLightbox('${t.screenshot}')">`
           : '';
 
-        return `<div class="trade-card-mobile">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px">
+        const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+
+        return `<div class="trade-card-mobile ${t.result}">
+
+          <!-- Top: ticker + badges + date -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0">
               <span style="font-size:18px;font-weight:800;flex-shrink:0">${t.ticker.toUpperCase()}</span>
               <span class="badge badge-${t.direction}" style="flex-shrink:0">${t.direction.toUpperCase()}</span>
               <span class="badge badge-${t.result}" style="flex-shrink:0">${t.result}</span>
-              ${regime ? `<span style="font-size:10px;font-weight:600;color:var(--accent);background:rgba(79,124,255,.12);padding:2px 6px;border-radius:4px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1" title="${tags.regime||''}">${(tags.regime||'').replace(/[_+]/g,' ')}</span>` : ''}
+              ${regime ? `<span style="font-size:10px;font-weight:600;color:var(--accent);background:rgba(79,124,255,.12);padding:2px 6px;border-radius:4px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1" title="${tags.regime||''}">${(tags.regime||'').replace(/[_+]/g,' ')}</span>` : ''}
             </div>
-            <span style="font-size:11px;color:var(--text3);flex-shrink:0;padding-top:3px">${t.date}</span>
+            <span style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;padding-top:3px">${dateStr}</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+
+          <!-- Perf pill box — matches journal card style -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 10px;background:var(--surface2);border-radius:8px;padding:10px 12px">
             <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ENTRY</div>
-              <div style="font-size:13px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">P&L</div>
+              <div style="font-size:14px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">EXIT</div>
-              <div style="font-size:13px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">R</div>
+              <div style="font-size:14px;font-weight:700;color:${rCol};white-space:nowrap;display:flex;align-items:center;gap:3px">${rStr}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">SIZE</div>
-              <div style="font-size:13px;font-weight:600;color:var(--text2)">$${parseFloat(t.size||0).toFixed(0)}</div>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:86px auto 1fr;align-items:start;gap:6px 16px;padding-top:8px;border-top:1px solid var(--border)">
-            <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">P&L</div>
-              <div style="font-size:15px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Entry</div>
+              <div style="font-size:13px;font-weight:600;white-space:nowrap">$${parseFloat(t.entry||0).toFixed(2)}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">R</div>
-              <div style="font-size:15px;font-weight:700;color:${rCol};white-space:nowrap;display:flex;align-items:center;line-height:1.2">${rStr}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:1px">SETUP</div>
-              <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fmtSetup(t.setup)}</div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Exit</div>
+              <div style="font-size:13px;font-weight:600;white-space:nowrap">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</div>
             </div>
           </div>
+
           ${chart}
         </div>`;
       }).join('');
