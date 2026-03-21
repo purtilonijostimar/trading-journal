@@ -667,16 +667,16 @@
   }
   /* ── Background dollar watermark ── */
   .bg-dollar {
-    position: fixed;
+    position: absolute;
     top: 50%; left: 50%;
-    transform: translate(-50%, -52%);
-    font-size: 95vw;
+    transform: translate(-50%, -50%);
+    font-size: 110vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0;
     line-height: 1;
     pointer-events: none;
-    z-index: 0;
+    z-index: 2;
     color: #000000;
     user-select: none;
     white-space: nowrap;
@@ -694,7 +694,7 @@
   </div>
 </header>
 
-<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div></div><div class="bg-dollar">$</div>
+<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div><div class="bg-dollar">$</div></div>
 <div class="container">
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="statTotal">—</div></div>
