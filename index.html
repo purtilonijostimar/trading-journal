@@ -32,8 +32,8 @@
     --yellow:    #f59e0b;
 
     /* Semantic colours — bright (for text on glass) */
-    --green-b:   #4ade80;
-    --red-b:     #f87171;
+    --green-b:   #22c55e;
+    --red-b:     #ef4444;
     --yellow-b:  #fbbf24;
     --blue-b:    #93c5fd;
 
@@ -941,9 +941,9 @@
     const deriveRow = t => {
       const pnl    = calcPnl(t);
       const rVal   = calcR(t);
-      const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#4ade80' : '#f87171';
+      const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#22c55e' : '#ef4444';
       const rCol   = rVal === null ? 'rgba(255,255,255,0.4)'
-                   : rVal < 0 ? '#f87171' : rVal >= TARGET_R ? '#4ade80'
+                   : rVal < 0 ? '#ef4444' : rVal >= TARGET_R ? '#22c55e'
                    : rVal >= 1.0 ? '#fbbf24' : '#93c5fd';
       const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : 'Open';
       const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
@@ -982,7 +982,7 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block;min-height:110px">`
           : `<div style="width:100%;height:100%;min-height:110px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
 
-        const barCol = t.result === 'win' ? '#4ade80' : t.result === 'loss' ? '#f87171' : '#93c5fd';
+        const barCol = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#93c5fd';
 
         return `<div class="trade-card-mobile ${t.result}">
           <div class="tcm-accent-bar" style="width:4px;background:${barCol}"></div>
@@ -1043,7 +1043,7 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
           : `<span style="opacity:0.15;font-size:16px">📷</span>`;
 
-        const accentCol = t.result === 'win' ? '#4ade80' : t.result === 'loss' ? '#f87171' : '#93c5fd';
+        const accentCol = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#93c5fd';
 
         return `<tr>
           <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
@@ -1325,11 +1325,11 @@
     const cellColor = (wins, total) => {
       if (!total) return { bg:'rgba(255,255,255,0.03)', text:'rgba(255,255,255,0.2)' };
       const wr = wins / total;
-      if (wr >= 0.65) return { bg:'rgba(34,197,94,0.35)',  text:'#4ade80' };
+      if (wr >= 0.65) return { bg:'rgba(34,197,94,0.35)',  text:'#22c55e' };
       if (wr >= 0.50) return { bg:'rgba(34,197,94,0.18)',  text:'#86efac' };
       if (wr >= 0.40) return { bg:'rgba(251,191,36,0.2)',  text:'#fbbf24' };
       if (wr >= 0.30) return { bg:'rgba(239,68,68,0.18)',  text:'#fca5a5' };
-      return              { bg:'rgba(239,68,68,0.30)',  text:'#f87171' };
+      return              { bg:'rgba(239,68,68,0.30)',  text:'#ef4444' };
     };
 
     const cols = DAYS.length + 1; // +1 for row label
@@ -1358,7 +1358,7 @@
 
     // Legend
     const legend = `<div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
-      ${[['≥65%','rgba(34,197,94,0.35)','#4ade80'],['50–65%','rgba(34,197,94,0.18)','#86efac'],['40–50%','rgba(251,191,36,0.2)','#fbbf24'],['30–40%','rgba(239,68,68,0.18)','#fca5a5'],['<30%','rgba(239,68,68,0.30)','#f87171'],['No data','rgba(255,255,255,0.03)','rgba(255,255,255,0.3)']].map(([label,bg,col])=>
+      ${[['≥65%','rgba(34,197,94,0.35)','#22c55e'],['50–65%','rgba(34,197,94,0.18)','#86efac'],['40–50%','rgba(251,191,36,0.2)','#fbbf24'],['30–40%','rgba(239,68,68,0.18)','#fca5a5'],['<30%','rgba(239,68,68,0.30)','#ef4444'],['No data','rgba(255,255,255,0.03)','rgba(255,255,255,0.3)']].map(([label,bg,col])=>
         `<div style="display:flex;align-items:center;gap:5px">
           <div style="width:14px;height:14px;border-radius:4px;background:${bg};border:1px solid rgba(255,255,255,0.08)"></div>
           <span style="font-size:10px;color:${col};font-weight:600">${label}</span>
@@ -1485,7 +1485,7 @@
     for (let i = 0; i < ptCoords.length - 1; i++) {
       const [x0,y0] = ptCoords[i],   v0 = points[i].v;
       const [x1,y1] = ptCoords[i+1], v1 = points[i+1].v;
-      const col  = (v0 + v1) / 2 >= 0 ? '#4ade80' : '#f87171';
+      const col  = (v0 + v1) / 2 >= 0 ? '#22c55e' : '#ef4444';
       const glow = (v0 + v1) / 2 >= 0 ? 'glow-green' : 'glow-red';
       // Base line + glow overlay
       lineSegs.push(
