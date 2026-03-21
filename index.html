@@ -46,10 +46,10 @@
     --text3:     #64748b;
 
     /* Glass surface recipe */
-    --glass-bg:      rgba(0,0,0,0.35);
+    --glass-bg:      rgba(0,0,0,0.45);
     --glass-border:  rgba(255,255,255,0.05);
     --glass-shadow:  0 2px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06);
-    --glass-blur:    blur(24px) saturate(280%);
+    --glass-blur:    blur(20px) saturate(180%);
   }
 
   /* ── Global ── */
@@ -61,106 +61,93 @@
     min-height: 100vh;
   }
 
-  /* ── Blob animations ── */
-  @keyframes blob-blue {
-    0%   { transform: translate(0px,    0px)    scale(1);    }
-    25%  { transform: translate(60vw,   30vh)   scale(1.12); }
-    50%  { transform: translate(55vw,  -10vh)   scale(0.9);  }
-    75%  { transform: translate(-10vw,  60vh)   scale(1.08); }
-    100% { transform: translate(0px,    0px)    scale(1);    }
-  }
-  @keyframes blob-yellow {
-    0%   { transform: translate(0px,    0px)    scale(1);    }
-    25%  { transform: translate(-55vw, -30vh)   scale(1.1);  }
-    50%  { transform: translate(-50vw,  15vh)   scale(0.91); }
-    75%  { transform: translate(15vw,  -55vh)   scale(1.06); }
-    100% { transform: translate(0px,    0px)    scale(1);    }
+  /* ── Background system ── */
+
+  /* Noise overlay */
+  .noise-overlay {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1;
+    width: 100%; height: 100%;
+    opacity: 1;
   }
 
-  /* Ambient blobs */
-  body::before, body::after {
-    content:''; position:fixed; border-radius:50%; pointer-events:none; z-index:0;
-    filter:blur(180px);
+  /* Aurora blobs — mix-blend-mode:screen so they combine like real light */
+  .blob-stage {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  body::before, body::after, .blob-teal, .blob-warm {
+    content: ''; position: absolute; border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  @keyframes aurora-a {
+    0%   { transform: translate(0, 0)      scale(1);    }
+    33%  { transform: translate(30vw, 15vh) scale(1.15); }
+    66%  { transform: translate(-15vw,30vh) scale(0.9);  }
+    100% { transform: translate(0, 0)      scale(1);    }
+  }
+  @keyframes aurora-b {
+    0%   { transform: translate(0, 0)       scale(1);    }
+    33%  { transform: translate(-25vw,-20vh) scale(1.1);  }
+    66%  { transform: translate(20vw,-10vh)  scale(0.92); }
+    100% { transform: translate(0, 0)       scale(1);    }
   }
   body::before {
-    width:130vw; height:130vw;
-    opacity:0.60;
-    background:radial-gradient(circle, #00b8ff 0%, transparent 70%);
-    top:-40vw; left:-40vw;
-    animation: blob-blue 28s ease-in-out infinite;
+    width: 80vw; height: 80vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.55) 0%, transparent 65%);
+    filter: blur(90px); top: -20vw; left: -15vw;
+    animation: aurora-a 22s ease-in-out infinite;
+    will-change: transform;
   }
   body::after {
-    width:120vw; height:120vw;
-    opacity:0.55;
-    background:radial-gradient(circle, #00b8ff 0%, transparent 70%);
-    bottom:-40vw; right:-40vw;
-    animation: blob-yellow 34s ease-in-out infinite;
+    width: 70vw; height: 70vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.45) 0%, transparent 65%);
+    filter: blur(80px); bottom: -15vw; right: -10vw;
+    animation: aurora-b 28s ease-in-out infinite;
+    will-change: transform;
   }
   .blob-teal {
-    position:fixed; border-radius:50%; pointer-events:none; z-index:0;
-    width:80vw; height:80vw; opacity:0.20;
-    filter:blur(160px);
-    background:radial-gradient(circle, #00b8ff 0%, transparent 70%);
-    top:-20vw; right:-20vw;
-    animation: blob-yellow 40s ease-in-out infinite reverse;
+    position: fixed;
+    width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.35) 0%, transparent 65%);
+    filter: blur(70px); top: 30vh; right: -10vw;
+    animation: aurora-a 34s ease-in-out infinite reverse;
+    will-change: transform;
   }
   .blob-warm {
-    position:fixed; border-radius:50%; pointer-events:none; z-index:0;
-    width:80vw; height:80vw; opacity:0.20;
-    filter:blur(160px);
-    background:radial-gradient(circle, #00b8ff 0%, transparent 70%);
-    bottom:-20vw; left:-20vw;
-    animation: blob-blue 44s ease-in-out infinite reverse;
+    position: fixed;
+    width: 55vw; height: 55vw;
+    background: radial-gradient(circle, rgba(0,210,255,0.30) 0%, transparent 65%);
+    filter: blur(85px); bottom: 10vh; left: 5vw;
+    animation: aurora-b 19s ease-in-out infinite reverse;
+    will-change: transform;
   }
 
-  /* ── Layout ── */
-  .container {
-    position: relative; z-index: 1;
-    max-width: 1400px; margin: 0 auto; padding: 32px;
+  /* $ watermark — single centered ghost */
+  @keyframes float-up {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
   }
-
-  /* ── Header ── */
-  header {
-    background: rgba(0,0,0,0.40);
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    padding: 16px max(32px, calc((100vw - 1400px) / 2 + 32px));
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-    backdrop-filter: blur(40px) saturate(300%);
-    -webkit-backdrop-filter: blur(40px) saturate(300%);
+  .dollar-wrap {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    height: 200vh;
+    animation: float-up 50s linear infinite;
+    overflow: hidden;
   }
-  .logo {
-    font-size: 18px; font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    background: linear-gradient(115deg, #00b8ff 0%, #00dcff 45%, #ffe600 120%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .bg-dollar {
+    position: absolute;
+    top: 50%; left: 0; width: 100%;
+    text-align: center;
+    transform: translateY(-50%);
+    font-size: 85vw;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600; letter-spacing: 0; line-height: 1;
+    color: rgba(0,184,255,0.04);
+    user-select: none;
   }
-  .header-right { display:flex; gap:12px; align-items:center; }
-  .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
-  .live-dot::before {
-    content:''; width:7px; height:7px; border-radius:50%;
-    background:var(--green); display:inline-block; box-shadow:0 0 6px var(--green);
-  }
-  .live-dot.err::before { background:var(--red); box-shadow:0 0 6px var(--red); }
-
-  /* ── Buttons ── */
-  .btn {
-    padding: 8px 16px; border-radius: 8px; border: none;
-    cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s;
-  }
-  .btn-primary   { background:var(--accent-grad); color:#001a2e; font-weight:700; border:none; }
-  .btn-primary:hover { background:linear-gradient(125deg, #00a0e8 0%, #00c0ee 50%, #f0d800 130%); }
-  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
-  .btn-secondary:hover { background:var(--border); }
-  .btn-danger {
-    background:transparent; color:var(--red);
-    border:1px solid rgba(239,68,68,0.3);
-    padding:4px 10px; font-size:11px; border-radius:6px; white-space:nowrap;
-  }
-  .btn-danger:hover { background:var(--red); color:white; border-color:var(--red); }
 
   /* ── Glass surface — shared recipe ── */
   .stat-card, .table-wrapper, .chart-card,
@@ -231,7 +218,7 @@
   /* ── Tabs ── */
   .tabs {
     display:flex; gap:4px; margin-bottom:24px;
-    background:rgba(0,0,0,0.30); border:none;
+    background:rgba(0,0,0,0.40); border:none;
     border-radius:10px; padding:4px; width:fit-content;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.02), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(255,255,255,0.05);
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
@@ -495,7 +482,7 @@
 
   .live-stats-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
   .pos-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.35);
+    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.45);
     border: none;
     border-radius: 14px; overflow:hidden;
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
@@ -539,7 +526,7 @@
 
   .trade-card-mobile {
     border-radius:16px; padding:0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.35);
+    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%), rgba(0,0,0,0.45);
     border: none;
     backdrop-filter:blur(20px) saturate(200%); -webkit-backdrop-filter:blur(20px) saturate(200%);
     box-shadow: 0 2px 24px rgba(0,0,0,0.2);
@@ -705,7 +692,11 @@
 </header>
 
 <div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div></div>
-<div class="dollar-wrap" id="dollarField"></div>
+<div class="dollar-wrap"><span class="bg-dollar">$</span></div>
+<svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <rect width="100%" height="100%" filter="url(#noise)" opacity="0.06"/>
+</svg>
 <div class="container">
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="statTotal">—</div></div>
@@ -2508,31 +2499,5 @@
   }
 </script>
 
-<script>
-(function(){
-  const field = document.getElementById('dollarField');
-  if (!field) return;
-  const W = window.innerWidth;
-  const H = window.innerHeight * 2; // 2x for seamless loop
-  const SIZE    = 38;          // px — single uniform size
-  const CELL_X  = 80;          // horizontal spacing
-  const CELL_Y  = 68;          // vertical spacing
-  const OPACITY = 0.80;
-
-  let html = '';
-  const rows = Math.ceil(H / CELL_Y) + 1;
-  const cols = Math.ceil(W / CELL_X) + 1;
-
-  for (let c = 0; c < cols; c++) {
-    const offsetY = (c % 2 === 1) ? CELL_Y / 2 : 0; // vertical offset on odd columns
-    for (let r = 0; r < rows; r++) {
-      const x = c * CELL_X;
-      const y = r * CELL_Y + offsetY;
-      html += `<span class="bg-dollar" style="position:absolute;left:${x}px;top:${y}px;font-size:${SIZE}px;opacity:${OPACITY};transform:translate(-50%,-50%);filter:blur(1px)">$</span>`;
-    }
-  }
-  field.innerHTML = html;
-})();
-</script>
 </body>
 </html>
