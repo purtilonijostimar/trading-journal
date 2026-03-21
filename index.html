@@ -141,6 +141,37 @@
   .phase-status.locked   { background:rgba(100,116,139,.12); color:var(--text3); }
   .phase-status.unlocked { background:rgba(34,197,94,.12); color:var(--green); border:1px solid rgba(34,197,94,.3); }
 
+  /* ── Streak row ── */
+  .streak-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .streak-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; flex:1; min-width:120px; }
+  .streak-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+  .streak-val   { font-size:20px; font-weight:700; }
+  .streak-val.green  { color:var(--green); }
+  .streak-val.red    { color:var(--red); }
+  .streak-val.yellow { color:var(--yellow); }
+
+  /* ── Equity curve ── */
+  .eq-svg { width:100%; height:140px; overflow:visible; }
+  .eq-line { fill:none; stroke:var(--accent); stroke-width:2; }
+  .eq-area { opacity:0.12; }
+  .eq-dot  { r:3; fill:var(--accent); cursor:pointer; }
+  .eq-dot.pos { fill:var(--green); }
+  .eq-dot.neg { fill:var(--red); }
+  .eq-zero { stroke:var(--border); stroke-width:1; stroke-dasharray:4 4; }
+  .eq-label { font-size:10px; fill:var(--text3); }
+
+  /* ── Setup × Regime matrix ── */
+  .matrix-wrap { overflow-x:auto; }
+  .matrix-table { border-collapse:collapse; width:100%; font-size:12px; }
+  .matrix-table th { padding:6px 12px; color:var(--text3); font-weight:600; text-align:center; font-size:11px; white-space:nowrap; border-bottom:1px solid var(--border); }
+  .matrix-table th.row-head { text-align:left; }
+  .matrix-table td { padding:6px 12px; text-align:center; border-bottom:1px solid rgba(255,255,255,.04); }
+  .matrix-table td.row-head { text-align:left; color:var(--text2); font-weight:600; white-space:nowrap; }
+  .matrix-cell { display:inline-flex; flex-direction:column; align-items:center; gap:2px; }
+  .matrix-wr   { font-weight:700; font-size:12px; }
+  .matrix-n    { font-size:10px; color:var(--text3); }
+  .matrix-cell.no-data { color:var(--text3); font-size:11px; }
+
   /* ── R distribution chart ── */
   .r-dist-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; }
   .r-dist-ticker { width:52px; color:var(--text3); font-size:11px; font-weight:600; text-align:right; flex-shrink:0; }
@@ -361,11 +392,27 @@
       <div class="phase-status" id="phaseStatus"></div>
     </div>
 
+    <!-- Streak stats row -->
+    <div class="streak-row" id="streakRow"></div>
+
     <div class="analytics-grid">
+      <!-- Equity curve — full width -->
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-title">📈 Equity Curve — Running P&L (€)</div>
+        <div id="equityCurve" style="position:relative;height:140px"></div>
+      </div>
+
       <div class="chart-card"><div class="chart-title">Win Rate by Setup</div><div class="bar-chart" id="setupChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Direction</div><div class="bar-chart" id="directionChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Regime</div><div class="bar-chart" id="regimeChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Time of Day</div><div class="bar-chart" id="timeChart"></div></div>
+
+      <!-- Setup × Regime matrix — full width -->
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-title">🔀 Setup × Regime — Win Rate Matrix</div>
+        <div id="matrixChart"></div>
+      </div>
+
       <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">📐 R Achievement (exit R vs 2.13R target)</div><div id="rDistChart"></div></div>
       <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">💡 Insights</div><div class="insight-list" id="insightList"></div></div>
     </div>
@@ -640,6 +687,187 @@
     return move / risk;
   }
 
+  function renderStreakRow(closed) {
+    const results  = closed.map(t => t.result).filter(r => r === 'win' || r === 'loss');
+    if (!results.length) { document.getElementById('streakRow').innerHTML=''; return; }
+
+    // Current streak
+    let curStreak = 1, curType = results[results.length-1];
+    for (let i = results.length-2; i >= 0; i--) {
+      if (results[i] === curType) curStreak++; else break;
+    }
+
+    // Best streaks
+    let bestW = 0, bestL = 0, cs = 1;
+    for (let i = 1; i < results.length; i++) {
+      cs = results[i] === results[i-1] ? cs+1 : 1;
+      if (results[i]==='win')  bestW = Math.max(bestW, cs);
+      if (results[i]==='loss') bestL = Math.max(bestL, cs);
+    }
+    if (results[0]==='win')  bestW = Math.max(bestW, 1);
+    if (results[0]==='loss') bestL = Math.max(bestL, 1);
+
+    // Total stats
+    const wins   = closed.filter(t=>t.result==='win').length;
+    const losses = closed.filter(t=>t.result==='loss').length;
+    const grossW = closed.filter(t=>t.result==='win').map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0);
+    const grossL = Math.abs(closed.filter(t=>t.result==='loss').map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0));
+    const avgW   = wins   ? (grossW/wins).toFixed(0)   : '—';
+    const avgL   = losses ? (grossL/losses).toFixed(0) : '—';
+
+    const streakCol = curType==='win' ? 'green' : 'red';
+    const streakIcon = curType==='win' ? '🔥' : '❄️';
+
+    document.getElementById('streakRow').innerHTML = `
+      <div class="streak-card">
+        <div class="streak-label">Current Streak</div>
+        <div class="streak-val ${streakCol}">${streakIcon} ${curStreak}× ${curType}</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-label">Best Win Streak</div>
+        <div class="streak-val green">${bestW}× win</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-label">Best Loss Streak</div>
+        <div class="streak-val red">${bestL}× loss</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-label">Avg Winner</div>
+        <div class="streak-val green">+€${avgW}</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-label">Avg Loser</div>
+        <div class="streak-val red">-€${avgL}</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-label">Expectancy / Trade</div>
+        <div class="streak-val ${(grossW-grossL)>=0?'green':'red'}">${closed.length ? ((grossW-grossL)/closed.length>=0?'+':'')+'€'+(((grossW-grossL)/closed.length).toFixed(1)) : '—'}</div>
+      </div>`;
+  }
+
+  function renderEquityCurve(closed) {
+    const el = document.getElementById('equityCurve');
+    // Group by date, compute daily P&L
+    const byDate = {};
+    closed.forEach(t => {
+      const d = t.date;
+      byDate[d] = (byDate[d]||0) + (calcPnl(t)||0);
+    });
+    const dates = Object.keys(byDate).sort();
+    if (dates.length < 2) {
+      el.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:8px 0">Need trades across 2+ days to draw equity curve.</p>';
+      return;
+    }
+
+    // Build running P&L points (start at 0)
+    const points = [{ d:'Start', v:0 }];
+    let running = 0;
+    dates.forEach(d => { running += byDate[d]; points.push({ d, v:running }); });
+
+    const W = el.offsetWidth || 600;
+    const H = 120;
+    const PAD = { t:10, r:10, b:24, l:48 };
+    const chartW = W - PAD.l - PAD.r;
+    const chartH = H - PAD.t - PAD.b;
+
+    const vals  = points.map(p=>p.v);
+    const minV  = Math.min(...vals, 0);
+    const maxV  = Math.max(...vals, 0);
+    const range = maxV - minV || 1;
+
+    const px = (i) => PAD.l + (i / (points.length-1)) * chartW;
+    const py = (v)  => PAD.t + chartH - ((v - minV) / range * chartH);
+    const zeroY = py(0);
+
+    // SVG path
+    const linePts = points.map((p,i) => `${px(i).toFixed(1)},${py(p.v).toFixed(1)}`).join(' ');
+    const areaBot = `${px(points.length-1).toFixed(1)},${zeroY.toFixed(1)} ${px(0).toFixed(1)},${zeroY.toFixed(1)}`;
+    const finalV  = points[points.length-1].v;
+    const lineCol = finalV >= 0 ? 'var(--green)' : 'var(--red)';
+    const areaCol = finalV >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // Axis labels
+    const yLabels = [minV, 0, maxV].filter((v,i,a) => a.indexOf(v)===i).map(v =>
+      `<text class="eq-label" x="${(PAD.l-4).toFixed(0)}" y="${(py(v)+4).toFixed(0)}" text-anchor="end">${v>=0?'+':''}€${v.toFixed(0)}</text>`
+    ).join('');
+
+    const dots = points.slice(1).map((p,i) =>
+      `<circle class="eq-dot ${p.v>=0?'pos':'neg'}" cx="${px(i+1).toFixed(1)}" cy="${py(p.v).toFixed(1)}" r="3">
+        <title>${p.d}: ${p.v>=0?'+':''}€${p.v.toFixed(2)}</title>
+      </circle>`
+    ).join('');
+
+    const xLabels = points.slice(1).map((p,i) =>
+      `<text class="eq-label" x="${px(i+1).toFixed(1)}" y="${(PAD.t+chartH+16).toFixed(0)}" text-anchor="middle">${p.d.slice(5)}</text>`
+    ).join('');
+
+    el.innerHTML = `<svg class="eq-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <line class="eq-zero" x1="${PAD.l}" y1="${zeroY.toFixed(1)}" x2="${(W-PAD.r).toFixed(1)}" y2="${zeroY.toFixed(1)}"/>
+      <polygon points="${linePts} ${areaBot}" fill="${areaCol}" opacity="0.12"/>
+      <polyline class="eq-line" points="${linePts}" stroke="${lineCol}"/>
+      ${yLabels}${xLabels}${dots}
+    </svg>`;
+  }
+
+  function renderMatrix(closed) {
+    const el = document.getElementById('matrixChart');
+    if (!closed.length) { el.innerHTML='<p style="color:var(--text3);font-size:13px">No closed trades yet.</p>'; return; }
+
+    // Build setup × regime data
+    const matrix = {};
+    const setups  = new Set();
+    const regimes = new Set();
+
+    closed.forEach(t => {
+      const setup  = fmtSetup(t.setup);
+      const tags   = parseTags(t.tags);
+      const regime = tags.regime || 'unknown';
+      setups.add(setup); regimes.add(regime);
+      const key = `${setup}||${regime}`;
+      matrix[key] = matrix[key] || { w:0, n:0 };
+      matrix[key].n++;
+      if (t.result==='win') matrix[key].w++;
+    });
+
+    const setupList  = [...setups].sort();
+    const regimeList = [...regimes].sort();
+
+    const cellColor = (w, n) => {
+      if (!n) return 'var(--text3)';
+      const wr = w/n;
+      if (n < 2) return 'var(--text3)';           // not enough data — grey
+      if (wr >= 0.65) return 'var(--green)';
+      if (wr >= 0.45) return 'var(--yellow)';
+      return 'var(--red)';
+    };
+
+    const headers = regimeList.map(r =>
+      `<th>${r.replace(/[_+]/g,' ')}</th>`
+    ).join('');
+
+    const rows = setupList.map(setup => {
+      const cells = regimeList.map(regime => {
+        const d = matrix[`${setup}||${regime}`];
+        if (!d) return `<td><span class="matrix-cell no-data">—</span></td>`;
+        const wr = Math.round(d.w/d.n*100);
+        const col = cellColor(d.w, d.n);
+        const opacity = d.n < 2 ? '0.4' : '1';
+        return `<td><div class="matrix-cell">
+          <span class="matrix-wr" style="color:${col};opacity:${opacity}">${d.n<2?'?':wr+'%'}</span>
+          <span class="matrix-n">${d.w}/${d.n}</span>
+        </div></td>`;
+      }).join('');
+      return `<tr><td class="row-head">${setup}</td>${cells}</tr>`;
+    }).join('');
+
+    el.innerHTML = `<div class="matrix-wrap"><table class="matrix-table">
+      <thead><tr><th class="row-head">Setup</th>${headers}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">? = fewer than 2 trades (unreliable). Green ≥65% · Yellow 45–65% · Red &lt;45%</p>
+    </div>`;
+  }
+
   function renderPhaseGate(closed) {
     const wins    = closed.filter(t => t.result === 'win');
     const losses  = closed.filter(t => t.result === 'loss');
@@ -730,7 +958,10 @@
 
   function renderAnalytics() {
     const closed = trades.filter(t => t.result !== 'open');
+    renderStreakRow(closed);
     renderPhaseGate(closed);
+    renderEquityCurve(closed);
+    renderMatrix(closed);
     renderRDist(closed);
 
     // Setup chart
