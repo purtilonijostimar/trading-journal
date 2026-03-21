@@ -151,7 +151,7 @@
   .streak-val.yellow { color:var(--yellow); }
 
   /* ── Equity curve ── */
-  .eq-svg { width:100%; height:140px; overflow:visible; }
+  .eq-svg { width:100%; height:200px; overflow:visible; }
   .eq-line { fill:none; stroke:var(--accent); stroke-width:2; }
   .eq-area { opacity:0.12; }
   .eq-dot  { r:3; fill:var(--accent); cursor:pointer; }
@@ -159,6 +159,35 @@
   .eq-dot.neg { fill:var(--red); }
   .eq-zero { stroke:var(--border); stroke-width:1; stroke-dasharray:4 4; }
   .eq-label { font-size:10px; fill:var(--text3); }
+
+  /* ── Daily loss limit gauge ── */
+  .gauge-wrap { display:flex; flex-direction:column; gap:8px; }
+  .gauge-track { height:20px; background:var(--border); border-radius:10px; overflow:hidden; position:relative; }
+  .gauge-fill  { height:100%; border-radius:10px; transition:width .5s; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; }
+  .gauge-fill.safe   { background:rgba(34,197,94,.3);  color:var(--green); }
+  .gauge-fill.warn   { background:rgba(234,179,8,.35); color:var(--yellow); }
+  .gauge-fill.danger { background:rgba(239,68,68,.4);  color:var(--red); }
+  .gauge-meta { display:flex; justify-content:space-between; font-size:12px; color:var(--text3); }
+
+  /* ── Rolling performance ── */
+  .rolling-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .rolling-col  { display:flex; flex-direction:column; gap:6px; }
+  .rolling-head { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:2px; }
+  .rolling-stat { display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:5px; }
+  .rolling-stat .label { color:var(--text3); }
+  .rolling-stat .val   { font-weight:600; }
+  .rolling-delta { font-size:10px; margin-left:4px; }
+  .delta-up   { color:var(--green); }
+  .delta-down { color:var(--red); }
+
+  /* ── Day of week ── */
+  .dow-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; }
+  .dow-label { width:32px; color:var(--text3); font-size:11px; font-weight:600; flex-shrink:0; }
+  .dow-bar-track { flex:1; height:22px; background:var(--border); border-radius:5px; overflow:hidden; position:relative; }
+  .dow-bar-fill  { height:100%; border-radius:5px; display:flex; align-items:center; padding:0 8px; font-size:11px; font-weight:600; }
+  .dow-bar-fill.pos { background:rgba(34,197,94,.25); color:var(--green); }
+  .dow-bar-fill.neg { background:rgba(239,68,68,.2);  color:var(--red); }
+  .dow-n { width:28px; text-align:right; color:var(--text3); font-size:10px; flex-shrink:0; }
 
   /* ── Signal funnel ── */
   .funnel-wrap { display:flex; flex-direction:column; gap:6px; }
@@ -416,7 +445,7 @@
       <!-- Equity curve — full width -->
       <div class="chart-card" style="grid-column:1/-1">
         <div class="chart-title">📈 Equity Curve — Running P&L (€)</div>
-        <div id="equityCurve" style="position:relative;height:140px"></div>
+        <div id="equityCurve" style="position:relative;height:200px"></div>
       </div>
 
       <div class="chart-card"><div class="chart-title">Win Rate by Setup</div><div class="bar-chart" id="setupChart"></div></div>
@@ -437,6 +466,24 @@
       </div>
 
       <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">📐 R Achievement (exit R vs 2.13R target)</div><div id="rDistChart"></div></div>
+      <!-- Rolling performance window -->
+      <div class="chart-card">
+        <div class="chart-title">🔄 Rolling Performance — Last 5 vs All Time</div>
+        <div id="rollingChart"></div>
+      </div>
+
+      <!-- Day of week P&L -->
+      <div class="chart-card">
+        <div class="chart-title">📅 P&L by Day of Week</div>
+        <div id="dowChart"></div>
+      </div>
+
+      <!-- Daily loss limit gauge — full width -->
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-title">🛡️ Daily Loss Limit — Today's Usage</div>
+        <div id="dailyLimitGauge"></div>
+      </div>
+
       <div class="chart-card" style="grid-column:1/-1"><div class="chart-title">💡 Insights</div><div class="insight-list" id="insightList"></div></div>
     </div>
   </div>
@@ -788,8 +835,8 @@
     dates.forEach(d => { running += byDate[d]; points.push({ d, v:running }); });
 
     const W = el.offsetWidth || 600;
-    const H = 120;
-    const PAD = { t:10, r:10, b:24, l:48 };
+    const H = 180;
+    const PAD = { t:16, r:16, b:36, l:58 };
     const chartW = W - PAD.l - PAD.r;
     const chartH = H - PAD.t - PAD.b;
 
@@ -815,13 +862,14 @@
     ).join('');
 
     const dots = points.slice(1).map((p,i) =>
-      `<circle class="eq-dot ${p.v>=0?'pos':'neg'}" cx="${px(i+1).toFixed(1)}" cy="${py(p.v).toFixed(1)}" r="3">
+      `<circle class="eq-dot ${p.v>=0?'pos':'neg'}" cx="${px(i+1).toFixed(1)}" cy="${py(p.v).toFixed(1)}" r="5" stroke="${p.v>=0?'var(--green)':'var(--red)'}" stroke-width="1.5" fill="var(--bg)">
         <title>${p.d}: ${p.v>=0?'+':''}€${p.v.toFixed(2)}</title>
-      </circle>`
+      </circle>
+      <text class="eq-label" x="${px(i+1).toFixed(1)}" y="${(py(p.v)-10).toFixed(0)}" text-anchor="middle" style="font-size:11px;fill:${p.v>=0?'var(--green)':'var(--red)'};font-weight:600">${p.v>=0?'+':''}€${p.v.toFixed(0)}</text>`
     ).join('');
 
     const xLabels = points.slice(1).map((p,i) =>
-      `<text class="eq-label" x="${px(i+1).toFixed(1)}" y="${(PAD.t+chartH+16).toFixed(0)}" text-anchor="middle">${p.d.slice(5)}</text>`
+      `<text class="eq-label" x="${px(i+1).toFixed(1)}" y="${(PAD.t+chartH+24).toFixed(0)}" text-anchor="middle" style="font-size:12px">${p.d.slice(5)}</text>`
     ).join('');
 
     el.innerHTML = `<svg class="eq-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
@@ -830,6 +878,158 @@
       <polyline class="eq-line" points="${linePts}" stroke="${lineCol}"/>
       ${yLabels}${xLabels}${dots}
     </svg>`;
+  }
+
+  // ── Daily Loss Limit Gauge ─────────────────────────────────────────────────
+  function renderDailyLimitGauge(closed) {
+    const el = document.getElementById('dailyLimitGauge');
+    const today = new Date().toISOString().split('T')[0];
+    const todayTrades = closed.filter(t => t.date === today);
+
+    const ACCOUNT  = 10000;
+    const LIMIT_PCT = 0.03;
+    const LIMIT_EUR = ACCOUNT * LIMIT_PCT;  // €300
+
+    const todayPnl  = todayTrades.map(t => calcPnl(t)||0).reduce((a,b)=>a+b,0);
+    const todayLoss = Math.max(0, -todayPnl);
+    const usedPct   = Math.min(100, todayLoss / LIMIT_EUR * 100);
+    const remaining = LIMIT_EUR - todayLoss;
+
+    const cls = usedPct < 50 ? 'safe' : usedPct < 80 ? 'warn' : 'danger';
+    const icon = usedPct < 50 ? '🟢' : usedPct < 80 ? '⚠️' : '🔴';
+    const fillW = Math.max(usedPct, todayLoss > 0 ? 8 : 0);
+
+    if (!todayTrades.length) {
+      el.innerHTML = `<div class="gauge-wrap">
+        <div class="gauge-meta"><span>No trades today yet</span><span>Limit: €${LIMIT_EUR.toFixed(0)} (3% of €${ACCOUNT.toLocaleString()})</span></div>
+        <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
+        <div class="gauge-meta"><span style="color:var(--green)">✅ Full limit available</span><span>€${LIMIT_EUR.toFixed(0)} remaining</span></div>
+      </div>`;
+      return;
+    }
+
+    el.innerHTML = `<div class="gauge-wrap">
+      <div class="gauge-meta">
+        <span>${icon} Today: ${todayTrades.length} trade${todayTrades.length!==1?'s':''} · P&L <strong style="color:${todayPnl>=0?'var(--green)':'var(--red)'}">${todayPnl>=0?'+':''}€${todayPnl.toFixed(2)}</strong></span>
+        <span>Daily limit: €${LIMIT_EUR.toFixed(0)}</span>
+      </div>
+      <div class="gauge-track">
+        <div class="gauge-fill ${cls}" style="width:${fillW}%">
+          ${todayLoss > 0 ? `-€${todayLoss.toFixed(2)} used (${usedPct.toFixed(0)}%)` : 'No losses today'}
+        </div>
+      </div>
+      <div class="gauge-meta">
+        <span style="color:${remaining>50?'var(--green)':'var(--red)'}">€${Math.max(0,remaining).toFixed(2)} remaining</span>
+        <span style="color:var(--text3)">${usedPct >= 100 ? '🛑 LIMIT HIT — bot should have stopped' : usedPct >= 80 ? '⚠️ Near limit — last trade of the day' : ''}</span>
+      </div>
+    </div>`;
+  }
+
+  // ── Rolling 5-trade Window ─────────────────────────────────────────────────
+  function renderRollingChart(closed) {
+    const el = document.getElementById('rollingChart');
+    if (closed.length < 3) {
+      el.innerHTML = '<p style="color:var(--text3);font-size:13px">Need 3+ closed trades.</p>';
+      return;
+    }
+
+    const last5  = closed.slice(-5);
+    const all    = closed;
+
+    const stat = (arr) => {
+      const wins   = arr.filter(t=>t.result==='win');
+      const losses = arr.filter(t=>t.result==='loss');
+      const wr     = arr.length ? wins.length/arr.length*100 : 0;
+      const rs     = arr.map(t=>calcR(t)).filter(r=>r!==null);
+      const avgR   = rs.length ? rs.reduce((a,b)=>a+b,0)/rs.length : null;
+      const winRs  = wins.map(t=>calcR(t)).filter(r=>r!==null);
+      const avgWR  = winRs.length ? winRs.reduce((a,b)=>a+b,0)/winRs.length : null;
+      const pnls   = arr.map(t=>calcPnl(t)||0);
+      const totPnl = pnls.reduce((a,b)=>a+b,0);
+      const grossW = wins.map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0);
+      const grossL = Math.abs(losses.map(t=>calcPnl(t)||0).reduce((a,b)=>a+b,0));
+      const pf     = grossL > 0 ? grossW/grossL : (grossW>0?99:0);
+      return { wr, avgR, avgWR, totPnl, pf, n:arr.length };
+    };
+
+    const s5  = stat(last5);
+    const sAll = stat(all);
+
+    const delta = (v5, vA, fmt, higherIsBetter=true) => {
+      if (v5===null || vA===null) return '<span class="rolling-delta" style="color:var(--text3)">—</span>';
+      const diff = v5 - vA;
+      const better = higherIsBetter ? diff >= 0 : diff <= 0;
+      const sign = diff >= 0 ? '+' : '';
+      return `<span class="rolling-delta ${better?'delta-up':'delta-down'}">${sign}${fmt(diff)}</span>`;
+    };
+
+    const fPct = v => `${v.toFixed(0)}%`;
+    const fR   = v => `${v.toFixed(2)}R`;
+    const fEur = v => `€${v.toFixed(0)}`;
+
+    const row = (label, v5, vAll, fmt, higherIsBetter=true) => {
+      const v5str  = v5  !== null ? fmt(v5)  : '—';
+      const vAstr  = vAll !== null ? fmt(vAll) : '—';
+      const d = delta(v5, vAll, fmt, higherIsBetter);
+      const col5 = (higherIsBetter ? v5 >= vAll : v5 <= vAll) ? 'var(--green)' : 'var(--red)';
+      return `<div class="rolling-stat">
+        <span class="label">${label}</span>
+        <span class="val"><span style="color:${col5}">${v5str}</span>${d} <span style="color:var(--text3);font-size:10px">/ ${vAstr}</span></span>
+      </div>`;
+    };
+
+    el.innerHTML = `
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Last ${last5.length} trades vs all-time average. Colour = better/worse than baseline.</p>
+      <div class="rolling-grid">
+        <div class="rolling-col">
+          <div class="rolling-head">Last ${last5.length}</div>
+          ${row('Win rate', s5.wr, sAll.wr, fPct)}
+          ${row('Avg R', s5.avgR, sAll.avgR, fR)}
+          ${row('Avg winner R', s5.avgWR, sAll.avgWR, fR)}
+          ${row('Profit factor', s5.pf===99?null:s5.pf, sAll.pf===99?null:sAll.pf, v=>`${v.toFixed(2)}`)}
+        </div>
+        <div class="rolling-col">
+          <div class="rolling-head">Trend</div>
+          ${row('Net P&L', s5.totPnl, sAll.totPnl/sAll.n*s5.n, fEur)}
+        </div>
+      </div>`;
+  }
+
+  // ── Day of Week P&L ────────────────────────────────────────────────────────
+  function renderDowChart(closed) {
+    const el = document.getElementById('dowChart');
+    const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+    const dow  = {};
+    DAYS.forEach(d => dow[d] = { pnl:0, n:0, w:0 });
+
+    closed.forEach(t => {
+      const d = new Date(t.date + 'T12:00:00');
+      const name = DAYS[d.getDay()-1];
+      if (!name) return;
+      dow[name].pnl += calcPnl(t)||0;
+      dow[name].n++;
+      if (t.result==='win') dow[name].w++;
+    });
+
+    const active = DAYS.filter(d => dow[d].n > 0);
+    if (!active.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px">No data yet.</p>'; return; }
+
+    const maxAbs = Math.max(...active.map(d => Math.abs(dow[d].pnl)), 1);
+
+    el.innerHTML = active.map(d => {
+      const v   = dow[d].pnl;
+      const pct = Math.max(4, Math.abs(v)/maxAbs*100);
+      const wr  = dow[d].n ? Math.round(dow[d].w/dow[d].n*100) : 0;
+      return `<div class="dow-row">
+        <div class="dow-label">${d}</div>
+        <div class="dow-bar-track">
+          <div class="dow-bar-fill ${v>=0?'pos':'neg'}" style="width:${pct}%">
+            ${v>=0?'+':''}€${Math.abs(v).toFixed(0)} · ${wr}% WR
+          </div>
+        </div>
+        <div class="dow-n">${dow[d].n}t</div>
+      </div>`;
+    }).join('');
   }
 
   // ── Signal Funnel ──────────────────────────────────────────────────────────
@@ -1081,6 +1281,9 @@
     renderStreakRow(closed);
     renderPhaseGate(closed);
     renderEquityCurve(closed);
+    renderDailyLimitGauge(closed);
+    renderRollingChart(closed);
+    renderDowChart(closed);
     renderFunnel(null);   // async — loads independently
     renderMatrix(closed);
     renderRDist(closed);
