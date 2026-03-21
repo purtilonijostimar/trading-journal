@@ -659,20 +659,25 @@
     .bar-n       { display:none; }
   }
 
+  .blob-stage {
+    position: fixed; inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+  }
   /* ── Background dollar watermark ── */
   .bg-dollar {
-    position: absolute;
+    position: fixed;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 25vmax;
+    transform: translate(-50%, -52%);
+    font-size: 70vmin;
     font-weight: 900;
     line-height: 1;
     pointer-events: none;
-    z-index: 2;
+    z-index: 0;
     color: #000000;
     user-select: none;
     letter-spacing: -0.05em;
-    filter: blur(0.4px);
     white-space: nowrap;
   }
 </style>
@@ -688,7 +693,7 @@
   </div>
 </header>
 
-<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div><div class="bg-dollar">$</div></div>
+<div class="blob-stage"><div class="blob-teal"></div><div class="blob-warm"></div></div><div class="bg-dollar">$</div>
 <div class="container">
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="statTotal">—</div></div>
