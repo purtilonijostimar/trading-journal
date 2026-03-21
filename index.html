@@ -78,7 +78,7 @@
     contain: strict;
   }
   body::before, body::after, .blob-teal, .blob-warm {
-    content: ''; position: absolute; border-radius: 50%;
+    content: ''; position: fixed; border-radius: 50%;
     pointer-events: none;
     mix-blend-mode: screen;
     will-change: transform;
@@ -344,7 +344,7 @@
 
   /* ══ ANALYTICS ══════════════════════════════════════════════ */
 
-  .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:28px; min-width:0; }
+  .analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:28px; min-width:0; margin-bottom:32px; }
   .analytics-grid > * { min-width:0; overflow:hidden; }
   .chart-card  { padding:20px; }
   .chart-title { font-weight:700; margin-bottom:16px; font-size:14px; }
@@ -352,7 +352,7 @@
   /* Phase gate */
   .phase-gate-card  { padding:20px; margin-bottom:24px; }
   .phase-gate-title { font-size:13px; font-weight:700; margin-bottom:16px; color:var(--text); }
-  .phase-gate-grid  { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+  .phase-gate-grid  { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:32px; }
   .phase-item       { display:flex; flex-direction:column; gap:6px; }
   .phase-label      { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
   .phase-bar-track  { height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
@@ -478,7 +478,7 @@
   .jf-btn.active { background:var(--accent-grad); border-color:transparent; color:#001a2e; font-weight:700; }
   .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
 
-  .entry-card { padding:20px; }
+  .entry-card { padding:24px; }
   .entry-card.win, .entry-card.loss, .entry-card.open {} /* neutral — colour lives in values */
 
   /* Two-column layout */
