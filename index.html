@@ -937,50 +937,56 @@
       cardsEl.innerHTML = filtered.map(t => {
         const pnl    = calcPnl(t);
         const rVal   = calcR(t);
-        const pnlCol = pnl === null ? 'var(--text3)' : pnl >= 0 ? 'var(--green)' : 'var(--red)';
-        const rCol   = rVal === null ? 'var(--text3)' : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
-        const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}` : 'Open';
+        // Brighter colours for legibility on tinted glass backgrounds
+        const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#4ade80' : '#f87171';
+        const rCol   = rVal === null ? 'rgba(255,255,255,0.4)'
+                     : rVal < 0 ? '#f87171' : rVal >= TARGET_R ? '#4ade80'
+                     : rVal >= 1.0 ? '#fbbf24' : '#93c5fd';
+        const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : 'Open';
         const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
-        const cutBadge = cutEarly ? `<span style="display:inline-block;font-size:9px;font-weight:700;background:rgba(245,158,11,.2);color:var(--yellow);border-radius:3px;padding:0 4px;vertical-align:middle;margin-right:3px;line-height:16px">CUT</span>` : '';
+        const cutBadge = cutEarly
+          ? `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:800;background:rgba(251,191,36,.25);color:#fbbf24;border-radius:4px;padding:1px 5px;margin-right:4px;letter-spacing:.3px">CUT</span>`
+          : '';
         const rStr   = rVal !== null ? `${cutBadge}${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
         const tags   = parseTags(t.tags);
-        const regime = tags.regime ? `<span class="regime-pill" style="font-size:10px">${tags.regime}</span>` : '';
-        const chart  = t.screenshot
-          ? `<img src="${t.screenshot}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer" onclick="openLightbox('${t.screenshot}')">`
+        const regime = tags.regime
+          ? `<span style="font-size:10px;font-weight:600;color:rgba(147,197,253,0.9);background:rgba(79,124,255,.2);padding:2px 7px;border-radius:4px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;border:1px solid rgba(79,124,255,.2)" title="${tags.regime||''}">${(tags.regime||'').replace(/[_+]/g,' ')}</span>`
           : '';
-
+        const chart  = t.screenshot
+          ? `<img src="${t.screenshot}" style="width:100%;height:90px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-top:10px;cursor:pointer" onclick="openLightbox('${t.screenshot}')">`
+          : '';
         const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
 
         return `<div class="trade-card-mobile ${t.result}">
 
           <!-- Top: ticker + badges + date -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0">
-              <span style="font-size:18px;font-weight:800;flex-shrink:0">${t.ticker.toUpperCase()}</span>
+              <span style="font-size:19px;font-weight:800;letter-spacing:-.3px;flex-shrink:0">${t.ticker.toUpperCase()}</span>
               <span class="badge badge-${t.direction}" style="flex-shrink:0">${t.direction.toUpperCase()}</span>
               <span class="badge badge-${t.result}" style="flex-shrink:0">${t.result}</span>
-              ${regime ? `<span style="font-size:10px;font-weight:600;color:var(--accent);background:rgba(79,124,255,.12);padding:2px 6px;border-radius:4px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1" title="${tags.regime||''}">${(tags.regime||'').replace(/[_+]/g,' ')}</span>` : ''}
+              ${regime}
             </div>
-            <span style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;padding-top:3px">${dateStr}</span>
+            <span style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;padding-top:4px">${dateStr}</span>
           </div>
 
-          <!-- Perf pill box — matches journal card style -->
-          <div class="tcm-perf" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 10px">
+          <!-- Perf pill box -->
+          <div class="tcm-perf" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px 8px">
             <div>
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">P&L</div>
-              <div style="font-size:14px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">P&L</div>
+              <div style="font-size:15px;font-weight:800;color:${pnlCol};white-space:nowrap;letter-spacing:-.3px">${pnlStr}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">R</div>
-              <div style="font-size:14px;font-weight:700;color:${rCol};white-space:nowrap;display:flex;align-items:center;gap:3px">${rStr}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">R</div>
+              <div style="font-size:15px;font-weight:800;color:${rCol};white-space:nowrap;display:flex;align-items:center;gap:3px;letter-spacing:-.3px">${rStr}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Entry</div>
-              <div style="font-size:13px;font-weight:600;white-space:nowrap">$${parseFloat(t.entry||0).toFixed(2)}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Entry</div>
+              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(255,255,255,0.85)">$${parseFloat(t.entry||0).toFixed(2)}</div>
             </div>
             <div>
-              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Exit</div>
-              <div style="font-size:13px;font-weight:600;white-space:nowrap">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Exit</div>
+              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(255,255,255,0.85)">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
             </div>
           </div>
 
@@ -1003,7 +1009,7 @@
       tbody.innerHTML = filtered.map(t => {
         const pnl    = calcPnl(t);
         const pnlStr = pnl !== null
-          ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}</span>`
+          ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}</span>`
           : '<span style="color:var(--text3)">Open</span>';
         const rVal  = calcR(t);
         const TARGET_R = 2.1337;
@@ -1089,7 +1095,7 @@
       const rVal     = calcR(t);
       const pnlCol   = pnl === null ? 'var(--text3)' : pnl >= 0 ? 'var(--green)' : 'var(--red)';
       const rCol     = rVal === null ? 'var(--text3)' : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
-      const pnlStr   = pnl  !== null ? `${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}` : '—';
+      const pnlStr   = pnl  !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : '—';
       const rStr     = rVal !== null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
       const dateStr  = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
 
