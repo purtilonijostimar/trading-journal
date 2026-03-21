@@ -433,16 +433,29 @@
   /* ── Floating Add Trade button (mobile only) ── */
   /* ── Mobile trade cards ── */
   .trade-card-mobile {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--border);
     border-radius: 14px;
     padding: 14px;
     margin-bottom: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
   }
-  .trade-card-mobile.win  { border-left-color: var(--green); }
-  .trade-card-mobile.loss { border-left-color: var(--red); }
-  .trade-card-mobile.open { border-left-color: var(--accent); }
+  .trade-card-mobile.win  {
+    background: rgba(34,197,94, 0.09);
+    border-color: rgba(34,197,94, 0.3);
+  }
+  .trade-card-mobile.loss {
+    background: rgba(239,68,68, 0.09);
+    border-color: rgba(239,68,68, 0.3);
+  }
+  .trade-card-mobile.open {
+    background: rgba(79,124,255, 0.07);
+    border-color: rgba(79,124,255, 0.3);
+  }
+  /* Perf box tint adjusts per result */
+  .trade-card-mobile.win  .tcm-perf { background: rgba(34,197,94,  0.1);  }
+  .trade-card-mobile.loss .tcm-perf { background: rgba(239,68,68,  0.1);  }
+  .trade-card-mobile.open .tcm-perf { background: rgba(79,124,255, 0.08); }
+  .tcm-perf { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
 
   .fab {
     display: none;
@@ -895,7 +908,7 @@
           </div>
 
           <!-- Perf pill box — matches journal card style -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 10px;background:var(--surface2);border-radius:8px;padding:10px 12px">
+          <div class="tcm-perf" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 10px">
             <div>
               <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">P&L</div>
               <div style="font-size:14px;font-weight:700;color:${pnlCol};white-space:nowrap">${pnlStr}</div>
