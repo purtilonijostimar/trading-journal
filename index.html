@@ -73,6 +73,10 @@
   table { width:100%; border-collapse:collapse; table-layout:fixed; }
   th { padding:12px 12px; text-align:left; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.03); white-space:nowrap; }
   td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; overflow:hidden; }
+  tbody tr { transition:background .15s; }
+  tbody tr:hover { background:rgba(255,255,255,0.03) !important; }
+  /* Accent strip TD */
+  td:first-child { padding:0; }
   tr:last-child td { border-bottom:none; }
   tr:hover td { background:rgba(79,124,255,0.03); }
 
@@ -490,29 +494,8 @@
   .trade-card-mobile.loss .tcm-accent-bar { background: #f87171; }
   .trade-card-mobile.open .tcm-accent-bar { background: #93c5fd; }
   .tcm-body { flex: 1; padding: 14px; min-width: 0; }
-  .trade-card-mobile.win {
-    background: rgba(34,197,94, 0.10);
-    border-color: rgba(34,197,94, 0.28);
-    box-shadow:
-      0 4px 28px rgba(34,197,94, 0.15),
-      0 1px 0 rgba(34,197,94, 0.1),
-      inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .trade-card-mobile.loss {
-    background: rgba(239,68,68, 0.10);
-    border-color: rgba(239,68,68, 0.28);
-    box-shadow:
-      0 4px 28px rgba(239,68,68, 0.15),
-      0 1px 0 rgba(239,68,68, 0.1),
-      inset 0 1px 0 rgba(255,255,255,0.06);
-  }
-  .trade-card-mobile.open {
-    background: rgba(79,124,255, 0.09);
-    border-color: rgba(79,124,255, 0.28);
-    box-shadow:
-      0 4px 28px rgba(79,124,255, 0.15),
-      inset 0 1px 0 rgba(255,255,255,0.07);
-  }
+  /* No colour overrides on card container — accent bar carries the result signal */
+  .trade-card-mobile.win, .trade-card-mobile.loss, .trade-card-mobile.open {}
   /* Perf pill box — frosted inner panel */
   .tcm-perf {
     border-radius: 10px;
@@ -521,9 +504,7 @@
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255,255,255,0.05);
   }
-  .trade-card-mobile.win  .tcm-perf { background: rgba(34,197,94,  0.13); border-color: rgba(34,197,94,  0.15); }
-  .trade-card-mobile.loss .tcm-perf { background: rgba(239,68,68,  0.13); border-color: rgba(239,68,68,  0.15); }
-  .trade-card-mobile.open .tcm-perf { background: rgba(79,124,255, 0.11); border-color: rgba(79,124,255, 0.15); }
+  /* perf box: neutral across all results */
 
   /* Ambient glow blobs behind card list */
   #tradeCards { position: relative; }
@@ -1009,12 +990,10 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block;min-height:110px">`
           : `<div style="width:100%;height:100%;min-height:110px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
 
-        // R-encoded bar: clamp between 4px and 20px
-        const rAbs   = rVal !== null ? Math.abs(rVal) : 0;
-        const barW   = Math.round(Math.min(20, Math.max(4, 4 + rAbs * 5)));
+        const barCol = t.result === 'win' ? '#4ade80' : t.result === 'loss' ? '#f87171' : '#93c5fd';
 
         return `<div class="trade-card-mobile ${t.result}">
-          <div class="tcm-accent-bar" style="width:${barW}px"></div>
+          <div class="tcm-accent-bar" style="width:4px;background:${barCol}"></div>
           <div class="tcm-body">
           <!-- Header row -->
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:6px">
@@ -1056,9 +1035,10 @@
       if (!table.querySelector('thead')) {
         table.insertAdjacentHTML('afterbegin', `
           <thead><tr>
-            <th>Date</th><th>Ticker</th><th>Side</th><th>Setup</th>
+            <th style="width:3px;padding:0"></th>
+            <th>Date</th><th>Ticker</th><th>Side</th><th>Setup</th><th>Chart</th>
             <th>P&amp;L</th><th>R</th><th>Entry</th><th>Exit</th>
-            <th>Stop</th><th>Target</th><th>Chart</th><th></th>
+            <th>Stop</th><th>Target</th><th></th>
           </tr></thead>`);
       }
 
@@ -1069,21 +1049,24 @@
 
         const chartThumb = t.screenshot
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
-          : `<span style="opacity:0.2;font-size:16px">📷</span>`;
+          : `<span style="opacity:0.15;font-size:16px">📷</span>`;
 
-        return `<tr style="background:${bgTint}">
+        const accentCol = t.result === 'win' ? '#4ade80' : t.result === 'loss' ? '#f87171' : '#93c5fd';
+
+        return `<tr>
+          <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
           <td style="color:rgba(255,255,255,0.4);font-size:11px;white-space:nowrap">${dateStr}</td>
           <td><strong style="font-size:14px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</strong></td>
           <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
-          <td style="font-size:12px;color:rgba(255,255,255,0.6);white-space:nowrap">${fmtSetup(t.setup)}${regimeBadge ? '&nbsp;'+regimeBadge : ''}</td>
+          <td style="font-size:12px;color:rgba(255,255,255,0.65);white-space:nowrap">${fmtSetup(t.setup)}</td>
+          <td>${chartThumb}</td>
           <td><span style="font-weight:800;font-size:13px;color:${pnlCol}">${pnlStr}</span></td>
           <td><span style="font-weight:800;font-size:13px;color:${rCol}">${rStr}</span></td>
-          <td style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</td>
-          <td style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.25">—</span>'}</td>
-          <td style="color:rgba(239,68,68,0.6);font-size:11px">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.25">—</span>'}</td>
-          <td style="color:rgba(34,197,94,0.6);font-size:11px">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.25">—</span>'}</td>
-          <td>${chartThumb}</td>
-          <td style="text-align:right"><button class="btn btn-danger" style="font-size:10px;padding:3px 8px;opacity:0.7" onclick="deleteTrade('${t.id}')">✕</button></td>
+          <td style="color:rgba(255,255,255,0.65);font-size:12px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</td>
+          <td style="color:rgba(255,255,255,0.65);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
+          <td style="color:rgba(239,68,68,0.55);font-size:11px">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.2">—</span>'}</td>
+          <td style="color:rgba(34,197,94,0.55);font-size:11px">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
+          <td style="text-align:right"><button onclick="deleteTrade('${t.id}')" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button></td>
         </tr>`;
       }).join('');
 
