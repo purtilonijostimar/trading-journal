@@ -513,15 +513,14 @@
 
   /* ══ JOURNAL ══════════════════════════════════════════════════ */
 
-  .entry-list { display:flex; flex-direction:column; gap:0; }
+  .entry-list { display:flex; flex-direction:column; gap:16px; }
   .journal-toolbar  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
   .journal-filters  { display:flex; gap:6px; flex-wrap:wrap; }
   .jf-btn { padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
   .jf-btn.active { background:var(--accent-grad); border-color:transparent; color:#001a2e; font-weight:700; }
   .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
 
-  .entry-card { padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.04) !important; }
-  .entry-card:last-child { border-bottom:none !important; }
+  .entry-card { padding:20px 24px; }
   .entry-card.win, .entry-card.loss, .entry-card.open {} /* neutral — colour lives in values */
 
   /* Two-column layout */
