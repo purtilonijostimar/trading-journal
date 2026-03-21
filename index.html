@@ -713,34 +713,56 @@
   }
 
   @media (min-width: 769px) {
-    .blob-stage { opacity: 0.18; }
+    .blob-stage { opacity: 1; }
 
-    /* Thin edge glows — strips anchored to each edge */
-    .blob-a    { width:60vw !important; height:120px !important; border-radius:0 !important;
-                 top:0 !important; left:0 !important; bottom:auto !important; right:auto !important;
-                 mix-blend-mode:normal !important;
-                 background:radial-gradient(ellipse 50% 100% at 50% 0%, rgba(0,184,255,0.9) 0%, transparent 100%) !important;
-                 filter:blur(20px) !important; animation:edge-top 24s ease-in-out infinite !important; }
-    .blob-b    { width:60vw !important; height:120px !important; border-radius:0 !important;
-                 bottom:0 !important; right:0 !important; top:auto !important; left:auto !important;
-                 mix-blend-mode:normal !important;
-                 background:radial-gradient(ellipse 50% 100% at 50% 100%, rgba(0,184,255,0.8) 0%, transparent 100%) !important;
-                 filter:blur(20px) !important; animation:edge-bottom 30s ease-in-out infinite !important; }
-    .blob-teal { width:120px !important; height:60vh !important; border-radius:0 !important;
-                 top:0 !important; right:0 !important; left:auto !important; bottom:auto !important;
-                 mix-blend-mode:normal !important;
-                 background:radial-gradient(ellipse 100% 50% at 100% 50%, rgba(0,184,255,0.7) 0%, transparent 100%) !important;
-                 filter:blur(20px) !important; animation:edge-right 22s ease-in-out infinite !important; }
-    .blob-warm { width:120px !important; height:60vh !important; border-radius:0 !important;
-                 bottom:0 !important; left:0 !important; top:auto !important; right:auto !important;
-                 mix-blend-mode:normal !important;
-                 background:radial-gradient(ellipse 100% 50% at 0% 50%, rgba(0,210,255,0.7) 0%, transparent 100%) !important;
-                 filter:blur(20px) !important; animation:edge-left 28s ease-in-out infinite !important; }
+    /* Hide mobile blobs on desktop */
+    .blob-a, .blob-b, .blob-teal, .blob-warm,
+    .blob-a2, .blob-b2, .blob-teal2, .blob-warm2 {
+      position: absolute !important;
+      border-radius: 0 !important;
+      mix-blend-mode: normal !important;
+    }
 
-    @keyframes edge-top    { 0%,100%{transform:translateX(-10vw)} 50%{transform:translateX(50vw)} }
-    @keyframes edge-bottom { 0%,100%{transform:translateX(10vw)}  50%{transform:translateX(-50vw)} }
-    @keyframes edge-right  { 0%,100%{transform:translateY(-10vh)} 50%{transform:translateY(50vh)} }
-    @keyframes edge-left   { 0%,100%{transform:translateY(10vh)}  50%{transform:translateY(-50vh)} }
+    /* TOP EDGE — 2 blobs bleeding downward */
+    .blob-a  { width:45vw !important; height:280px !important; top:0 !important; left:0 !important; bottom:auto !important; right:auto !important;
+               background:linear-gradient(to bottom, rgba(0,184,255,0.55) 0%, transparent 100%) !important;
+               filter:blur(45px) !important; animation:top-a 32s ease-in-out infinite !important; }
+    .blob-a2 { width:28vw !important; height:180px !important; top:0 !important; left:0 !important; bottom:auto !important; right:auto !important;
+               background:linear-gradient(to bottom, rgba(0,210,255,0.45) 0%, transparent 100%) !important;
+               filter:blur(30px) !important; animation:top-b 18s ease-in-out infinite !important; }
+
+    /* BOTTOM EDGE — 2 blobs bleeding upward */
+    .blob-b  { width:50vw !important; height:280px !important; bottom:0 !important; right:0 !important; top:auto !important; left:auto !important;
+               background:linear-gradient(to top, rgba(0,184,255,0.5) 0%, transparent 100%) !important;
+               filter:blur(45px) !important; animation:bot-a 28s ease-in-out infinite !important; }
+    .blob-b2 { width:30vw !important; height:180px !important; bottom:0 !important; right:0 !important; top:auto !important; left:auto !important;
+               background:linear-gradient(to top, rgba(0,210,255,0.40) 0%, transparent 100%) !important;
+               filter:blur(30px) !important; animation:bot-b 16s ease-in-out infinite !important; }
+
+    /* RIGHT EDGE — 2 blobs bleeding leftward */
+    .blob-teal  { width:280px !important; height:45vh !important; top:0 !important; right:0 !important; bottom:auto !important; left:auto !important;
+                  background:linear-gradient(to left, rgba(0,184,255,0.5) 0%, transparent 100%) !important;
+                  filter:blur(45px) !important; animation:right-a 24s ease-in-out infinite !important; }
+    .blob-teal2 { width:180px !important; height:28vh !important; top:0 !important; right:0 !important; bottom:auto !important; left:auto !important;
+                  background:linear-gradient(to left, rgba(0,210,255,0.40) 0%, transparent 100%) !important;
+                  filter:blur(30px) !important; animation:right-b 14s ease-in-out infinite !important; }
+
+    /* LEFT EDGE — 2 blobs bleeding rightward */
+    .blob-warm  { width:280px !important; height:40vh !important; bottom:0 !important; left:0 !important; top:auto !important; right:auto !important;
+                  background:linear-gradient(to right, rgba(0,184,255,0.5) 0%, transparent 100%) !important;
+                  filter:blur(45px) !important; animation:left-a 36s ease-in-out infinite !important; }
+    .blob-warm2 { width:180px !important; height:25vh !important; bottom:0 !important; left:0 !important; top:auto !important; right:auto !important;
+                  background:linear-gradient(to right, rgba(0,210,255,0.40) 0%, transparent 100%) !important;
+                  filter:blur(30px) !important; animation:left-b 20s ease-in-out infinite !important; }
+
+    @keyframes top-a   { 0%,100%{transform:translateX(5vw)}   50%{transform:translateX(48vw)} }
+    @keyframes top-b   { 0%,100%{transform:translateX(55vw)}  50%{transform:translateX(15vw)} }
+    @keyframes bot-a   { 0%,100%{transform:translateX(-5vw)}  50%{transform:translateX(-50vw)} }
+    @keyframes bot-b   { 0%,100%{transform:translateX(-55vw)} 50%{transform:translateX(-18vw)} }
+    @keyframes right-a { 0%,100%{transform:translateY(5vh)}   50%{transform:translateY(48vh)} }
+    @keyframes right-b { 0%,100%{transform:translateY(55vh)}  50%{transform:translateY(15vh)} }
+    @keyframes left-a  { 0%,100%{transform:translateY(-5vh)}  50%{transform:translateY(-48vh)} }
+    @keyframes left-b  { 0%,100%{transform:translateY(-52vh)} 50%{transform:translateY(-15vh)} }
   }
 </style>
 </head>
@@ -755,7 +777,7 @@
   </div>
 </header>
 
-<div class="blob-stage"><div class="blob-a"></div><div class="blob-b"></div><div class="blob-teal"></div><div class="blob-warm"></div></div>
+<div class="blob-stage"><div class="blob-a"></div><div class="blob-a2"></div><div class="blob-b"></div><div class="blob-b2"></div><div class="blob-teal"></div><div class="blob-teal2"></div><div class="blob-warm"></div><div class="blob-warm2"></div></div>
 
 <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
