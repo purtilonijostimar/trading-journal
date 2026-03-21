@@ -151,6 +151,56 @@
     user-select: none;
   }
 
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1400px; margin: 0 auto; padding: 32px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s;
+  }
+  .btn-primary   { background:var(--accent-grad); color:#001a2e; font-weight:700; border:none; }
+  .btn-primary:hover { background:linear-gradient(125deg, #00a0e8 0%, #00c0ee 50%, #f0d800 130%); }
+  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .btn-secondary:hover { background:var(--border); }
+  .btn-danger {
+    background:transparent; color:var(--red);
+    border:1px solid rgba(239,68,68,0.3);
+    padding:4px 10px; font-size:11px; border-radius:6px; white-space:nowrap;
+  }
+  .btn-danger:hover { background:var(--red); color:white; border-color:var(--red); }
+
+  /* ── Header ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px max(32px, calc((100vw - 1400px) / 2 + 32px));
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* ── Logo ── */
+  .logo {
+    font-size: 18px; font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: linear-gradient(115deg, #00b8ff 0%, #00dcff 45%, #ffe600 120%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-right { display:flex; gap:12px; align-items:center; }
+  .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
+  .live-dot::before {
+    content:''; width:7px; height:7px; border-radius:50%;
+    background:var(--green); display:inline-block; box-shadow:0 0 6px var(--green);
+  }
+  .live-dot.err::before { background:var(--red); box-shadow:0 0 6px var(--red); }
+
   /* ── Glass surface — shared recipe ── */
   .stat-card, .table-wrapper, .chart-card,
   .phase-gate-card, .streak-card, .entry-card {
@@ -680,18 +730,6 @@
     user-select: none;
     pointer-events: none;
   }
-
-  /* ── Header ── */
-  header {
-    position: sticky; top: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px max(32px, calc((100vw - 1400px) / 2 + 32px));
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(28px) saturate(200%);
-    -webkit-backdrop-filter: blur(28px) saturate(200%);
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-  .header-right { display:flex; align-items:center; gap:12px; }
 </style>
 </head>
 <body>
