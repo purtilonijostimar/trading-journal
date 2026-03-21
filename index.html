@@ -211,8 +211,10 @@
     animation: logo-wipe 60s linear infinite;
   }
   @keyframes logo-wipe {
-    0%   { background-position: 100% 0; }
-    100% { background-position:   0% 0; }
+    0%     { background-position: 100% 0; }   /* branded — start */
+    2.5%   { background-position:   0% 0; }   /* wipe done (~1.5s snappy) */
+    2.51%  { background-position: 100% 0; }   /* instant snap back to branded */
+    100%   { background-position: 100% 0; }   /* hold branded for ~58s */
   }
   .header-right { display:flex; gap:12px; align-items:center; }
   .live-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); }
