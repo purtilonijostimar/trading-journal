@@ -480,7 +480,7 @@
   /* ── Mobile trade cards ── */
   .trade-card-mobile {
     border-radius: 16px;
-    padding: 14px;
+    padding: 0;
     margin-bottom: 12px;
     background: rgba(26,29,39, 0.6);
     border: 1px solid rgba(255,255,255,0.07);
@@ -490,7 +490,20 @@
       0 4px 24px rgba(0,0,0,0.25),
       inset 0 1px 0 rgba(255,255,255,0.06);
     transition: box-shadow .2s;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
   }
+  .tcm-accent-bar {
+    flex-shrink: 0;
+    border-radius: 0;
+    min-width: 4px;
+    transition: width .3s;
+  }
+  .trade-card-mobile.win  .tcm-accent-bar { background: #4ade80; }
+  .trade-card-mobile.loss .tcm-accent-bar { background: #f87171; }
+  .trade-card-mobile.open .tcm-accent-bar { background: #93c5fd; }
+  .tcm-body { flex: 1; padding: 14px; min-width: 0; }
   .trade-card-mobile.win {
     background: rgba(34,197,94, 0.10);
     border-color: rgba(34,197,94, 0.28);
@@ -570,6 +583,29 @@
   }
   .fab:active { transform: scale(0.93); }
   @media (max-width: 768px) { .fab { display: flex; } }
+
+
+  /* ── Session Heatmap ── */
+  .hm-grid { display:grid; gap:5px; }
+  .hm-cell {
+    border-radius:6px;
+    height:42px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:10px;
+    font-weight:700;
+    cursor:default;
+    transition:transform .15s;
+    border:1px solid rgba(255,255,255,0.05);
+  }
+  .hm-cell:hover { transform:scale(1.08); z-index:2; }
+  .hm-cell-wr   { font-size:12px; font-weight:800; }
+  .hm-cell-n    { font-size:9px; font-weight:500; opacity:.6; margin-top:1px; }
+  .hm-axis-row  { display:grid; gap:5px; margin-bottom:4px; }
+  .hm-axis-label{ font-size:10px; color:rgba(255,255,255,0.35); text-align:center; font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+  .hm-row-label { font-size:10px; color:rgba(255,255,255,0.35); display:flex; align-items:center; font-weight:600; white-space:nowrap; }
 
 </style>
 </head>
@@ -731,7 +767,7 @@
       <div class="chart-card"><div class="chart-title">Win Rate by Setup</div><div class="bar-chart" id="setupChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Direction</div><div class="bar-chart" id="directionChart"></div></div>
       <div class="chart-card"><div class="chart-title">Win Rate by Regime</div><div class="bar-chart" id="regimeChart"></div></div>
-      <div class="chart-card"><div class="chart-title">Win Rate by Time of Day</div><div class="bar-chart" id="timeChart"></div></div>
+      <div class="chart-card"><div class="chart-title">Session Heatmap <span style="font-size:11px;color:rgba(255,255,255,0.35);font-weight:400">win rate by time × day</span></div><div id="heatmapChart"></div></div>
 
       <!-- Signal funnel — full width -->
       <div class="chart-card" style="grid-column:1/-1">
@@ -990,7 +1026,13 @@
           ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block;min-height:110px">`
           : `<div style="width:100%;height:100%;min-height:110px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
 
-        return `<div class="trade-card-mobile ${t.result}" style="padding:14px">
+        // R-encoded bar: clamp between 4px and 20px
+        const rAbs   = rVal !== null ? Math.abs(rVal) : 0;
+        const barW   = Math.round(Math.min(20, Math.max(4, 4 + rAbs * 5)));
+
+        return `<div class="trade-card-mobile ${t.result}">
+          <div class="tcm-accent-bar" style="width:${barW}px"></div>
+          <div class="tcm-body">
           <!-- Header row -->
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:6px">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0">
@@ -1015,6 +1057,7 @@
           <div style="margin-top:10px;display:flex;justify-content:flex-end">
             <button class="btn btn-danger" style="font-size:11px;padding:4px 10px" onclick="deleteTrade('${t.id}')">Delete</button>
           </div>
+          </div><!-- /.tcm-body -->
         </div>`;
       }).join('');
 
@@ -1275,6 +1318,95 @@
       </div>`;
   }
 
+  function renderHeatmap(closed) {
+    const el = document.getElementById('heatmapChart');
+    if (!el) return;
+
+    const DAYS  = ['Mon','Tue','Wed','Thu','Fri'];
+    const TIMES = ['Pre-Market','Open','Mid-Morning','Lunch','Afternoon','Close'];
+    const DAY_MAP  = { 1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri' };
+    const TIME_KEYS = {
+      'pre-market':'Pre-Market','pre':'Pre-Market','premarket':'Pre-Market',
+      'open':'Open','opening':'Open',
+      'mid-morning':'Mid-Morning','midmorning':'Mid-Morning','mid morning':'Mid-Morning',
+      'lunch':'Lunch','midday':'Lunch','mid-day':'Lunch',
+      'afternoon':'Afternoon',
+      'close':'Close','closing':'Close','eod':'Close'
+    };
+
+    // Build counts
+    const cells = {};
+    closed.forEach(t => {
+      const d = new Date(t.date + 'T12:00:00');
+      const day = DAY_MAP[d.getDay()];
+      if (!day) return;
+      const rawTime = (parseTags(t.tags).time || '').toLowerCase().trim();
+      const time = TIME_KEYS[rawTime] || null;
+      if (!time) return;
+      const key = `${day}|${time}`;
+      if (!cells[key]) cells[key] = { wins:0, total:0 };
+      cells[key].total++;
+      if (t.result === 'win') cells[key].wins++;
+    });
+
+    const hasData = Object.keys(cells).length > 0;
+
+    // Demo data if no real data yet
+    if (!hasData) {
+      el.innerHTML = `<div style="padding:24px;text-align:center;color:rgba(255,255,255,0.25);font-size:13px">
+        Trade enough sessions to populate the heatmap
+      </div>`;
+      return;
+    }
+
+    // Color scale: grey=no data, red gradient to green gradient
+    const cellColor = (wins, total) => {
+      if (!total) return { bg:'rgba(255,255,255,0.03)', text:'rgba(255,255,255,0.2)' };
+      const wr = wins / total;
+      if (wr >= 0.65) return { bg:'rgba(34,197,94,0.35)',  text:'#4ade80' };
+      if (wr >= 0.50) return { bg:'rgba(34,197,94,0.18)',  text:'#86efac' };
+      if (wr >= 0.40) return { bg:'rgba(251,191,36,0.2)',  text:'#fbbf24' };
+      if (wr >= 0.30) return { bg:'rgba(239,68,68,0.18)',  text:'#fca5a5' };
+      return              { bg:'rgba(239,68,68,0.30)',  text:'#f87171' };
+    };
+
+    const cols = DAYS.length + 1; // +1 for row label
+    const gridCols = `80px ${DAYS.map(()=>'1fr').join(' ')}`;
+
+    const header = `<div class="hm-axis-row" style="grid-template-columns:${gridCols}">
+      <div></div>
+      ${DAYS.map(d=>`<div class="hm-axis-label">${d}</div>`).join('')}
+    </div>`;
+
+    const rows = TIMES.map(time => {
+      const dayCells = DAYS.map(day => {
+        const c = cells[`${day}|${time}`] || { wins:0, total:0 };
+        const { bg, text } = cellColor(c.wins, c.total);
+        const wr = c.total ? Math.round(c.wins/c.total*100)+'%' : '—';
+        return `<div class="hm-cell" style="background:${bg};color:${text}" title="${day} ${time}: ${c.wins}W/${c.total}T">
+          <span class="hm-cell-wr">${wr}</span>
+          ${c.total ? `<span class="hm-cell-n">${c.total}t</span>` : ''}
+        </div>`;
+      }).join('');
+      return `<div class="hm-grid" style="grid-template-columns:${gridCols};margin-bottom:5px">
+        <div class="hm-row-label">${time}</div>
+        ${dayCells}
+      </div>`;
+    }).join('');
+
+    // Legend
+    const legend = `<div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+      ${[['≥65%','rgba(34,197,94,0.35)','#4ade80'],['50–65%','rgba(34,197,94,0.18)','#86efac'],['40–50%','rgba(251,191,36,0.2)','#fbbf24'],['30–40%','rgba(239,68,68,0.18)','#fca5a5'],['<30%','rgba(239,68,68,0.30)','#f87171'],['No data','rgba(255,255,255,0.03)','rgba(255,255,255,0.3)']].map(([label,bg,col])=>
+        `<div style="display:flex;align-items:center;gap:5px">
+          <div style="width:14px;height:14px;border-radius:4px;background:${bg};border:1px solid rgba(255,255,255,0.08)"></div>
+          <span style="font-size:10px;color:${col};font-weight:600">${label}</span>
+        </div>`
+      ).join('')}
+    </div>`;
+
+    el.innerHTML = header + rows + legend;
+  }
+
   function renderEquityCurve(closed) {
     const el = document.getElementById('equityCurve');
     // Group by date, compute daily P&L
@@ -1386,18 +1518,33 @@
       return pts.join('');
     };
 
-    // Colour the line per-segment too
+    // Build smooth polyline path per-segment (colour split at zero)
     const lineSegs = [];
     for (let i = 0; i < ptCoords.length - 1; i++) {
       const [x0,y0] = ptCoords[i],   v0 = points[i].v;
       const [x1,y1] = ptCoords[i+1], v1 = points[i+1].v;
-      const col = (v0 + v1) / 2 >= 0 ? 'var(--green)' : 'var(--red)';
-      lineSegs.push(`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`);
+      const col  = (v0 + v1) / 2 >= 0 ? '#4ade80' : '#f87171';
+      const glow = (v0 + v1) / 2 >= 0 ? 'glow-green' : 'glow-red';
+      // Base line + glow overlay
+      lineSegs.push(
+        `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/>`,
+        `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${col}" stroke-width="7" stroke-linecap="round" opacity="0.18" filter="url(#${glow})"/>`
+      );
     }
 
     el.innerHTML = `<svg width="${W}" height="${H}" style="display:block;overflow:visible">
+      <defs>
+        <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0.27  0 0 0 0 0.77  0 0 0 0 0.37  0 0 0 1 0" in="blur"/>
+        </filter>
+        <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0.94  0 0 0 0 0.27  0 0 0 0 0.27  0 0 0 1 0" in="blur"/>
+        </filter>
+      </defs>
       ${buildArea(true)}${buildArea(false)}
-      <line x1="${PAD.l}" y1="${zeroY.toFixed(1)}" x2="${(W-PAD.r).toFixed(1)}" y2="${zeroY.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="${PAD.l}" y1="${zeroY.toFixed(1)}" x2="${(W-PAD.r).toFixed(1)}" y2="${zeroY.toFixed(1)}" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 4"/>
       ${lineSegs.join('')}
       ${yLabels}${xLabels}${dots}
     </svg>`;
@@ -1832,12 +1979,7 @@
     closed.forEach(t => addBar(regimes, parseTags(t.tags).regime || 'unknown', t));
     makeBarChart('regimeChart', regimes);
 
-    const times = {};
-    closed.forEach(t => {
-      const k = (parseTags(t.tags).time || 'unknown').replace(/\b\w/g,c=>c.toUpperCase());
-      addBar(times, k, t);
-    });
-    makeBarChart('timeChart', times);
+    renderHeatmap(closed);
 
     // Insights — data-driven, grounded in real patterns
     const insights = [];
