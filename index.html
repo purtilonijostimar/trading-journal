@@ -713,30 +713,26 @@
   }
 
   @media (min-width: 769px) {
-    .blob-stage { opacity: 0.12; }
+    .blob-stage { opacity: 0.18; }
 
-    /* Reposition blobs to edges and give them edge-travel animations */
-    .blob-a    { width:70vw; height:70vw; top:-67vw;   left:0;     animation: edge-top    28s ease-in-out infinite; }
-    .blob-b    { width:70vw; height:70vw; bottom:-67vw; right:0;    animation: edge-bottom 32s ease-in-out infinite; }
-    .blob-teal { width:60vw; height:60vw; top:0;       right:-58vw; animation: edge-right  24s ease-in-out infinite; }
-    .blob-warm { width:60vw; height:60vw; bottom:0;    left:-58vw;  animation: edge-left   36s ease-in-out infinite; }
+    /* Thin edge glows — each blob is a long strip on one edge */
+    .blob-a    { width:60vw; height:120px; border-radius:0; top:0;    left:0;
+                 background:radial-gradient(ellipse 50% 100% at 50% 0%, rgba(0,184,255,0.7) 0%, transparent 100%);
+                 filter:blur(18px); animation:edge-top 24s ease-in-out infinite; }
+    .blob-b    { width:60vw; height:120px; border-radius:0; bottom:0; right:0;
+                 background:radial-gradient(ellipse 50% 100% at 50% 100%, rgba(0,184,255,0.6) 0%, transparent 100%);
+                 filter:blur(18px); animation:edge-bottom 30s ease-in-out infinite; }
+    .blob-teal { width:120px; height:60vh; border-radius:0; top:0;    right:0;
+                 background:radial-gradient(ellipse 100% 50% at 100% 50%, rgba(0,184,255,0.5) 0%, transparent 100%);
+                 filter:blur(18px); animation:edge-right 22s ease-in-out infinite; }
+    .blob-warm { width:120px; height:60vh; border-radius:0; bottom:0; left:0;
+                 background:radial-gradient(ellipse 100% 50% at 0% 50%, rgba(0,210,255,0.5) 0%, transparent 100%);
+                 filter:blur(18px); animation:edge-left 28s ease-in-out infinite; }
 
-    @keyframes edge-top {
-      0%,100% { transform: translateX(-15vw); }
-      50%     { transform: translateX(55vw);  }
-    }
-    @keyframes edge-bottom {
-      0%,100% { transform: translateX(15vw);  }
-      50%     { transform: translateX(-55vw); }
-    }
-    @keyframes edge-right {
-      0%,100% { transform: translateY(-15vh); }
-      50%     { transform: translateY(60vh);  }
-    }
-    @keyframes edge-left {
-      0%,100% { transform: translateY(15vh);  }
-      50%     { transform: translateY(-60vh); }
-    }
+    @keyframes edge-top    { 0%,100%{transform:translateX(-10vw)} 50%{transform:translateX(50vw)} }
+    @keyframes edge-bottom { 0%,100%{transform:translateX(10vw)}  50%{transform:translateX(-50vw)} }
+    @keyframes edge-right  { 0%,100%{transform:translateY(-10vh)} 50%{transform:translateY(50vh)} }
+    @keyframes edge-left   { 0%,100%{transform:translateY(10vh)}  50%{transform:translateY(-50vh)} }
   }
 </style>
 </head>
