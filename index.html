@@ -2503,30 +2503,38 @@
 (function(){
   const field = document.getElementById('dollarField');
   if (!field) return;
-  // Grid-based scatter: divide viewport into cells, jitter within each
-  const cols = 12, rows = 16;
-  const sizes = [18, 24, 32, 44, 60, 80, 110];
-  let html = '';
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const cellW = 100 / cols, cellH = 100 / rows;
-      const x = (c * cellW) + (Math.random() * cellW * 0.8);
-      const y = (r * cellH) + (Math.random() * cellH * 0.8);
-      const size = sizes[Math.floor(Math.random() * sizes.length)];
-      const rot  = (Math.random() * 60) - 30;
-      const opacity = 0.35 + Math.random() * 0.15;
-      html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:${opacity.toFixed(2)}"></span>`;
+  const W = window.innerWidth, H = window.innerHeight * 2; // 2x height for scroll
+  const sizes = [16, 22, 30, 42, 56, 72, 96, 128];
+  const placed = []; // [{cx, cy, r}] bounding circles
+
+  function overlaps(cx, cy, r) {
+    for (const p of placed) {
+      const dx = cx - p.cx, dy = cy - p.cy;
+      if (Math.sqrt(dx*dx + dy*dy) < (r + p.r) * 1.15) return true;
     }
+    return false;
   }
-  // Scatter a few large accent ones
-  for (let i = 0; i < 12; i++) {
-    const x = 5 + Math.random() * 90;
-    const y = 5 + Math.random() * 90;
-    const size = 100 + Math.floor(Math.random() * 80);
-    const rot  = (Math.random() * 70) - 35;
-    html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:0.25"></span>`;
+
+  let html = '';
+  const count = 120;
+  for (let i = 0; i < count; i++) {
+    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    const r = size * 0.55; // approx half-width of $ glyph
+    let cx, cy, tries = 0;
+    do {
+      cx = r + Math.random() * (W - r * 2);
+      cy = r + Math.random() * (H - r * 2);
+      tries++;
+    } while (overlaps(cx, cy, r) && tries < 40);
+    if (tries >= 40) continue; // skip if no space found
+    placed.push({cx, cy, r});
+    const x = (cx / W * 100).toFixed(2);
+    const y = (cy / H * 100).toFixed(2);
+    const rot = Math.floor(Math.random() * 360);
+    const opacity = (0.35 + Math.random() * 0.15).toFixed(2);
+    html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:translate(-50%,-50%) rotate(${rot}deg);opacity:${opacity}">$</span>`;
   }
-  field.innerHTML = html.replace(/></g, '>$<');
+  field.innerHTML = html;
 })();
 </script>
 </body>
