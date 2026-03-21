@@ -1159,8 +1159,8 @@
           </div>`;
 
         const chartHtml = t.screenshot
-          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer">`
-          : `<div style="width:100%;height:100%;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
+          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;flex:1;object-fit:cover;object-position:top left;display:block;cursor:pointer">`
+          : `<div style="width:100%;flex:1;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0.15">📷</div>`;
 
         const barCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
@@ -1181,14 +1181,14 @@
             </div>
           </div>
           <!-- Body: stats left, chart right -->
-          <div style="display:grid;grid-template-columns:1fr 51%;gap:12px;align-items:stretch">
+          <div style="display:grid;grid-template-columns:1fr 46%;gap:10px;align-items:stretch">
             <div>
               ${statItem('P&amp;L', pnlStr, pnlCol)}
               ${statItem('R', rStr, rCol)}
               ${statItem('Entry', '$'+parseFloat(t.entry||0).toFixed(2), 'rgba(255,255,255,0.75)')}
               ${statItem('Exit',  t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—', 'rgba(255,255,255,0.75)')}
             </div>
-            <div style="border-radius:8px 16px 16px 8px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);aspect-ratio:4/3;margin-right:0">${chartHtml}</div>
+            <div style="border-radius:6px 14px 14px 6px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);align-self:stretch;display:flex">${chartHtml}</div>
           </div>
           </div><!-- /.tcm-body -->
         </div>`;
