@@ -77,7 +77,35 @@
     overflow: hidden;
     isolation: isolate;
   }
-  @media (min-width: 769px) { .blob-stage { display: none; } }
+  @media (min-width: 769px) {
+    .blob-stage { display: block; }
+    .blob-a, .blob-b, .blob-teal, .blob-warm, .blob-a2, .blob-b2, .blob-teal2, .blob-warm2 {
+      display: none;
+    }
+    .blob-a {
+      display: block !important;
+      position: absolute !important;
+      width: 60vw !important; height: 60vw !important;
+      border-radius: 50% !important;
+      top: -30vw !important; left: -30vw !important;
+      background: radial-gradient(circle, rgba(0,184,255,0.22) 0%, transparent 70%) !important;
+      filter: blur(60px) !important;
+      animation: aurora-a 30s ease-in-out infinite !important;
+      mix-blend-mode: screen !important;
+    }
+    .blob-b {
+      display: block !important;
+      position: absolute !important;
+      width: 55vw !important; height: 55vw !important;
+      border-radius: 50% !important;
+      bottom: -27vw !important; right: -27vw !important;
+      top: auto !important; left: auto !important;
+      background: radial-gradient(circle, rgba(0,184,255,0.18) 0%, transparent 70%) !important;
+      filter: blur(60px) !important;
+      animation: aurora-b 36s ease-in-out infinite !important;
+      mix-blend-mode: screen !important;
+    }
+  }
   .blob-a, .blob-b, .blob-teal, .blob-warm {
     position: absolute;
     border-radius: 50%;
