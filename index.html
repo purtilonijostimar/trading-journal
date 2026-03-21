@@ -278,29 +278,16 @@
 
   /* ── Journal entry cards ── */
   .entry-card {
-    background: rgba(26,29,39, 0.6);
+    background: rgba(26,29,39,0.55);
     border: 1px solid rgba(255,255,255,0.07);
-    border-left: 4px solid rgba(255,255,255,0.12);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 16px;
     margin-bottom: 12px;
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: box-shadow .2s;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
   }
-  .entry-card.win  {
-    border-left-color: var(--green);
-    box-shadow: 0 4px 28px rgba(34,197,94,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .entry-card.loss {
-    border-left-color: var(--red);
-    box-shadow: 0 4px 28px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
-  }
-  .entry-card.open {
-    border-left-color: var(--accent);
-    box-shadow: 0 4px 28px rgba(79,124,255,0.12), inset 0 1px 0 rgba(255,255,255,0.07);
-  }
+  .entry-card.win, .entry-card.loss, .entry-card.open { /* no colour overrides */ }
 
   .entry-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   /* New compact header row with inline stats */
