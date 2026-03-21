@@ -2531,7 +2531,7 @@
     const x = (cx / W * 100).toFixed(2);
     const y = (cy / H * 100).toFixed(2);
     const rot = Math.floor(Math.random() * 360);
-    const opacity = (0.35 + Math.random() * 0.15).toFixed(2);
+    const opacity = (0.85 + Math.random() * 0.05).toFixed(2);
     html += `<span class="bg-dollar" style="left:${x}%;top:${y}%;font-size:${size}px;transform:translate(-50%,-50%) rotate(${rot}deg);opacity:${opacity}">$</span>`;
   }
   field.innerHTML = html;
