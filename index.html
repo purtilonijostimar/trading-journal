@@ -1293,7 +1293,8 @@
     let running = 0;
     dates.forEach(d => { running += byDate[d]; points.push({ d, v:running }); });
 
-    const W = el.offsetWidth || 600;
+    // Walk up to the chart-card for a reliable width even if el itself is 0
+    const W = (el.closest('.chart-card') || el).clientWidth - 40 || el.offsetWidth || 800;
     const H = W < 480 ? 150 : 200;
     const PAD = { t:20, r:20, b:40, l:62 };
     const chartW = W - PAD.l - PAD.r;
@@ -1998,6 +1999,13 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('panel-'+name).classList.add('active');
     el.classList.add('active');
+    // Re-render equity curve now that the container has a real width
+    if (name === 'analytics') {
+      requestAnimationFrame(() => {
+        const closed = trades.filter(t => t.result !== 'open');
+        renderEquityCurve(closed);
+      });
+    }
   }
 
   function exportData() {
