@@ -314,44 +314,10 @@
     .tabs::-webkit-scrollbar { display: none; }
     .tab { padding: 8px 16px; font-size: 13px; white-space: nowrap; min-height: 40px; }
 
-    /* ── Trade table → card layout ── */
-    .table-wrapper { background: transparent; border: none; border-radius: 0; overflow: visible; }
-    .table-header  { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; }
+    /* ── Trade table hidden on mobile — JS renders .trade-card-mobile instead ── */
+    .table-wrapper { border-radius: 10px; }
+    .table-header  { padding: 12px 16px; }
     .table-filters { gap: 6px; flex-wrap: wrap; }
-    table, thead, tbody, th, td, tr { display: block; }
-    thead { display: none; }  /* hide column headers — labels shown inline */
-    tbody tr {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto;
-      gap: 8px 12px;
-      position: relative;
-    }
-    tbody tr:hover td { background: transparent; }
-    /* Hide low-priority columns on mobile */
-    tbody tr td:nth-child(6),   /* size */
-    tbody tr td:nth-child(7),   /* stop */
-    tbody tr td:nth-child(8),   /* target */
-    tbody tr td:nth-child(13),  /* tags */
-    tbody tr td:nth-child(14),  /* chart thumb */
-    tbody tr td:nth-child(15)   /* actions */ { display: none; }
-    /* Ticker + side span full row */
-    tbody tr td:nth-child(2) { font-size: 16px; font-weight: 700; grid-column: 1; }
-    tbody tr td:nth-child(3) { grid-column: 2; text-align: right; }
-    /* Date small, top right */
-    tbody tr td:nth-child(1) { font-size: 11px; color: var(--text3); grid-column: 1 / -1; margin-bottom: -4px; }
-    /* Entry / Exit / P&L / R / Result */
-    tbody tr td:nth-child(4),
-    tbody tr td:nth-child(5),
-    tbody tr td:nth-child(9),
-    tbody tr td:nth-child(10),
-    tbody tr td:nth-child(11),
-    tbody tr td:nth-child(12) { font-size: 13px; }
 
     /* ── Analytics grid → single column ── */
     .analytics-grid { grid-template-columns: 1fr !important; gap: 14px; }
@@ -430,6 +396,15 @@
   }
 
   /* ── Floating Add Trade button (mobile only) ── */
+  /* ── Mobile trade cards ── */
+  .trade-card-mobile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
   .fab {
     display: none;
     position: fixed;
@@ -520,6 +495,9 @@
           <tbody id="tradesBody"></tbody>
         </table>
       </div>
+      <!-- Mobile card list (shown instead of table on small screens) -->
+      <div id="tradeCards" style="display:none;padding:12px"></div>
+
       <div id="tradesEmpty" class="empty-state" style="display:none">
         <div class="empty-icon">📋</div>
         <p>No trades logged yet</p>
@@ -821,57 +799,126 @@
 
     if (filtered.length === 0) {
       document.getElementById('tradesTable').style.display = 'none';
-      document.getElementById('tradesEmpty').style.display = 'block';
+      document.getElementById('tradesEmpty').style.display  = 'block';
+      document.getElementById('tradeCards').style.display   = 'none';
       return;
     }
     document.getElementById('tradesEmpty').style.display = 'none';
-    document.getElementById('tradesTable').style.display = 'table';
 
-    const resultBadges = {
-      win:       '<span class="badge badge-win">Win</span>',
-      loss:      '<span class="badge badge-loss">Loss</span>',
-      open:      '<span class="badge badge-open">Open</span>',
-      breakeven: '<span class="badge badge-be">B/E</span>',
-    };
+    const isMobile = window.innerWidth <= 768;
 
-    tbody.innerHTML = filtered.map(t => {
-      const pnl    = calcPnl(t);
-      const pnlStr = pnl !== null
-        ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}</span>`
-        : '<span style="color:var(--text3)">Open</span>';
+    if (isMobile) {
+      // ── Mobile: card layout ──────────────────────────────────────────────
+      document.getElementById('tradesTable').style.display = 'none';
+      const cardsEl = document.getElementById('tradeCards');
+      cardsEl.style.display = 'block';
 
-      const rVal  = calcR(t);
       const TARGET_R = 2.1337;
-      const rStr  = rVal !== null
-        ? (() => {
-            const col = rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
-            const flag = (t.result === 'win' && rVal < 0.5) ? ' ⚡' : '';  // cut early indicator
-            return `<span style="color:${col};font-weight:600;font-size:12px">${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R${flag}</span>`;
-          })()
-        : '<span style="color:var(--text3)">—</span>';
+      cardsEl.innerHTML = filtered.map(t => {
+        const pnl    = calcPnl(t);
+        const rVal   = calcR(t);
+        const pnlCol = pnl === null ? 'var(--text3)' : pnl >= 0 ? 'var(--green)' : 'var(--red)';
+        const rCol   = rVal === null ? 'var(--text3)' : rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
+        const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}` : 'Open';
+        const rStr   = rVal !== null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R${(t.result==='win'&&rVal<0.5)?' ⚡':''}` : '—';
+        const tags   = parseTags(t.tags);
+        const regime = tags.regime ? `<span class="regime-pill" style="font-size:10px">${tags.regime}</span>` : '';
+        const chart  = t.screenshot
+          ? `<img src="${t.screenshot}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:10px;cursor:pointer" onclick="openLightbox('${t.screenshot}')">`
+          : '';
 
-      const chartCell = t.screenshot
-        ? `<img class="chart-thumb" src="${t.screenshot}" alt="chart" onclick="openLightbox('${t.screenshot}')">`
-        : `<span class="no-chart">—</span>`;
+        return `<div class="trade-card-mobile">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px;font-weight:800">${t.ticker.toUpperCase()}</span>
+              <span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span>
+              <span class="badge badge-${t.result}">${t.result}</span>
+            </div>
+            <span style="font-size:11px;color:var(--text3)">${t.date}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ENTRY</div>
+              <div style="font-size:13px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">EXIT</div>
+              <div style="font-size:13px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">SIZE</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text2)">$${parseFloat(t.size||0).toFixed(0)}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)">
+            <div style="display:flex;gap:16px;align-items:center">
+              <div>
+                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">P&L</div>
+                <div style="font-size:15px;font-weight:700;color:${pnlCol}">${pnlStr}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">R</div>
+                <div style="font-size:15px;font-weight:700;color:${rCol}">${rStr}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--text3);margin-bottom:1px">SETUP</div>
+                <div style="font-size:12px;color:var(--text2)">${fmtSetup(t.setup)}</div>
+              </div>
+            </div>
+            ${regime}
+          </div>
+          ${chart}
+        </div>`;
+      }).join('');
 
-      return `<tr>
-        <td style="color:var(--text2);font-size:12px">${t.date}</td>
-        <td><strong>${t.ticker.toUpperCase()}</strong></td>
-        <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
-        <td>$${parseFloat(t.entry).toFixed(2)}</td>
-        <td>${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</td>
-        <td style="color:var(--text2)">$${parseFloat(t.size).toFixed(0)}</td>
-        <td style="color:var(--text3);font-size:12px">${t.stop  ? '$'+parseFloat(t.stop).toFixed(2)  : '<span style="color:var(--text3)">—</span>'}</td>
-        <td style="color:var(--text3);font-size:12px">${t.target? '$'+parseFloat(t.target).toFixed(2): '<span style="color:var(--text3)">—</span>'}</td>
-        <td>${pnlStr}</td>
-        <td>${rStr}</td>
-        <td>${resultBadges[t.result]||''}</td>
-        <td><span class="setup-label" title="${t.setup||''}">${fmtSetup(t.setup)}</span></td>
-        <td>${renderTagPills(t.tags)}</td>
-        <td>${chartCell}</td>
-        <td><button class="btn btn-danger" onclick="deleteTrade('${t.id}')">Delete</button></td>
-      </tr>`;
-    }).join('');
+    } else {
+      // ── Desktop: table layout ────────────────────────────────────────────
+      document.getElementById('tradeCards').style.display = 'none';
+      document.getElementById('tradesTable').style.display = 'table';
+
+      const resultBadges = {
+        win:       '<span class="badge badge-win">Win</span>',
+        loss:      '<span class="badge badge-loss">Loss</span>',
+        open:      '<span class="badge badge-open">Open</span>',
+        breakeven: '<span class="badge badge-be">B/E</span>',
+      };
+
+      tbody.innerHTML = filtered.map(t => {
+        const pnl    = calcPnl(t);
+        const pnlStr = pnl !== null
+          ? `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}€${Math.abs(pnl).toFixed(2)}</span>`
+          : '<span style="color:var(--text3)">Open</span>';
+        const rVal  = calcR(t);
+        const TARGET_R = 2.1337;
+        const rStr  = rVal !== null
+          ? (() => {
+              const col = rVal < 0 ? 'var(--red)' : rVal >= TARGET_R ? 'var(--green)' : rVal >= 1.0 ? 'var(--yellow)' : 'var(--accent)';
+              const flag = (t.result === 'win' && rVal < 0.5) ? ' ⚡' : '';
+              return `<span style="color:${col};font-weight:600;font-size:12px">${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R${flag}</span>`;
+            })()
+          : '<span style="color:var(--text3)">—</span>';
+        const chartCell = t.screenshot
+          ? `<img class="chart-thumb" src="${t.screenshot}" alt="chart" onclick="openLightbox('${t.screenshot}')">`
+          : `<span class="no-chart">—</span>`;
+        return `<tr>
+          <td style="color:var(--text2);font-size:12px">${t.date}</td>
+          <td><strong>${t.ticker.toUpperCase()}</strong></td>
+          <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
+          <td>$${parseFloat(t.entry).toFixed(2)}</td>
+          <td>${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="color:var(--text3)">—</span>'}</td>
+          <td style="color:var(--text2)">$${parseFloat(t.size).toFixed(0)}</td>
+          <td style="color:var(--text3);font-size:12px">${t.stop  ? '$'+parseFloat(t.stop).toFixed(2)  : '<span style="color:var(--text3)">—</span>'}</td>
+          <td style="color:var(--text3);font-size:12px">${t.target? '$'+parseFloat(t.target).toFixed(2): '<span style="color:var(--text3)">—</span>'}</td>
+          <td>${pnlStr}</td>
+          <td>${rStr}</td>
+          <td>${resultBadges[t.result]||''}</td>
+          <td><span class="setup-label" title="${t.setup||''}">${fmtSetup(t.setup)}</span></td>
+          <td>${renderTagPills(t.tags)}</td>
+          <td>${chartCell}</td>
+          <td><button class="btn btn-danger" onclick="deleteTrade('${t.id}')">Delete</button></td>
+        </tr>`;
+      }).join('');
+    }
   }
 
   // ── Journal ───────────────────────────────────────────────────────────────
@@ -1628,6 +1675,13 @@
   }
 
   function refresh() { updateStats(); renderTrades(); renderJournal(); renderAnalytics(); }
+
+  // Re-render trade list on orientation change / resize
+  let _resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(renderTrades, 150);
+  });
 
   // ── Lightbox ──────────────────────────────────────────────────────────────
   function openLightbox(url) {
