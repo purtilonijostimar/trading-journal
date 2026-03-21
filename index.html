@@ -614,8 +614,10 @@
       <div id="tradesCount" style="font-size:12px;color:var(--text3)"></div>
     </div>
     <div id="tradesLoading" class="loading">Loading trades...</div>
-    <table id="tradesTable" style="display:none"><tbody id="tradesBody"></tbody></table>
     <div id="tradeCards"></div>
+    <div class="table-wrapper" id="tradesTableWrap" style="display:none">
+      <table id="tradesTable"><tbody id="tradesBody"></tbody></table>
+    </div>
     <div id="tradesEmpty" class="empty-state" style="display:none">
       <div class="empty-icon">📋</div>
       <p>No trades logged yet</p>
@@ -922,101 +924,133 @@
   function renderTrades() {
     const filter   = document.getElementById('filterStatus').value;
     const filtered = filter ? trades.filter(t => t.result === filter) : [...trades];
-    const tbody    = document.getElementById('tradesBody');
     document.getElementById('tradesLoading').style.display = 'none';
 
     const countEl = document.getElementById('tradesCount');
     if (countEl) countEl.textContent = `${filtered.length} trade${filtered.length!==1?'s':''}`;
 
     if (filtered.length === 0) {
-      document.getElementById('tradesTable').style.display = 'none';
-      document.getElementById('tradesEmpty').style.display  = 'block';
-      document.getElementById('tradeCards').style.display   = 'none';
+      const tw = document.getElementById('tradesTableWrap');
+      if (tw) tw.style.display = 'none';
+      document.getElementById('tradesEmpty').style.display = 'block';
+      document.getElementById('tradeCards').style.display  = 'none';
       return;
     }
     document.getElementById('tradesEmpty').style.display = 'none';
 
+    const TARGET_R = 2.1337;
     const isMobile = window.innerWidth <= 768;
 
-    {
-      // ── Card layout — always (table retired) ─────────────────────────────
+    // ── Helper: shared value derivation ──────────────────────────────────
+    const deriveRow = t => {
+      const pnl    = calcPnl(t);
+      const rVal   = calcR(t);
+      const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#4ade80' : '#f87171';
+      const rCol   = rVal === null ? 'rgba(255,255,255,0.4)'
+                   : rVal < 0 ? '#f87171' : rVal >= TARGET_R ? '#4ade80'
+                   : rVal >= 1.0 ? '#fbbf24' : '#93c5fd';
+      const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : 'Open';
+      const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
+      const cutBadge = cutEarly
+        ? `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:800;background:rgba(251,191,36,.25);color:#fbbf24;border-radius:4px;padding:1px 5px;margin-right:4px;letter-spacing:.3px">CUT</span>`
+        : '';
+      const rStr   = rVal !== null ? `${cutBadge}${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
+      const tags   = parseTags(t.tags);
+      const regime = tags.regime || '';
+      const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+      const bgTint = t.result === 'win'
+        ? 'rgba(34,197,94,0.07)'
+        : t.result === 'loss' ? 'rgba(239,68,68,0.07)' : 'rgba(255,255,255,0.03)';
+      return { pnl, rVal, pnlCol, rCol, pnlStr, rStr, tags, regime, dateStr, bgTint };
+    };
+
+    if (isMobile) {
+      // ── MOBILE: glass cards, stats left / chart right ─────────────────
       document.getElementById('tradesTable').style.display = 'none';
       const cardsEl = document.getElementById('tradeCards');
-      cardsEl.style.display = 'block';
-      // Two-column grid on desktop
-      cardsEl.style.display      = 'grid';
-      cardsEl.style.gridTemplateColumns = isMobile ? '1fr' : '1fr 1fr';
-      cardsEl.style.gap          = '12px';
-      cardsEl.style.padding      = isMobile ? '0' : '0';
+      cardsEl.style.cssText = 'display:flex;flex-direction:column;gap:12px';
 
-      const TARGET_R = 2.1337;
       cardsEl.innerHTML = filtered.map(t => {
-        const pnl    = calcPnl(t);
-        const rVal   = calcR(t);
-        // Brighter colours for legibility on tinted glass backgrounds
-        const pnlCol = pnl === null ? 'rgba(255,255,255,0.4)' : pnl >= 0 ? '#4ade80' : '#f87171';
-        const rCol   = rVal === null ? 'rgba(255,255,255,0.4)'
-                     : rVal < 0 ? '#f87171' : rVal >= TARGET_R ? '#4ade80'
-                     : rVal >= 1.0 ? '#fbbf24' : '#93c5fd';
-        const pnlStr = pnl !== null ? `${pnl >= 0 ? '+' : '-'}€${Math.abs(pnl).toFixed(2)}` : 'Open';
-        const cutEarly = t.result === 'win' && rVal !== null && rVal < 0.5;
-        const cutBadge = cutEarly
-          ? `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:800;background:rgba(251,191,36,.25);color:#fbbf24;border-radius:4px;padding:1px 5px;margin-right:4px;letter-spacing:.3px">CUT</span>`
-          : '';
-        const rStr   = rVal !== null ? `${cutBadge}${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—';
-        const tags   = parseTags(t.tags);
-        const regime = tags.regime
-          ? `<span style="font-size:10px;font-weight:600;color:rgba(147,197,253,0.9);background:rgba(79,124,255,.2);padding:2px 7px;border-radius:4px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;border:1px solid rgba(79,124,255,.2)" title="${tags.regime||''}">${(tags.regime||'').replace(/[_+]/g,' ')}</span>`
-          : '';
-        const chart  = t.screenshot
-          ? `<img src="${t.screenshot}" style="width:100%;height:90px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-top:10px;cursor:pointer" onclick="openLightbox('${t.screenshot}')">`
-          : '';
-        const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+        const { pnl, rVal, pnlCol, rCol, pnlStr, rStr, tags, regime, dateStr, bgTint } = deriveRow(t);
 
-        return `<div class="trade-card-mobile ${t.result}">
+        const regimePill = regime
+          ? `<span style="font-size:10px;font-weight:600;color:rgba(147,197,253,0.9);background:rgba(79,124,255,.2);padding:2px 7px;border-radius:4px;border:1px solid rgba(79,124,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px">${regime.replace(/[_+]/g,' ')}</span>` : '';
 
-          <!-- Top: ticker + badges + date -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">
+        const statItem = (label, val, col) => `
+          <div style="margin-bottom:10px">
+            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">${label}</div>
+            <div style="font-size:16px;font-weight:800;color:${col};letter-spacing:-.3px;line-height:1.1">${val}</div>
+          </div>`;
+
+        const chartHtml = t.screenshot
+          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="width:100%;height:100%;object-fit:cover;border-radius:10px;cursor:pointer;display:block;min-height:110px">`
+          : `<div style="width:100%;height:100%;min-height:110px;border-radius:10px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:0.2">📷</div>`;
+
+        return `<div class="trade-card-mobile ${t.result}" style="padding:14px">
+          <!-- Header row -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:6px">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0">
-              <span style="font-size:19px;font-weight:800;letter-spacing:-.3px;flex-shrink:0">${t.ticker.toUpperCase()}</span>
-              <span class="badge badge-${t.direction}" style="flex-shrink:0">${t.direction.toUpperCase()}</span>
-              <span class="badge badge-${t.result}" style="flex-shrink:0">${t.result}</span>
-              ${regime}
+              <span style="font-size:18px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</span>
+              <span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span>
+              <span class="badge badge-${t.result}">${t.result}</span>
+              ${regimePill}
             </div>
-            <span style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;padding-top:4px">${dateStr}</span>
+            <span style="font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap;flex-shrink:0">${dateStr}</span>
           </div>
-
-          <!-- Perf pill box -->
-          <div class="tcm-perf" style="display:grid;grid-template-columns:repeat(${isMobile?4:6},1fr);gap:10px 8px">
+          <!-- Body: stats left, chart right -->
+          <div style="display:grid;grid-template-columns:1fr 44%;gap:12px;align-items:stretch">
             <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">P&L</div>
-              <div style="font-size:15px;font-weight:800;color:${pnlCol};white-space:nowrap;letter-spacing:-.3px">${pnlStr}</div>
+              ${statItem('P&amp;L', pnlStr, pnlCol)}
+              ${statItem('R', rStr, rCol)}
+              ${statItem('Entry', '$'+parseFloat(t.entry||0).toFixed(2), 'rgba(255,255,255,0.75)')}
+              ${statItem('Exit',  t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—', 'rgba(255,255,255,0.75)')}
             </div>
-            <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">R</div>
-              <div style="font-size:15px;font-weight:800;color:${rCol};white-space:nowrap;display:flex;align-items:center;gap:3px;letter-spacing:-.3px">${rStr}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Entry</div>
-              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(255,255,255,0.85)">$${parseFloat(t.entry||0).toFixed(2)}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Exit</div>
-              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(255,255,255,0.85)">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
-            </div>
-            ${!isMobile ? `
-            <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Stop</div>
-              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(239,68,68,0.7)">${t.stop ? '$'+parseFloat(t.stop).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Target</div>
-              <div style="font-size:13px;font-weight:700;white-space:nowrap;color:rgba(34,197,94,0.7)">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.3">—</span>'}</div>
-            </div>` : ''}
+            <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)">${chartHtml}</div>
           </div>
-
-          ${chart}
+          <!-- Delete -->
+          <div style="margin-top:10px;display:flex;justify-content:flex-end">
+            <button class="btn btn-danger" style="font-size:11px;padding:4px 10px" onclick="deleteTrade('${t.id}')">Delete</button>
+          </div>
         </div>`;
+      }).join('');
+
+    } else {
+      // ── DESKTOP: styled table with colour language ────────────────────
+      document.getElementById('tradeCards').style.display  = 'none';
+      const wrap  = document.getElementById('tradesTableWrap');
+      const table = document.getElementById('tradesTable');
+      const tbody = document.getElementById('tradesBody');
+      if (wrap) wrap.style.display = 'block';
+      table.style.cssText = 'display:table;width:100%;border-collapse:collapse';
+
+      // Ensure header exists
+      if (!table.querySelector('thead')) {
+        table.insertAdjacentHTML('afterbegin', `
+          <thead><tr>
+            <th>Date</th><th>Ticker</th><th>Side</th><th>Setup</th>
+            <th>P&amp;L</th><th>R</th><th>Entry</th><th>Exit</th>
+            <th>Stop</th><th>Target</th><th></th>
+          </tr></thead>`);
+      }
+
+      tbody.innerHTML = filtered.map(t => {
+        const { pnlCol, rCol, pnlStr, rStr, tags, regime, dateStr, bgTint } = deriveRow(t);
+        const regimeBadge = regime
+          ? `<span style="font-size:10px;color:rgba(147,197,253,0.8);background:rgba(79,124,255,.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(79,124,255,.15)">${regime.replace(/[_+]/g,' ')}</span>` : '';
+
+        return `<tr style="background:${bgTint}">
+          <td style="color:rgba(255,255,255,0.45);font-size:12px;white-space:nowrap">${dateStr}</td>
+          <td><strong style="font-size:14px;letter-spacing:-.2px">${t.ticker.toUpperCase()}</strong></td>
+          <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
+          <td style="font-size:12px;color:rgba(255,255,255,0.55)">${fmtSetup(t.setup)}${regimeBadge ? ' '+regimeBadge : ''}</td>
+          <td><span style="font-weight:700;color:${pnlCol}">${pnlStr}</span></td>
+          <td><span style="font-weight:700;color:${rCol}">${rStr}</span></td>
+          <td style="color:rgba(255,255,255,0.7);font-size:13px">$${parseFloat(t.entry||0).toFixed(2)}</td>
+          <td style="color:rgba(255,255,255,0.7);font-size:13px">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.3">—</span>'}</td>
+          <td style="color:rgba(239,68,68,0.65);font-size:12px">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.3">—</span>'}</td>
+          <td style="color:rgba(34,197,94,0.65);font-size:12px">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.3">—</span>'}</td>
+          <td><button class="btn btn-danger" style="font-size:11px;padding:4px 10px" onclick="deleteTrade('${t.id}')">Delete</button></td>
+        </tr>`;
       }).join('');
 
     }
