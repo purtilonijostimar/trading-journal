@@ -141,11 +141,13 @@
     position: absolute;
     top: 50%; left: 0; width: 100%;
     text-align: center;
-    transform: translateY(-50%);
-    font-size: 85vw;
+    transform: translateY(-50%) rotate(5deg);
+    font-size: 102vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 600; letter-spacing: 0; line-height: 1;
-    color: rgba(0,184,255,0.04);
+    color: transparent;
+    -webkit-text-stroke: 2px rgba(0,184,255,0.12);
+    text-stroke: 2px rgba(0,184,255,0.12);
     user-select: none;
   }
 
@@ -678,6 +680,18 @@
     user-select: none;
     pointer-events: none;
   }
+
+  /* ── Header ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px max(32px, calc((100vw - 1400px) / 2 + 32px));
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .header-right { display:flex; align-items:center; gap:12px; }
 </style>
 </head>
 <body>
