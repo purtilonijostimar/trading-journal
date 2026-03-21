@@ -199,13 +199,13 @@
   .delta-down { color:var(--red); }
 
   /* ── Day of week ── */
-  .dow-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; }
-  .dow-label { width:32px; color:var(--text3); font-size:11px; font-weight:600; flex-shrink:0; }
-  .dow-bar-track { flex:1; height:22px; background:var(--border); border-radius:5px; overflow:hidden; position:relative; }
-  .dow-bar-fill  { height:100%; border-radius:5px; display:flex; align-items:center; padding:0 8px; font-size:11px; font-weight:600; }
-  .dow-bar-fill.pos { background:rgba(34,197,94,.25); color:var(--green); }
-  .dow-bar-fill.neg { background:rgba(239,68,68,.2);  color:var(--red); }
-  .dow-n { width:28px; text-align:right; color:var(--text3); font-size:10px; flex-shrink:0; }
+  .dow-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .dow-label { width:32px; color:rgba(255,255,255,0.5); font-size:12px; font-weight:600; flex-shrink:0; }
+  .dow-bar-track { flex:1; height:32px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
+  .dow-bar-fill  { height:100%; border-radius:8px; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; white-space:nowrap; }
+  .dow-bar-fill.pos { background:rgba(34,197,94,.35); color:#4ade80; }
+  .dow-bar-fill.neg { background:rgba(239,68,68,.3);  color:#f87171; }
+  .dow-n { width:24px; text-align:right; color:rgba(255,255,255,0.3); font-size:11px; flex-shrink:0; }
 
   /* ── Live stats row ── */
   .live-stats-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
@@ -253,15 +253,16 @@
   .r-dist-val   { width:48px; text-align:right; font-weight:600; font-size:11px; flex-shrink:0; }
   .chart-card { background:rgba(26,29,39,0.55); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:20px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 2px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05); }
   .chart-title { font-weight:700; margin-bottom:16px; font-size:14px; }
-  .bar-chart { display:flex; flex-direction:column; gap:10px; }
-  .bar-row { display:flex; align-items:center; gap:12px; }
-  .bar-label { width:100px; font-size:12px; color:var(--text2); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .bar-track { flex:1; background:var(--surface2); border-radius:4px; height:24px; overflow:hidden; }
-  .bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:11px; font-weight:700; color:white; transition:width 0.5s; min-width:30px; }
-  .bar-fill.green { background:var(--green); }
-  .bar-fill.red { background:var(--red); }
-  .bar-fill.yellow { background:var(--yellow); }
-  .bar-fill.blue { background:var(--accent); }
+  .bar-chart { display:flex; flex-direction:column; gap:8px; }
+  .bar-row { display:flex; align-items:center; gap:10px; }
+  .bar-label { width:96px; font-size:12px; color:rgba(255,255,255,0.5); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { flex:1; background:rgba(255,255,255,0.05); border-radius:8px; height:32px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
+  .bar-fill { height:100%; border-radius:8px; display:flex; align-items:center; padding:0 12px; font-size:12px; font-weight:700; color:white; transition:width 0.5s; min-width:60px; white-space:nowrap; }
+  .bar-fill.green  { background:rgba(34,197,94,0.35);  color:#4ade80; }
+  .bar-fill.yellow { background:rgba(251,191,36,0.3);  color:#fbbf24; }
+  .bar-fill.red    { background:rgba(239,68,68,0.3);   color:#f87171; }
+  .bar-fill.blue   { background:rgba(79,124,255,0.3);  color:#93c5fd; }
+  .bar-n { width:24px; text-align:right; font-size:11px; color:rgba(255,255,255,0.3); flex-shrink:0; }
   .insight-list { display:flex; flex-direction:column; gap:12px; }
   .insight-item { display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface2); border-radius:8px; border-left:3px solid var(--accent); }
   .insight-icon { font-size:18px; flex-shrink:0; }
@@ -1183,15 +1184,25 @@
   // ── Analytics ─────────────────────────────────────────────────────────────
   function makeBarChart(containerId, data) {
     const el = document.getElementById(containerId);
-    if (!Object.keys(data).length) { el.innerHTML='<p style="color:var(--text3);font-size:13px">Not enough data yet</p>'; return; }
+    if (!Object.keys(data).length) { el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:13px">Not enough data yet</p>'; return; }
     el.innerHTML = Object.entries(data)
       .sort((a,b) => b[1].total - a[1].total)
       .map(([name, d]) => {
-        const wr = d.total > 0 ? Math.round(d.wins/d.total*100) : 0;
+        const wr    = d.total > 0 ? Math.round(d.wins/d.total*100) : 0;
         const color = wr >= 55 ? 'green' : wr >= 45 ? 'yellow' : 'red';
+        const label = name.replace(/[_+]/g,' ');
+        // Show WR% + avg R if available, trade count outside right
+        const rStr  = d.sumR !== undefined && d.total > 0
+          ? ` · ${(d.sumR/d.total>=0?'+':'')}${(d.sumR/d.total).toFixed(2)}R avg`
+          : '';
         return `<div class="bar-row">
-          <div class="bar-label" title="${name}">${name}</div>
-          <div class="bar-track"><div class="bar-fill ${color}" style="width:${wr}%">${wr}% <span style="opacity:0.7;font-size:10px">(${d.total})</span></div></div>
+          <div class="bar-label" title="${name}">${label}</div>
+          <div class="bar-track">
+            <div class="bar-fill ${color}" style="width:${Math.max(wr,4)}%">
+              ${wr}% WR${rStr}
+            </div>
+          </div>
+          <div class="bar-n">${d.total}t</div>
         </div>`;
       }).join('');
   }
@@ -1799,45 +1810,31 @@
     renderMatrix(closed);
     renderRDist(closed);
 
-    // Setup chart
+    // Helper: accumulate wins + total + sumR for bar charts
+    const addBar = (map, key, t) => {
+      if (!map[key]) map[key] = { wins:0, total:0, sumR:0 };
+      map[key].total++;
+      if (t.result==='win') map[key].wins++;
+      const r = calcR(t);
+      if (r !== null) map[key].sumR += r;
+    };
+
     const setups = {};
-    closed.forEach(t => {
-      const k = fmtSetup(t.setup);
-      if (!setups[k]) setups[k] = {wins:0,total:0};
-      setups[k].total++;
-      if (t.result==='win') setups[k].wins++;
-    });
+    closed.forEach(t => addBar(setups, fmtSetup(t.setup), t));
     makeBarChart('setupChart', setups);
 
-    // Direction chart
     const dirs = {};
-    closed.forEach(t => {
-      const k = t.direction.charAt(0).toUpperCase() + t.direction.slice(1);
-      if (!dirs[k]) dirs[k] = {wins:0,total:0};
-      dirs[k].total++;
-      if (t.result==='win') dirs[k].wins++;
-    });
+    closed.forEach(t => addBar(dirs, t.direction.charAt(0).toUpperCase()+t.direction.slice(1), t));
     makeBarChart('directionChart', dirs);
 
-    // Regime chart (from tags)
     const regimes = {};
-    closed.forEach(t => {
-      const tags = parseTags(t.tags);
-      const k = tags.regime || 'unknown';
-      if (!regimes[k]) regimes[k] = {wins:0,total:0};
-      regimes[k].total++;
-      if (t.result==='win') regimes[k].wins++;
-    });
+    closed.forEach(t => addBar(regimes, parseTags(t.tags).regime || 'unknown', t));
     makeBarChart('regimeChart', regimes);
 
-    // Time of day chart
     const times = {};
     closed.forEach(t => {
-      const tags = parseTags(t.tags);
-      const k = tags.time ? tags.time.replace(/\b\w/g,c=>c.toUpperCase()) : 'Unknown';
-      if (!times[k]) times[k] = {wins:0,total:0};
-      times[k].total++;
-      if (t.result==='win') times[k].wins++;
+      const k = (parseTags(t.tags).time || 'unknown').replace(/\b\w/g,c=>c.toUpperCase());
+      addBar(times, k, t);
     });
     makeBarChart('timeChart', times);
 
