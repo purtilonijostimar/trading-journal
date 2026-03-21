@@ -237,10 +237,10 @@
   }
 
   /* ── Stats grid ── */
-  .stats-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:20px; margin-bottom:40px; }
-  .stat-card  { padding:16px; }
+  .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:32px; }
+  .stat-card  { padding:14px 16px; }
   .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text3); margin-bottom:6px; }
-  .stat-value { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+  .stat-value { font-size:31px; font-weight:700; letter-spacing:-0.5px; }
   .stat-value.green  { color:var(--green); }
   .stat-value.red    { color:var(--red); }
   .stat-value.yellow { color:var(--yellow); }
@@ -513,18 +513,19 @@
 
   /* ══ JOURNAL ══════════════════════════════════════════════════ */
 
-  .entry-list { display:flex; flex-direction:column; gap:32px; }
+  .entry-list { display:flex; flex-direction:column; gap:0; }
   .journal-toolbar  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
   .journal-filters  { display:flex; gap:6px; flex-wrap:wrap; }
   .jf-btn { padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
   .jf-btn.active { background:var(--accent-grad); border-color:transparent; color:#001a2e; font-weight:700; }
   .jf-btn:hover:not(.active) { border-color:var(--text3); color:var(--text); }
 
-  .entry-card { padding:24px; }
+  .entry-card { padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.04) !important; }
+  .entry-card:last-child { border-bottom:none !important; }
   .entry-card.win, .entry-card.loss, .entry-card.open {} /* neutral — colour lives in values */
 
   /* Two-column layout */
-  .entry-two-col   { display:grid; grid-template-columns:1fr 80px; gap:16px; min-height:auto; align-items:start; }
+  .entry-two-col   { display:grid; grid-template-columns:1fr 80px; gap:16px; min-height:auto; align-items:center; }
   .entry-col-left  { display:flex; flex-direction:column; gap:10px; min-width:0; }
   .entry-col-right { flex-shrink:0; }
   .entry-screenshot { border-radius:50%; overflow:hidden; border:2px solid rgba(255,255,255,0.08); width:72px; height:72px; flex-shrink:0; }
