@@ -315,17 +315,19 @@
 
   table { width:100%; border-collapse:collapse; }
   th {
-    padding:10px 12px; text-align:left;
-    font-size:11px; font-weight:600; color:rgba(255,255,255,0.4);
-    text-transform:uppercase; letter-spacing:0.5px;
-    border-bottom:1px solid rgba(255,255,255,0.04);
-    background:rgba(255,255,255,0.03); white-space:nowrap;
+    padding:11px 14px; text-align:left;
+    font-size:10px; font-weight:700; color:rgba(255,255,255,0.3);
+    text-transform:uppercase; letter-spacing:0.1em;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    background:transparent; white-space:nowrap;
   }
-  td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
+  th:first-child { padding:0; width:3px; }
+  td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
   td:first-child { padding:0; }
   tr:last-child td { border-bottom:none; }
-  tbody tr { transition:background .15s; }
-  tbody tr:hover td { background:rgba(255,255,255,0.025); }
+  tbody tr { transition:background 0.1s; cursor:pointer; }
+  tbody tr:hover td { background:rgba(255,255,255,0.03); }
+  tbody tr:hover td:first-child { background:transparent; }
 
   /* ── Badges ── */
   .badge { padding:3px 8px; border-radius:5px; font-size:11px; font-weight:700; text-transform:uppercase; white-space:nowrap; }
@@ -1471,10 +1473,11 @@
       if (!table.querySelector('thead')) {
         table.insertAdjacentHTML('afterbegin', `
           <thead><tr>
-            <th style="width:3px;padding:0"></th>
-            <th>Date</th><th>Ticker</th><th>Side</th><th>Setup</th><th>Chart</th>
-            <th>P&amp;L</th><th>R</th><th>Entry</th><th>Exit</th>
-            <th>Stop</th><th>Target</th><th></th>
+            <th></th>
+            <th>Ticker</th><th>Date</th><th>Setup</th><th>Side</th>
+            <th>P&amp;L</th><th>R</th>
+            <th>Entry</th><th>Exit</th><th>Stop</th><th>Target</th>
+            <th></th>
           </tr></thead>`);
       }
 
@@ -1490,19 +1493,18 @@
         const accentCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
         return `<tr data-tradeid="${t.id}" style="cursor:pointer">
-          <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
-          <td style="color:var(--text3);font-size:11px;white-space:nowrap">${dateStr}</td>
-          <td><strong style="font-size:14px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</strong></td>
+          <td style="padding:0;width:3px;min-width:3px;background:${accentCol}"></td>
+          <td><span style="font-size:14px;font-weight:800;letter-spacing:-.5px;color:#fff">${t.ticker.toUpperCase()}</span></td>
+          <td style="color:rgba(255,255,255,0.35);font-size:11px;font-weight:500;white-space:nowrap">${dateStr}</td>
+          <td style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);white-space:nowrap;letter-spacing:0.01em">${fmtSetup(t.setup)}</td>
           <td><span class="badge badge-${t.direction}">${t.direction.toUpperCase()}</span></td>
-          <td style="font-size:12px;color:var(--text2);white-space:nowrap">${fmtSetup(t.setup)}</td>
-          <td>${chartThumb}</td>
-          <td><span style="font-weight:800;font-size:13px;color:${pnlCol}">${pnlStr}</span></td>
-          <td><span style="font-weight:800;font-size:13px;color:${rCol}">${rStr}</span></td>
-          <td style="color:var(--text2);font-size:12px;font-weight:600">$${parseFloat(t.entry||0).toFixed(2)}</td>
-          <td style="color:var(--text2);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="color:var(--red);font-size:12px;font-weight:600">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="color:var(--green);font-size:12px;font-weight:600">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="text-align:right"><button onclick="event.stopPropagation();deleteTrade('${t.id}')" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button></td>
+          <td><span style="font-weight:800;font-size:14px;color:${pnlCol}">${pnlStr}</span></td>
+          <td><span style="font-weight:700;font-size:13px;color:${rCol}">${rStr}</span></td>
+          <td style="color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">$${parseFloat(t.entry||0).toFixed(2)}</td>
+          <td style="color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.15">—</span>'}</td>
+          <td style="color:rgba(239,68,68,0.7);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.15">—</span>'}</td>
+          <td style="color:rgba(34,197,94,0.7);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.15">—</span>'}</td>
+          <td style="text-align:right;padding-right:12px"><button onclick="event.stopPropagation();deleteTrade('${t.id}')" style="width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:rgba(255,255,255,0.2);font-size:10px;cursor:pointer;padding:0;line-height:1;transition:color 0.1s" onmouseover="this.style.color='rgba(239,68,68,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">✕</button></td>
         </tr>`;
       }).join('');
 
