@@ -1226,9 +1226,16 @@
       ov.id = 'tdOverlay';
       document.body.appendChild(ov);
     }
+    const vvh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px';
     ov.style.cssText = isMob
-      ? 'position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;'
+      ? 'position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;height:'+vvh+';'
       : 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;';
+    // Keep overlay sized to visual viewport if toolbar toggles while modal is open
+    if (isMob && window.visualViewport) {
+      const _vvResize = () => { const o = document.getElementById('tdOverlay'); if(o) o.style.height = window.visualViewport.height + 'px'; };
+      window.visualViewport.addEventListener('resize', _vvResize);
+      ov._vvResize = _vvResize;
+    }
     ov.innerHTML = html;
     // Animate card in on open
     const _card = ov.querySelector('[data-td-card]');
@@ -1305,7 +1312,14 @@
     document.body.style.overflow = 'hidden';
   }
 
-  function closeTd() { const ov=document.getElementById('tdOverlay'); if(ov) ov.remove(); document.body.style.overflow = ''; }
+  function closeTd() {
+    const ov = document.getElementById('tdOverlay');
+    if (ov) {
+      if (ov._vvResize && window.visualViewport) window.visualViewport.removeEventListener('resize', ov._vvResize);
+      ov.remove();
+    }
+    document.body.style.overflow = '';
+  }
   function tdNav(dir) {
     if (!trades.length) return;
     tdIndex = (tdIndex + dir + trades.length) % trades.length;
