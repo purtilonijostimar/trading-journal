@@ -1259,7 +1259,7 @@
 
         const barCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
-        return `<div class="trade-card-mobile ${t.result}" onclick="openTd('${t.id}')" style="cursor:pointer">
+        return `<div class="trade-card-mobile ${t.result}" data-tradeid="${t.id}" style="cursor:pointer">
           <div class="tcm-accent-bar" style="width:4px;background:${barCol}"></div>
           <div class="tcm-body">
           <!-- Header row -->
@@ -1320,7 +1320,7 @@
 
         const accentCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
-        return `<tr onclick="openTd('${t.id}')" style="cursor:pointer">
+        return `<tr data-tradeid="${t.id}" style="cursor:pointer">
           <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
           <td style="color:var(--text3);font-size:11px;white-space:nowrap">${dateStr}</td>
           <td><strong style="font-size:14px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</strong></td>
@@ -1360,6 +1360,22 @@
       .replace(/^\s*\|\s*/g, '')
       .trim();
     return cleaned;
+  }
+
+
+  // Event delegation for trade card/row clicks
+  function initTradeClickDelegation() {
+    ['tradeCards','tradesBody'].forEach(containerId => {
+      const el = document.getElementById(containerId);
+      if (!el || el._tdListened) return;
+      el._tdListened = true;
+      el.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (btn) return; // let delete handle itself
+        const card = e.target.closest('[data-tradeid]');
+        if (card) openTd(card.dataset.tradeid);
+      });
+    });
   }
 
   function renderJournal() {
@@ -2282,7 +2298,7 @@
       <div class="insight-item"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('');
   }
 
-  function refresh() { updateStats(); renderTrades(); renderJournal(); renderAnalytics(); }
+  function refresh() { updateStats(); renderTrades(); initTradeClickDelegation(); renderJournal(); renderAnalytics(); }
 
   // Re-render on resize — trades (mobile/desktop switch) + equity curve (width changes)
   let _resizeTimer;
