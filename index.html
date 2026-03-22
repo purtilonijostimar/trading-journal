@@ -1112,6 +1112,7 @@
     const tags = parseTags(t.tags || '');
     const TARGET_R = 2.1337;
     const isVivid = t.result !== 'open';
+    const isMob = window.innerWidth <= 768;
 
     // Colours — computed upfront, no ternaries inside template literals
     const pnlStr  = pnl !== null ? (pnl >= 0 ? '+' : '-') + '\u20ac' + Math.abs(pnl).toFixed(2) : 'Open';
@@ -1193,7 +1194,6 @@
       ov.id = 'tdOverlay';
       document.body.appendChild(ov);
     }
-    const isMob = window.innerWidth <= 768;
     ov.style.cssText = isMob
       ? 'position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;'
       : 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
