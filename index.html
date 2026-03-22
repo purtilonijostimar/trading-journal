@@ -1217,14 +1217,63 @@
       }));
     }
     ov.addEventListener('click', e => { if(e.target===ov) closeTd(); });
-    // Mobile swipe — guard prevents duplicate listeners on re-render
+    // Mobile swipe — drag-following with snap-back or complete
     if (isMob && !ov._swipeSet) {
       ov._swipeSet = true;
-      let tx = 0;
-      ov.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+      let tx = 0, dragging = false;
+
+      ov.addEventListener('touchstart', e => {
+        tx = e.touches[0].clientX;
+        dragging = true;
+        const c = ov.querySelector('[data-td-card]');
+        if (c) c.style.transition = 'none';
+      }, {passive:true});
+
+      ov.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        const dx = e.touches[0].clientX - tx;
+        const c = ov.querySelector('[data-td-card]');
+        if (c) {
+          c.style.transform = 'translateX(' + dx + 'px)';
+          c.style.opacity   = '' + Math.max(0.3, 1 - Math.abs(dx) / (window.innerWidth * 0.9));
+        }
+      }, {passive:true});
+
       ov.addEventListener('touchend', e => {
+        if (!dragging) return;
+        dragging = false;
         const dx = e.changedTouches[0].clientX - tx;
-        if (Math.abs(dx) > 60) tdNavAnimated(dx < 0 ? 1 : -1);
+        const c  = ov.querySelector('[data-td-card]');
+        if (Math.abs(dx) > 60) {
+          const dir  = dx < 0 ? 1 : -1;
+          const outX = dir > 0 ? '-110%' : '110%';
+          const inX  = dir > 0 ?  '110%' : '-110%';
+          if (c) {
+            c.style.transition = 'transform 0.12s ease-out, opacity 0.1s ease';
+            c.style.transform  = 'translateX(' + outX + ')';
+            c.style.opacity    = '0';
+          }
+          setTimeout(() => {
+            tdIndex = (tdIndex + dir + trades.length) % trades.length;
+            openTd(trades[tdIndex].id);
+            const nc = ov.querySelector('[data-td-card]');
+            if (!nc) return;
+            nc.style.transition = 'none';
+            nc.style.transform  = 'translateX(' + inX + ')';
+            nc.style.opacity    = '0';
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              nc.style.transition = 'transform 0.15s cubic-bezier(0.25,0,0,1), opacity 0.12s ease';
+              nc.style.transform  = 'translateX(0)';
+              nc.style.opacity    = '1';
+            }));
+          }, 105);
+        } else {
+          if (c) {
+            c.style.transition = 'transform 0.2s cubic-bezier(0.34,1.4,0.64,1), opacity 0.15s ease';
+            c.style.transform  = 'translateX(0)';
+            c.style.opacity    = '1';
+          }
+        }
       }, {passive:true});
     }
     document.body.style.overflow = 'hidden';
