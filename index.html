@@ -1111,30 +1111,53 @@
     const rVal = calcR(t);
     const tags = parseTags(t.tags || '');
     const TARGET_R = 2.1337;
-    const pnlStr = pnl !== null ? (pnl >= 0 ? '+' : '-') + '€' + Math.abs(pnl).toFixed(2) : 'Open';
-    const rStr   = rVal !== null ? (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R' : '—';
-    const pnlCol = (t.result==='open') ? '#fff' : 'rgba(0,0,0,0.9)';
-    const rCol   = rVal === null ? '#fff' : (t.result!=='open') ? 'rgba(0,0,0,0.85)' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#bbf7d0' : rVal >= 1 ? '#fef08a' : '#bfdbfe';
-    const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
-    const modalBg = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#1e3a5f';
-    const divClr = (t.result==='open') ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
-    const divider = `<div style="height:1px;background:${divClr};margin:16px 0"></div>`;
-    const lblClr = (t.result==='open') ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)';
-    const lbl = (s) => `<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:${lblClr};margin-top:5px">${s}</div>`;
-    const html = `
-      <div style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:22px;padding:24px 22px 26px;color:#fff;background:${modalBg}">
-        <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.12);border:none;color:rgba(0,0,0,0.5);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    const isVivid = t.result !== 'open';
 
-        <!-- Header -->
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'};margin-bottom:6px">${dateStr}</div>
-        <div style="font-size:34px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:12px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.9)'}">${t.ticker.toUpperCase()}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          ${[t.direction, t.result, t.setup ? fmtSetup(t.setup) : null].filter(Boolean).map(s=>`<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid ${t.result==='open'?'rgba(255,255,255,0.4)':'rgba(0,0,0,0.25)'};color:${t.result==='open'?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.7)'}">${s}</span>`).join('')}
-        </div>
+    // Colours — computed upfront, no ternaries inside template literals
+    const pnlStr  = pnl !== null ? (pnl >= 0 ? '+' : '-') + '\u20ac' + Math.abs(pnl).toFixed(2) : 'Open';
+    const rStr    = rVal !== null ? (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R' : '\u2014';
+    const pnlCol  = isVivid ? 'rgba(0,0,0,0.9)' : '#fff';
+    const rCol    = isVivid ? 'rgba(0,0,0,0.85)' : (rVal === null ? '#fff' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#bbf7d0' : rVal >= 1 ? '#fef08a' : '#bfdbfe');
+    const txtMain = isVivid ? 'rgba(0,0,0,0.9)'  : '#fff';
+    const txtSub  = isVivid ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.6)';
+    const txtVal  = isVivid ? 'rgba(0,0,0,0.85)' : '#fff';
+    const divLine = isVivid ? 'rgba(0,0,0,0.1)'  : 'rgba(255,255,255,0.15)';
+    const rowLine = isVivid ? 'rgba(0,0,0,0.1)'  : 'rgba(255,255,255,0.12)';
+    const bgClose = isVivid ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
+    const bgBadge = isVivid ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+    const boBadge = isVivid ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.35)';
+    const modalBg = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#1e3a5f';
+
+    const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    const divider = `<div style="height:1px;background:${divLine};margin:16px 0"></div>`;
+    const lbl = (s) => `<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-top:5px">${s}</div>`;
+    const badges = [t.direction, t.result, t.setup ? fmtSetup(t.setup) : null].filter(Boolean)
+      .map(s => `<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:${bgBadge};border:1px solid ${boBadge};color:${txtSub}">${s}</span>`).join('');
+
+    const dataRows = [
+      ['Stop',    t.stop    ? '$'+parseFloat(t.stop).toFixed(2)    : ''],
+      ['Target',  t.target  ? '$'+parseFloat(t.target).toFixed(2)  : ''],
+      ['Size',    t.size    ? '\u20ac'+parseFloat(t.size).toFixed(0)    : ''],
+      ['Regime',  tags.regime   ? tags.regime.replace(/[_+]/g,' ')  : ''],
+      ['Session', tags.session  || ''],
+      ['Conf.',   tags.confidence || ''],
+    ].filter(r => r[1]).map(([l,v], i, a) =>
+      `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i < a.length-1 ? 'border-bottom:1px solid '+rowLine : ''}">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${txtSub}">${l}</span>
+        <span style="font-size:13px;font-weight:700;color:${txtVal}">${v}</span>
+      </div>`
+    ).join('');
+
+    const html = `
+      <div style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:22px;padding:24px 22px 26px;background:${modalBg}">
+        <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:${bgClose};border:none;color:${txtSub};font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>
+
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">${dateStr}</div>
+        <div style="font-size:34px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:12px;color:${txtMain}">${t.ticker.toUpperCase()}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${badges}</div>
 
         ${divider}
 
-        <!-- Hero: P&L + R -->
         <div style="display:grid;grid-template-columns:1fr 1fr;margin-bottom:14px">
           <div>
             <div style="font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;color:${pnlCol}">${pnlStr}</div>
@@ -1145,42 +1168,24 @@
             ${lbl('R Multiple')}
           </div>
         </div>
-
-        <!-- Entry / Exit -->
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div>
-            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">$${parseFloat(t.entry||0).toFixed(2)}</div>
+            <div style="font-size:16px;font-weight:700;color:${txtMain}">$${parseFloat(t.entry||0).toFixed(2)}</div>
             ${lbl('Entry')}
           </div>
           <div>
-            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
+            <div style="font-size:16px;font-weight:700;color:${txtMain}">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '\u2014'}</div>
             ${lbl('Exit')}
           </div>
         </div>
 
         ${divider}
 
-        <!-- Chart -->
-        ${t.screenshot ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:16px;opacity:0.95"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
+        ${t.screenshot ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:16px"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
 
-        <!-- Secondary data — label/value rows -->
-        <div>
-          ${[
-            ['Stop',    t.stop    ? '$'+parseFloat(t.stop).toFixed(2)    : ''],
-            ['Target',  t.target  ? '$'+parseFloat(t.target).toFixed(2)  : ''],
-            ['Size',    t.size    ? '€'+parseFloat(t.size).toFixed(0)    : ''],
-            ['Regime',  tags.regime  ? tags.regime.replace(/[_+]/g,' ')  : ''],
-            ['Session', tags.session || ''],
-            ['Conf.',   tags.confidence || ''],
-          ].filter(r=>r[1]).map(([l,v],i,a) => `
-            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i<a.length-1?'border-bottom:1px solid ${t.result==='open'?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.1)'}':''}}">
-              <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'}">${l}</span>
-              <span style="font-size:13px;font-weight:700;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">${v}</span>
-            </div>`).join('')}
-        </div>
+        <div>${dataRows}</div>
 
-        <!-- Notes -->
-        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${t.result==='open'?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.25)'};padding-left:12px"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${t.result==='open'?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.75)'}">${t.lesson||t.reasoning}</div></div>` : ''}
+        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${t.lesson||t.reasoning}</div></div>` : ''}
       </div>`;
     let ov = document.getElementById('tdOverlay');
     if (!ov) {
@@ -1188,7 +1193,7 @@
       ov.id = 'tdOverlay';
       document.body.appendChild(ov);
     }
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
     ov.innerHTML = html;
     ov.addEventListener('click', e => { if(e.target===ov) closeTd(); });
     document.body.style.overflow = 'hidden';
