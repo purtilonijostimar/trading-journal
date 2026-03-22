@@ -1143,10 +1143,10 @@
     ].join('');
     document.getElementById('tdLesson').innerHTML = (t.lesson || t.reasoning)
       ? `<div class="td-lesson"><div class="td-lesson-lbl">📝 Notes</div>${t.lesson || t.reasoning}</div>` : '';
-    const ov=document.getElementById('tdOverlay'); alert('overlay el: '+(ov?'found':'NULL')+' classes: '+ov?.className); ov && ov.classList.add('open'); alert('after add open, class now: '+ov?.className);
+    const ov=document.getElementById('tdOverlay'); if(ov){ ov.classList.add('open'); ov.style.display='flex'; ov.style.zIndex='9999'; }
     document.body.style.overflow = 'hidden';
   }
-  function closeTd() { document.getElementById('tdOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+  function closeTd() { const ov=document.getElementById('tdOverlay'); if(ov){ ov.classList.remove('open'); ov.style.display=''; } document.body.style.overflow = ''; }
   function closeTdOutside(e) { if (e.target===document.getElementById('tdOverlay')) closeTd(); }
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTd(); });
 
