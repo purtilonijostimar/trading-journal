@@ -1181,7 +1181,7 @@
     const arrowBtn = (dir, sym) => `<button onclick="tdNav(${dir})" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${sym}</button>`;
     const html = `
       ${isMob ? '' : arrowBtn(-1, '&#8592;')}
-      <div data-td-card style="position:relative;width:100%;max-width:440px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:${isMob?'0':'22px'};padding:${isMob?'28px 20px 40px':'24px 22px 26px'};background:${modalBg};${isMob?'height:100dvh;max-height:100dvh;':'max-height:90vh;'}">
+      <div data-td-card style="position:relative;width:100%;max-width:440px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:${isMob?'0':'22px'};padding:${isMob?'28px 20px 40px':'24px 22px 26px'};background:${modalBg};${isMob?'position:absolute;left:0;right:0;bottom:0;':'max-height:90vh;'}">
         <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:${bgClose};border:none;color:${txtSub};font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>
 
         <div style="font-size:10px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;color:${txtSub};margin-bottom:8px">${dateStr}</div>
@@ -1227,9 +1227,19 @@
       document.body.appendChild(ov);
     }
     ov.style.cssText = isMob
-      ? 'position:fixed;inset:0;z-index:9999;'
+      ? 'position:fixed;inset:0;z-index:9999;pointer-events:auto;'
       : 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;';
     ov.innerHTML = html;
+    // Set mobile card height from actual visual viewport
+    if (isMob) {
+      const setH = () => {
+        const c = ov.querySelector('[data-td-card]');
+        if (c) c.style.height = window.innerHeight + 'px';
+      };
+      setH();
+      window.addEventListener('resize', setH);
+      ov._resizeH = setH;
+    }
     // Animate card in on open
     const _card = ov.querySelector('[data-td-card]');
     if (_card) {
@@ -1307,7 +1317,10 @@
 
   function closeTd() {
     const ov = document.getElementById('tdOverlay');
-    if (ov) ov.remove();
+    if (ov) {
+      if (ov._resizeH) window.removeEventListener('resize', ov._resizeH);
+      ov.remove();
+    }
     document.body.style.overflow = '';
   }
   function tdNav(dir) {
