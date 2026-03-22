@@ -1155,7 +1155,7 @@
     const arrowBtn = (dir, sym) => `<button onclick="tdNav(${dir})" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${sym}</button>`;
     const html = `
       ${isMob ? '' : arrowBtn(-1, '&#8592;')}
-      <div style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:${isMob?'0':'22px'};padding:${isMob?'28px 20px 40px':'24px 22px 26px'};background:${modalBg};${isMob?'flex:1;max-height:100vh;':''}">
+      <div data-td-card style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:${isMob?'0':'22px'};padding:${isMob?'28px 20px 40px':'24px 22px 26px'};background:${modalBg};${isMob?'flex:1;max-height:100vh;':''}">
         <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:${bgClose};border:none;color:${txtSub};font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>
 
         <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${txtSub};margin-bottom:8px">${dateStr}</div>
@@ -1204,6 +1204,18 @@
       ? 'position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;'
       : 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;';
     ov.innerHTML = html;
+    // Animate card in on open
+    const _card = ov.querySelector('[data-td-card]');
+    if (_card) {
+      _card.style.transition = 'none';
+      _card.style.transform  = isMob ? 'translateY(32px)' : 'translateY(12px)';
+      _card.style.opacity    = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        _card.style.transition = 'transform 0.26s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+        _card.style.transform  = 'translateY(0)';
+        _card.style.opacity    = '1';
+      }));
+    }
     ov.addEventListener('click', e => { if(e.target===ov) closeTd(); });
     // Mobile swipe — guard prevents duplicate listeners on re-render
     if (isMob && !ov._swipeSet) {
@@ -1212,7 +1224,7 @@
       ov.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
       ov.addEventListener('touchend', e => {
         const dx = e.changedTouches[0].clientX - tx;
-        if (Math.abs(dx) > 60) tdNav(dx < 0 ? 1 : -1);
+        if (Math.abs(dx) > 60) tdNavAnimated(dx < 0 ? 1 : -1);
       }, {passive:true});
     }
     document.body.style.overflow = 'hidden';
@@ -1223,6 +1235,29 @@
     if (!trades.length) return;
     tdIndex = (tdIndex + dir + trades.length) % trades.length;
     openTd(trades[tdIndex].id);
+  }
+  function tdNavAnimated(dir) {
+    const ov = document.getElementById('tdOverlay');
+    const card = ov && ov.querySelector('[data-td-card]');
+    if (!card) { tdNav(dir); return; }
+    const outX = dir > 0 ? '-100%' : '100%';
+    const inX  = dir > 0 ?  '100%' : '-100%';
+    card.style.transition = 'transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+    card.style.transform  = 'translateX(' + outX + ')';
+    card.style.opacity    = '0';
+    setTimeout(() => {
+      tdNav(dir);
+      const newCard = ov.querySelector('[data-td-card]');
+      if (!newCard) return;
+      newCard.style.transition = 'none';
+      newCard.style.transform  = 'translateX(' + inX + ')';
+      newCard.style.opacity    = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        newCard.style.transition = 'transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+        newCard.style.transform  = 'translateX(0)';
+        newCard.style.opacity    = '1';
+      }));
+    }, 200);
   }
   function closeTdOutside(e) { if (e.target===document.getElementById('tdOverlay')) closeTd(); }
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTd(); else if (e.key==='ArrowLeft') tdNav(-1); else if (e.key==='ArrowRight') tdNav(1); });
