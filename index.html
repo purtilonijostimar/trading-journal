@@ -1289,6 +1289,14 @@
         </div>`;
       }).join('');
 
+      // Attach click listeners directly to each card
+      cardsEl.querySelectorAll('[data-tradeid]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+          if (e.target.closest('button')) return;
+          openTd(el.dataset.tradeid);
+        });
+      });
+
     } else {
       // ── DESKTOP: styled table with colour language ────────────────────
       document.getElementById('tradeCards').style.display  = 'none';
@@ -1337,6 +1345,14 @@
         </tr>`;
       }).join('');
 
+      // Attach click listeners to desktop rows
+      document.querySelectorAll('#tradesBody tr[data-tradeid]').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+          if (e.target.closest('button')) return;
+          openTd(row.dataset.tradeid);
+        });
+      });
+
     }
   }
 
@@ -1363,20 +1379,6 @@
   }
 
 
-  // Event delegation for trade card/row clicks
-  function initTradeClickDelegation() {
-    ['tradeCards','tradesBody'].forEach(containerId => {
-      const el = document.getElementById(containerId);
-      if (!el || el._tdListened) return;
-      el._tdListened = true;
-      el.addEventListener('click', function(e) {
-        const btn = e.target.closest('button');
-        if (btn) return; // let delete handle itself
-        const card = e.target.closest('[data-tradeid]');
-        if (card) openTd(card.dataset.tradeid);
-      });
-    });
-  }
 
   function renderJournal() {
     const list  = document.getElementById('journalList');
@@ -2298,7 +2300,7 @@
       <div class="insight-item"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('');
   }
 
-  function refresh() { updateStats(); renderTrades(); initTradeClickDelegation(); renderJournal(); renderAnalytics(); }
+  function refresh() { updateStats(); renderTrades(); renderJournal(); renderAnalytics(); }
 
   // Re-render on resize — trades (mobile/desktop switch) + equity curve (width changes)
   let _resizeTimer;
