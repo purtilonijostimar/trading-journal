@@ -1119,40 +1119,53 @@
     const badge = (txt, a) => `<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,${a});color:#fff">${txt}</span>`;
     const item = (lbl, val) => val ? `<div class="td-item"><div class="td-item-val">${val}</div><div class="td-item-label">${lbl}</div></div>` : '';
     const modalBg = t.result === 'win'
-      ? 'linear-gradient(145deg,rgba(16,80,40,0.97),rgba(22,101,52,0.95));border:1px solid rgba(34,197,94,0.4);box-shadow:0 0 60px rgba(34,197,94,0.25),inset 0 1px 0 rgba(34,197,94,0.3)'
+      ? 'linear-gradient(160deg,#0d5c2e 0%,#145e30 60%,#0a3d1f 100%);border:1px solid rgba(34,197,94,0.35);box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(34,197,94,0.1) inset'
       : t.result === 'loss'
-      ? 'linear-gradient(145deg,rgba(80,16,16,0.97),rgba(101,22,22,0.95));border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 60px rgba(239,68,68,0.25),inset 0 1px 0 rgba(239,68,68,0.3)'
-      : 'linear-gradient(145deg,rgba(16,30,80,0.97),rgba(22,40,101,0.95));border:1px solid rgba(147,197,253,0.4)';
+      ? 'linear-gradient(160deg,#6b1212 0%,#5a1010 60%,#3d0a0a 100%);border:1px solid rgba(239,68,68,0.35);box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(239,68,68,0.1) inset'
+      : 'linear-gradient(160deg,#0f2460 0%,#0d1e52 60%,#080f30 100%);border:1px solid rgba(147,197,253,0.25);box-shadow:0 32px 80px rgba(0,0,0,0.6)';
+    const divider = `<div style="height:1px;background:rgba(255,255,255,0.08);margin:18px 0"></div>`;
     const html = `
-      <div style="position:relative;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;border-radius:24px;padding:28px 24px 32px;color:#fff;background:${modalBg}">
-        <button onclick="closeTd()" style="position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:14px;cursor:pointer">✕</button>
-        <div style="font-size:28px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px">${t.ticker.toUpperCase()}</div>
-        <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-          ${badge(t.direction.toUpperCase(), 0.15)}${badge(t.result.toUpperCase(), 0.15)}${t.setup ? badge(fmtSetup(t.setup), 0.08) : ''}
-          <span style="font-size:11px;opacity:0.45">${dateStr}</span>
+      <div style="position:relative;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;border-radius:20px;padding:26px 24px 28px;color:#fff;background:${modalBg}">
+        <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;line-height:1">✕</button>
+
+        <!-- Ticker + meta -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.4;margin-bottom:4px">${dateStr}</div>
+        <div style="font-size:32px;font-weight:900;letter-spacing:-1px;line-height:1;margin-bottom:10px">${t.ticker.toUpperCase()}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+          ${badge(t.direction.toUpperCase(), 0.18)}${badge(t.result.toUpperCase(), 0.18)}${t.setup ? badge(fmtSetup(t.setup), 0.1) : ''}
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px">
-            <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:${pnlCol}">${pnlStr}</div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:3px">Net P&L</div>
+
+        ${divider}
+
+        <!-- Hero numbers — pure typography, no boxes -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:6px">
+          <div style="padding:4px 0">
+            <div style="font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;color:${pnlCol}">${pnlStr}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.4;margin-top:5px">Net P&L</div>
           </div>
-          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px">
-            <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:${rCol}">${rStr}</div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:3px">R Multiple</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:10px 14px">
-            <div style="font-size:18px;font-weight:700">$${parseFloat(t.entry||0).toFixed(2)}</div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:2px">Entry</div>
-          </div>
-          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:10px 14px">
-            <div style="font-size:18px;font-weight:700">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:2px">Exit</div>
+          <div style="padding:4px 0">
+            <div style="font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;color:${rCol}">${rStr}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.4;margin-top:5px">R Multiple</div>
           </div>
         </div>
-        ${t.screenshot ? `<div style="border-radius:12px;overflow:hidden;margin-bottom:14px"><img src="${t.screenshot}" style="width:100%;display:block"></div>` : ''}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:2px">
+          <div style="padding:4px 0">
+            <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;opacity:0.85">$${parseFloat(t.entry||0).toFixed(2)}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.4;margin-top:4px">Entry</div>
+          </div>
+          <div style="padding:4px 0">
+            <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;opacity:0.85">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.4;margin-top:4px">Exit</div>
+          </div>
+        </div>
+
+        ${divider}
+
+        <!-- Chart -->
+        ${t.screenshot ? `<div style="border-radius:10px;overflow:hidden;margin-bottom:18px"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
+
+        <!-- Data grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">
           ${item('Stop Loss', t.stop ? '$'+parseFloat(t.stop).toFixed(2) : null)}
           ${item('Target', t.target ? '$'+parseFloat(t.target).toFixed(2) : null)}
           ${item('Position Size', t.size ? '€'+parseFloat(t.size).toFixed(0) : null)}
@@ -1160,7 +1173,9 @@
           ${item('Session', tags.session || null)}
           ${item('Confidence', tags.confidence || null)}
         </div>
-        ${(t.lesson||t.reasoning) ? `<div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-bottom:6px">📝 Notes</div>${t.lesson||t.reasoning}</div>` : ''}
+
+        <!-- Notes -->
+        ${(t.lesson||t.reasoning) ? `${divider}<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;opacity:0.4;margin-bottom:8px">Notes</div><div style="font-size:13px;line-height:1.65;opacity:0.85">${t.lesson||t.reasoning}</div>` : ''}
       </div>`;
     let ov = document.getElementById('tdOverlay');
     if (!ov) {
