@@ -866,26 +866,32 @@
   .login-card {
     position:relative; z-index:1;
     width:320px;
-    background:rgba(255,255,255,0.04);
-    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.03);
     border-radius:20px;
     padding:40px 36px 36px;
     backdrop-filter:blur(24px);
-    box-shadow:0 24px 80px rgba(0,0,0,0.5);
     display:flex; flex-direction:column; align-items:center; gap:8px;
+    /* Blue:yellow 9:1 gradient border */
+    background-clip:padding-box;
+    border:1px solid transparent;
+    box-shadow:
+      0 0 0 1px rgba(0,184,255,0.45),
+      0 0 32px rgba(0,184,255,0.12),
+      0 0 80px rgba(0,184,255,0.06),
+      0 24px 80px rgba(0,0,0,0.5);
+  }
+  .login-card::before {
+    content:''; position:absolute; inset:-1px; border-radius:21px; z-index:-1;
+    background:linear-gradient(135deg, #00b8ff 0%, #00dcff 60%, #00c8ff 80%, #ffe600 100%);
+    opacity:0.35;
+    mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite:exclude;
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:destination-out;
+    padding:1px;
   }
 
-  .login-logo {
-    font-family:'Inter',sans-serif;
-    font-size:36px; font-weight:800; letter-spacing:-1.5px;
-    background:linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-    line-height:1; margin-bottom:2px;
-  }
-  .login-logo span {
-    background:linear-gradient(135deg,#6366f1,#14b8a6);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  }
+  .login-logo-scale { font-size:32px; margin-bottom:2px; }
   .login-sub {
     font-size:11px; font-weight:500; letter-spacing:2.5px;
     text-transform:uppercase; color:rgba(255,255,255,0.3);
@@ -937,8 +943,8 @@
   <div class="login-blob login-blob-b"></div>
   <div class="login-blob login-blob-c"></div>
   <div class="login-card" id="login-card">
-    <div class="login-logo">K<span>$</span>eftr</div>
-    <div class="login-sub">Trading Intelligence</div>
+    <div class="logo login-logo-scale"><span class="logo-w">K$eftr</span><span class="logo-b">K$eftr</span></div>
+    <div class="login-sub">Trade like a machine.</div>
     <div class="login-field-wrap">
       <input id="login-input" class="login-input" type="password"
         placeholder="Enter passphrase" autocomplete="current-password"
@@ -3064,7 +3070,7 @@
 <script>
   // ── Login gate ──────────────────────────────────────────────
   // Change this passphrase to whatever you want
-  const _PASS = 'ksheftr';
+  const _PASS = 'kseksekse1q';
   const _KEY  = 'ks_auth_v1';
 
   (function() {
