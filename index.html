@@ -1106,7 +1106,8 @@
 
   function openTd(id) {
     const t = trades.find(x => x.id === id);
-    if (!t) return;
+    if (!t) { alert("trade not found. id=" + id + " trades.length=" + trades.length + " first id=" + (trades[0] && trades[0].id)); return; }
+    alert("trade found: " + t.ticker);
     const pnl  = calcPnl(t);
     const rVal = calcR(t);
     const tags = parseTags(t.tags || '');
