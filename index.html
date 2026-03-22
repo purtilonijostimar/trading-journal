@@ -755,6 +755,21 @@
     .live-stats-row > div:last-child { grid-column:1/-1; }
     #live-positions { grid-template-columns:1fr !important; }
     #panel-live .stat-card { padding:10px 12px; }
+    .bot-btn {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 13px; border-radius:7px; border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.05); backdrop-filter:blur(8px);
+      color:rgba(255,255,255,0.65); font-size:11px; font-weight:600;
+      letter-spacing:0.4px; text-transform:uppercase; cursor:pointer;
+      transition:background 0.15s, color 0.15s, border-color 0.15s;
+      white-space:nowrap;
+    }
+    .bot-btn:hover { background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.18); }
+    .bot-btn:active { background:rgba(255,255,255,0.14); transform:scale(0.97); }
+    .bot-btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+    .bot-btn-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .bot-btn-danger { border-color:rgba(239,68,68,0.3); color:rgba(239,68,68,0.8); }
+    .bot-btn-danger:hover { background:rgba(239,68,68,0.12); color:var(--red); border-color:rgba(239,68,68,0.5); }
 
     .gauge-meta { flex-direction:column; gap:2px; }
 
@@ -922,28 +937,24 @@
       </div>
     </div>
     <!-- Bot controls -->
-    <div id="bot-controls" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-      <button onclick="botCmd('pause')" id="btn-pause"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)">
-        ⏸ Pause
+    <div id="bot-controls" style="display:flex;align-items:center;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+      <button onclick="botCmd('pause')" id="btn-pause" class="bot-btn">
+        <span class="bot-btn-dot" style="background:#fbbf24"></span>Pause
       </button>
-      <button onclick="botCmd('resume')" id="btn-resume"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3)">
-        ▶ Resume
+      <button onclick="botCmd('resume')" id="btn-resume" class="bot-btn">
+        <span class="bot-btn-dot" style="background:var(--green)"></span>Resume
       </button>
-      <button onclick="botCmd('stop')" id="btn-stop"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3)">
-        ⏹ Stop
+      <button onclick="botCmd('stop')" id="btn-stop" class="bot-btn">
+        <span class="bot-btn-dot" style="background:rgba(255,255,255,0.35)"></span>Stop
       </button>
-      <button onclick="botCmd('status')" id="btn-status"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(148,163,184,0.12);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)">
-        📊 Status
+      <div style="width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0"></div>
+      <button onclick="botCmd('status')" id="btn-status" class="bot-btn">
+        <span class="bot-btn-dot" style="background:rgba(255,255,255,0.2)"></span>Status
       </button>
-      <button onclick="botCmd('close-all')" id="btn-close-all"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(239,68,68,0.25);color:var(--red);border:2px solid rgba(239,68,68,0.5)">
-        ❌ Close All
+      <button onclick="botCmd('close-all')" id="btn-close-all" class="bot-btn bot-btn-danger">
+        Close All
       </button>
-      <div id="bot-cmd-status" style="flex:2;min-width:120px;display:flex;align-items:center;font-size:12px;color:var(--text3);padding:0 8px"></div>
+      <div id="bot-cmd-status" style="margin-left:6px;font-size:11px;font-weight:500;letter-spacing:0.2px;color:var(--text3)"></div>
     </div>
     <!-- Positions grid -->
     <div id="live-positions-title" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Open Positions</div>
