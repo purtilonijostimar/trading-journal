@@ -1282,7 +1282,7 @@
           </div>`;
 
         const chartHtml = t.screenshot
-          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top left;cursor:pointer">`
+          ? `<img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top left;cursor:pointer">`
           : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0.15">📷</div>`;
 
         const barCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
@@ -1351,7 +1351,7 @@
           ? `<span style="font-size:10px;color:rgba(147,197,253,0.8);background:rgba(0,184,255,.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(0,184,255,.15)">${regime.replace(/[_+]/g,' ')}</span>` : '';
 
         const chartThumb = t.screenshot
-          ? `<img src="${t.screenshot}" onclick="openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
+          ? `<img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="height:36px;width:54px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;vertical-align:middle">`
           : `<span style="opacity:0.15;font-size:16px">📷</span>`;
 
         const accentCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
