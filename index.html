@@ -923,10 +923,6 @@
     </div>
     <!-- Bot controls -->
     <div id="bot-controls" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-      <button onclick="botCmd('start')" id="btn-start"
-        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3)">
-        🚀 Start
-      </button>
       <button onclick="botCmd('pause')" id="btn-pause"
         style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)">
         ⏸ Pause
@@ -2669,9 +2665,9 @@
       const res = await fetch(`http://localhost:5000/${action}`, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        const msgs = { start:'🚀 Bot starting…', pause:'⏸ Bot paused — no new signals', resume:'▶ Bot resumed', stop:'⏹ Bot stopping…' };
+        const msgs = { pause:'⏸ Bot paused — no new signals', resume:'▶ Bot resumed', stop:'⏹ Bot stopping…' };
         status.textContent = msgs[action] || '✅ Done';
-        status.style.color = action === 'stop' ? 'var(--red)' : action === 'pause' ? '#fbbf24' : action === 'start' ? '#818cf8' : 'var(--green)';
+        status.style.color = action === 'stop' ? 'var(--red)' : action === 'pause' ? '#fbbf24' : 'var(--green)';
       } else {
         status.textContent = '❌ ' + (data.error || 'Failed');
         status.style.color = 'var(--red)';
