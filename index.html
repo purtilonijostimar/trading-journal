@@ -2663,13 +2663,17 @@
   let liveColCount = 0;      // track last col count to avoid layout thrash
   let liveLastEmpty = false; // track empty state to avoid wiping live cards on blip
 
+  let _botCmdBusy = false;
   async function botCmd(action) {
+    if (_botCmdBusy) return;
     const status = document.getElementById('bot-cmd-status');
     if (action === 'stop' && !confirm('Stop the bot? Open positions will NOT be closed.')) return;
     if (action === 'close-all' && !confirm('CLOSE ALL positions at market? This cannot be undone.')) return;
+    _botCmdBusy = true;
+    document.querySelectorAll('#bot-controls button').forEach(b => b.disabled = true);
     status.textContent = '⏳ Sending…';
     try {
-      const res = await fetch(`http://localhost:5000/${action}`, { method: 'POST' });
+      const res = await fetch(`${LIVE_SERVER}/${action}`, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
         const msgs = { pause:'⏸ Bot paused — no new signals', resume:'▶ Bot resumed', stop:'⏹ Bot stopping…', status:'📊 Status sent to Telegram', 'close-all':'❌ Closing all positions…' };
@@ -2683,6 +2687,8 @@
       status.textContent = '❌ Dashboard server not reachable';
       status.style.color = 'var(--red)';
     }
+    _botCmdBusy = false;
+    document.querySelectorAll('#bot-controls button').forEach(b => b.disabled = false);
     setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 4000);
   }
 
