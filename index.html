@@ -1113,21 +1113,23 @@
     const TARGET_R = 2.1337;
     const pnlStr = pnl !== null ? (pnl >= 0 ? '+' : '-') + '€' + Math.abs(pnl).toFixed(2) : 'Open';
     const rStr   = rVal !== null ? (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R' : '—';
-    const pnlCol = '#fff';
-    const rCol   = rVal === null ? '#fff' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#bbf7d0' : rVal >= 1 ? '#fef08a' : '#bfdbfe';
+    const pnlCol = (t.result==='open') ? '#fff' : 'rgba(0,0,0,0.9)';
+    const rCol   = rVal === null ? '#fff' : (t.result!=='open') ? 'rgba(0,0,0,0.85)' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#bbf7d0' : rVal >= 1 ? '#fef08a' : '#bfdbfe';
     const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
-    const modalBg = t.result === 'win' ? '#166534' : t.result === 'loss' ? '#991b1b' : '#1e3a5f';
-    const divider = `<div style="height:1px;background:rgba(255,255,255,0.15);margin:16px 0"></div>`;
-    const lbl = (s) => `<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-top:5px">${s}</div>`;
+    const modalBg = t.result === 'win' ? '#22c55e' : t.result === 'loss' ? '#ef4444' : '#1e3a5f';
+    const divClr = (t.result==='open') ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
+    const divider = `<div style="height:1px;background:${divClr};margin:16px 0"></div>`;
+    const lblClr = (t.result==='open') ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)';
+    const lbl = (s) => `<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:${lblClr};margin-top:5px">${s}</div>`;
     const html = `
       <div style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:22px;padding:24px 22px 26px;color:#fff;background:${modalBg}">
-        <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:rgba(255,255,255,0.8);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+        <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.12);border:none;color:rgba(0,0,0,0.5);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
 
         <!-- Header -->
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">${dateStr}</div>
-        <div style="font-size:34px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:12px">${t.ticker.toUpperCase()}</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'};margin-bottom:6px">${dateStr}</div>
+        <div style="font-size:34px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:12px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.9)'}">${t.ticker.toUpperCase()}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          ${[t.direction, t.result, t.setup ? fmtSetup(t.setup) : null].filter(Boolean).map(s=>`<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9)">${s}</span>`).join('')}
+          ${[t.direction, t.result, t.setup ? fmtSetup(t.setup) : null].filter(Boolean).map(s=>`<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid ${t.result==='open'?'rgba(255,255,255,0.4)':'rgba(0,0,0,0.25)'};color:${t.result==='open'?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.7)'}">${s}</span>`).join('')}
         </div>
 
         ${divider}
@@ -1147,11 +1149,11 @@
         <!-- Entry / Exit -->
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div>
-            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:#fff">$${parseFloat(t.entry||0).toFixed(2)}</div>
+            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">$${parseFloat(t.entry||0).toFixed(2)}</div>
             ${lbl('Entry')}
           </div>
           <div>
-            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:#fff">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
+            <div style="font-size:16px;font-weight:700;letter-spacing:-0.2px;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
             ${lbl('Exit')}
           </div>
         </div>
@@ -1171,14 +1173,14 @@
             ['Session', tags.session || ''],
             ['Conf.',   tags.confidence || ''],
           ].filter(r=>r[1]).map(([l,v],i,a) => `
-            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i<a.length-1?'border-bottom:1px solid rgba(255,255,255,0.12)':''}">
-              <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6)">${l}</span>
-              <span style="font-size:13px;font-weight:700;color:#fff">${v}</span>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i<a.length-1?'border-bottom:1px solid ${t.result==='open'?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.1)'}':''}}">
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'}">${l}</span>
+              <span style="font-size:13px;font-weight:700;color:${t.result==='open'?'#fff':'rgba(0,0,0,0.85)'}">${v}</span>
             </div>`).join('')}
         </div>
 
         <!-- Notes -->
-        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid rgba(255,255,255,0.35);padding-left:12px"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:rgba(255,255,255,0.9)">${t.lesson||t.reasoning}</div></div>` : ''}
+        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${t.result==='open'?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.25)'};padding-left:12px"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${t.result==='open'?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.45)'};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${t.result==='open'?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.75)'}">${t.lesson||t.reasoning}</div></div>` : ''}
       </div>`;
     let ov = document.getElementById('tdOverlay');
     if (!ov) {
