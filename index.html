@@ -935,6 +935,14 @@
         style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3)">
         ⏹ Stop
       </button>
+      <button onclick="botCmd('status')" id="btn-status"
+        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(148,163,184,0.12);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)">
+        📊 Status
+      </button>
+      <button onclick="botCmd('close-all')" id="btn-close-all"
+        style="flex:1;min-width:100px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:rgba(239,68,68,0.25);color:var(--red);border:2px solid rgba(239,68,68,0.5)">
+        ❌ Close All
+      </button>
       <div id="bot-cmd-status" style="flex:2;min-width:120px;display:flex;align-items:center;font-size:12px;color:var(--text3);padding:0 8px"></div>
     </div>
     <!-- Positions grid -->
@@ -2657,16 +2665,16 @@
 
   async function botCmd(action) {
     const status = document.getElementById('bot-cmd-status');
-    const confirmStop = action === 'stop' && !confirm('Stop the bot? Open positions will NOT be closed.');
-    if (confirmStop) return;
+    if (action === 'stop' && !confirm('Stop the bot? Open positions will NOT be closed.')) return;
+    if (action === 'close-all' && !confirm('CLOSE ALL positions at market? This cannot be undone.')) return;
     status.textContent = '⏳ Sending…';
     try {
       const res = await fetch(`http://localhost:5000/${action}`, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        const msgs = { pause:'⏸ Bot paused — no new signals', resume:'▶ Bot resumed', stop:'⏹ Bot stopping…' };
+        const msgs = { pause:'⏸ Bot paused — no new signals', resume:'▶ Bot resumed', stop:'⏹ Bot stopping…', status:'📊 Status sent to Telegram', 'close-all':'❌ Closing all positions…' };
         status.textContent = msgs[action] || '✅ Done';
-        status.style.color = action === 'stop' ? 'var(--red)' : action === 'pause' ? '#fbbf24' : 'var(--green)';
+        status.style.color = (action==='stop'||action==='close-all') ? 'var(--red)' : action==='pause' ? '#fbbf24' : action==='status' ? 'rgba(255,255,255,0.7)' : 'var(--green)';
       } else {
         status.textContent = '❌ ' + (data.error || 'Failed');
         status.style.color = 'var(--red)';
