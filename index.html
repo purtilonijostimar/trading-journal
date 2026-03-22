@@ -1211,7 +1211,7 @@
       _card.style.transform  = isMob ? 'translateY(32px)' : 'translateY(12px)';
       _card.style.opacity    = '0';
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        _card.style.transition = 'transform 0.26s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+        _card.style.transition = 'transform 0.18s cubic-bezier(0.25,0,0,1), opacity 0.14s ease';
         _card.style.transform  = 'translateY(0)';
         _card.style.opacity    = '1';
       }));
@@ -1242,7 +1242,7 @@
     if (!card) { tdNav(dir); return; }
     const outX = dir > 0 ? '-100%' : '100%';
     const inX  = dir > 0 ?  '100%' : '-100%';
-    card.style.transition = 'transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+    card.style.transition = 'transform 0.15s cubic-bezier(0.25,0,0,1), opacity 0.12s ease';
     card.style.transform  = 'translateX(' + outX + ')';
     card.style.opacity    = '0';
     setTimeout(() => {
@@ -1253,11 +1253,11 @@
       newCard.style.transform  = 'translateX(' + inX + ')';
       newCard.style.opacity    = '0';
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        newCard.style.transition = 'transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease';
+        newCard.style.transition = 'transform 0.15s cubic-bezier(0.25,0,0,1), opacity 0.12s ease';
         newCard.style.transform  = 'translateX(0)';
         newCard.style.opacity    = '1';
       }));
-    }, 200);
+    }, 140);
   }
   function closeTdOutside(e) { if (e.target===document.getElementById('tdOverlay')) closeTd(); }
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTd(); else if (e.key==='ArrowLeft') tdNav(-1); else if (e.key==='ArrowRight') tdNav(1); });
