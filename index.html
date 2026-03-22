@@ -1188,8 +1188,6 @@
         <div style="font-size:36px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:14px;color:${txtMain}">${t.ticker.toUpperCase()}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${badges}</div>
 
-        ${divider}
-
         <div style="display:grid;grid-template-columns:1fr 1fr;margin-bottom:14px">
           <div>
             <div style="font-size:30px;font-weight:900;letter-spacing:-1px;line-height:1;color:${pnlCol}">${pnlStr}</div>
@@ -1217,7 +1215,7 @@
 
         ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${t.lesson||t.reasoning}</div></div>` : ''}
 
-        ${t.screenshot ? `${divider}<div style="border-radius:10px;overflow:hidden"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
+        ${t.screenshot ? `<div style="border-radius:10px;overflow:hidden;margin-top:16px"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
       </div>
       ${isMob ? '' : arrowBtn(1, '&#8594;')}`;
     let ov = document.getElementById('tdOverlay');
