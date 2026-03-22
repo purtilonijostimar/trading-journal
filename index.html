@@ -1115,38 +1115,66 @@
     const rStr   = rVal !== null ? (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R' : '—';
     const pnlCol = pnl === null ? '#fff' : pnl >= 0 ? '#86efac' : '#fca5a5';
     const rCol   = rVal === null ? '#fff' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#86efac' : rVal >= 1 ? '#fde68a' : '#bfdbfe';
-    document.getElementById('tdModal').className = 'td-modal ' + (t.result || 'open');
-    document.getElementById('tdTicker').textContent = t.ticker.toUpperCase();
     const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
     const badge = (txt, a) => `<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,${a});color:#fff">${txt}</span>`;
-    document.getElementById('tdBadges').innerHTML =
-      badge(t.direction.toUpperCase(), 0.15) +
-      badge(t.result.toUpperCase(), 0.15) +
-      (t.setup ? badge(fmtSetup(t.setup), 0.08) : '') +
-      `<span style="font-size:11px;opacity:0.45;padding:3px 4px">${dateStr}</span>`;
-    document.getElementById('tdHero').innerHTML = `
-      <div class="td-hero-cell"><div class="td-hero-val" style="color:${pnlCol}">${pnlStr}</div><div class="td-hero-label">Net P&amp;L</div></div>
-      <div class="td-hero-cell"><div class="td-hero-val" style="color:${rCol}">${rStr}</div><div class="td-hero-label">R Multiple</div></div>`;
-    document.getElementById('tdEntryExit').innerHTML = `
-      <div class="td-ee-cell"><div class="td-ee-val">$${parseFloat(t.entry||0).toFixed(2)}</div><div class="td-ee-label">Entry</div></div>
-      <div class="td-ee-cell"><div class="td-ee-val">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div><div class="td-ee-label">Exit</div></div>`;
-    const ch = document.getElementById('tdChart');
-    ch.innerHTML = t.screenshot ? `<img src="${t.screenshot}" alt="chart">` : `<span style="opacity:0.2;font-size:32px">📷</span>`;
     const item = (lbl, val) => val ? `<div class="td-item"><div class="td-item-val">${val}</div><div class="td-item-label">${lbl}</div></div>` : '';
-    document.getElementById('tdGrid').innerHTML = [
-      item('Stop Loss',   t.stop   ? '$'+parseFloat(t.stop).toFixed(2) : null),
-      item('Target',      t.target ? '$'+parseFloat(t.target).toFixed(2) : null),
-      item('Position Size', t.size ? '€'+parseFloat(t.size).toFixed(0) : null),
-      item('Regime',      tags.regime ? tags.regime.replace(/[_+]/g,' ') : null),
-      item('Session',     tags.session || null),
-      item('Confidence',  tags.confidence || null),
-    ].join('');
-    document.getElementById('tdLesson').innerHTML = (t.lesson || t.reasoning)
-      ? `<div class="td-lesson"><div class="td-lesson-lbl">📝 Notes</div>${t.lesson || t.reasoning}</div>` : '';
-    const ov=document.getElementById('tdOverlay'); if(ov){ ov.classList.add('open'); ov.style.display='flex'; ov.style.zIndex='9999'; }
+    const modalBg = t.result === 'win'
+      ? 'linear-gradient(145deg,rgba(16,80,40,0.97),rgba(22,101,52,0.95));border:1px solid rgba(34,197,94,0.4);box-shadow:0 0 60px rgba(34,197,94,0.25),inset 0 1px 0 rgba(34,197,94,0.3)'
+      : t.result === 'loss'
+      ? 'linear-gradient(145deg,rgba(80,16,16,0.97),rgba(101,22,22,0.95));border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 60px rgba(239,68,68,0.25),inset 0 1px 0 rgba(239,68,68,0.3)'
+      : 'linear-gradient(145deg,rgba(16,30,80,0.97),rgba(22,40,101,0.95));border:1px solid rgba(147,197,253,0.4)';
+    const html = `
+      <div style="position:relative;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;border-radius:24px;padding:28px 24px 32px;color:#fff;background:${modalBg}">
+        <button onclick="closeTd()" style="position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:14px;cursor:pointer">✕</button>
+        <div style="font-size:28px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px">${t.ticker.toUpperCase()}</div>
+        <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+          ${badge(t.direction.toUpperCase(), 0.15)}${badge(t.result.toUpperCase(), 0.15)}${t.setup ? badge(fmtSetup(t.setup), 0.08) : ''}
+          <span style="font-size:11px;opacity:0.45">${dateStr}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px">
+            <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:${pnlCol}">${pnlStr}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:3px">Net P&L</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px">
+            <div style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:${rCol}">${rStr}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:3px">R Multiple</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:10px 14px">
+            <div style="font-size:18px;font-weight:700">$${parseFloat(t.entry||0).toFixed(2)}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:2px">Entry</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:10px 14px">
+            <div style="font-size:18px;font-weight:700">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:2px">Exit</div>
+          </div>
+        </div>
+        ${t.screenshot ? `<div style="border-radius:12px;overflow:hidden;margin-bottom:14px"><img src="${t.screenshot}" style="width:100%;display:block"></div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${item('Stop Loss', t.stop ? '$'+parseFloat(t.stop).toFixed(2) : null)}
+          ${item('Target', t.target ? '$'+parseFloat(t.target).toFixed(2) : null)}
+          ${item('Position Size', t.size ? '€'+parseFloat(t.size).toFixed(0) : null)}
+          ${item('Regime', tags.regime ? tags.regime.replace(/[_+]/g,' ') : null)}
+          ${item('Session', tags.session || null)}
+          ${item('Confidence', tags.confidence || null)}
+        </div>
+        ${(t.lesson||t.reasoning) ? `<div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-bottom:6px">📝 Notes</div>${t.lesson||t.reasoning}</div>` : ''}
+      </div>`;
+    let ov = document.getElementById('tdOverlay');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'tdOverlay';
+      document.body.appendChild(ov);
+    }
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.innerHTML = html;
+    ov.addEventListener('click', e => { if(e.target===ov) closeTd(); });
     document.body.style.overflow = 'hidden';
   }
-  function closeTd() { const ov=document.getElementById('tdOverlay'); if(ov){ ov.classList.remove('open'); ov.style.display=''; } document.body.style.overflow = ''; }
+
+  function closeTd() { const ov=document.getElementById('tdOverlay'); if(ov) ov.remove(); document.body.style.overflow = ''; }
   function closeTdOutside(e) { if (e.target===document.getElementById('tdOverlay')) closeTd(); }
   document.addEventListener('keydown', e => { if (e.key==='Escape') closeTd(); });
 
@@ -2674,17 +2702,5 @@
   }
 </script>
 
-<div class="td-overlay" id="tdOverlay" onclick="closeTdOutside(event)">
-  <div class="td-modal" id="tdModal">
-    <button class="td-close" onclick="closeTd()">✕</button>
-    <div class="td-ticker" id="tdTicker"></div>
-    <div class="td-badges" id="tdBadges"></div>
-    <div class="td-hero" id="tdHero"></div>
-    <div class="td-entry-exit" id="tdEntryExit"></div>
-    <div class="td-chart" id="tdChart"></div>
-    <div class="td-grid" id="tdGrid"></div>
-    <div id="tdLesson"></div>
-  </div>
-</div>
 </body>
 </html>
