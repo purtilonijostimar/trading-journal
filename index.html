@@ -2610,6 +2610,12 @@
     a.click();
   }
 
+  // Randomise blob animation start points so every page load looks unique
+  document.querySelectorAll('.blob-a,.blob-b,.blob-teal,.blob-warm').forEach(el => {
+    const dur = parseFloat(getComputedStyle(el).animationDuration) || 24;
+    el.style.animationDelay = '-' + (Math.random() * dur).toFixed(2) + 's';
+  });
+
   loadTrades();
 
   // ── Live Dashboard ─────────────────────────────────────────────────────────
