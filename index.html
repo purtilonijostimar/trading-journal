@@ -829,9 +829,125 @@
   .td-item-val { font-size:13px;font-weight:700; }
   .td-lesson { background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6;opacity:0.85; }
   .td-lesson-lbl { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-bottom:6px; }
+  /* ── LOGIN SCREEN ──────────────────────────────────────────── */
+  #login-screen {
+    position:fixed; inset:0; z-index:9999;
+    background:#050a14;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  #login-screen.fade-out { opacity:0; pointer-events:none; }
+
+  .login-blob {
+    position:absolute; border-radius:50%; filter:blur(80px);
+    animation-timing-function:ease-in-out; animation-iteration-count:infinite;
+    animation-direction:alternate;
+  }
+  .login-blob-a {
+    width:520px; height:520px; top:-80px; left:-120px;
+    background:radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%);
+    animation:lb-a 9s infinite alternate;
+  }
+  .login-blob-b {
+    width:440px; height:440px; bottom:-60px; right:-80px;
+    background:radial-gradient(circle, rgba(20,184,166,0.28) 0%, transparent 70%);
+    animation:lb-b 11s infinite alternate;
+  }
+  .login-blob-c {
+    width:300px; height:300px; top:40%; left:55%;
+    background:radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);
+    animation:lb-c 7s infinite alternate;
+  }
+  @keyframes lb-a { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.1)} }
+  @keyframes lb-b { from{transform:translate(0,0) scale(1)} to{transform:translate(-30px,-40px) scale(1.12)} }
+  @keyframes lb-c { from{transform:translate(0,0) scale(1)} to{transform:translate(-20px,25px) scale(0.9)} }
+
+  .login-card {
+    position:relative; z-index:1;
+    width:320px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:20px;
+    padding:40px 36px 36px;
+    backdrop-filter:blur(24px);
+    box-shadow:0 24px 80px rgba(0,0,0,0.5);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+
+  .login-logo {
+    font-family:'Inter',sans-serif;
+    font-size:36px; font-weight:800; letter-spacing:-1.5px;
+    background:linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    line-height:1; margin-bottom:2px;
+  }
+  .login-logo span {
+    background:linear-gradient(135deg,#6366f1,#14b8a6);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .login-sub {
+    font-size:11px; font-weight:500; letter-spacing:2.5px;
+    text-transform:uppercase; color:rgba(255,255,255,0.3);
+    margin-bottom:24px;
+  }
+
+  .login-field-wrap {
+    width:100%; display:flex; align-items:center; gap:0;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+    padding-bottom:2px;
+    transition:border-color 0.2s;
+  }
+  .login-field-wrap:focus-within { border-color:rgba(99,102,241,0.7); }
+
+  .login-input {
+    flex:1; background:transparent; border:none; outline:none;
+    color:#fff; font-size:14px; font-weight:400; letter-spacing:0.3px;
+    padding:8px 0; font-family:'Inter',sans-serif;
+  }
+  .login-input::placeholder { color:rgba(255,255,255,0.2); }
+
+  .login-btn {
+    background:transparent; border:none; cursor:pointer;
+    color:rgba(255,255,255,0.4); font-size:18px; padding:4px 0 4px 10px;
+    transition:color 0.2s; line-height:1;
+  }
+  .login-btn:hover { color:#fff; }
+
+  .login-error {
+    font-size:11px; color:rgba(239,68,68,0.8); height:16px;
+    margin-top:4px; letter-spacing:0.3px; text-align:center;
+  }
+
+  @keyframes login-shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-5px)}
+    80%{transform:translateX(5px)}
+  }
+  .login-shake { animation:login-shake 0.4s ease; }
 </style>
 </head>
 <body>
+
+<!-- ── LOGIN SCREEN ─────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-blob login-blob-a"></div>
+  <div class="login-blob login-blob-b"></div>
+  <div class="login-blob login-blob-c"></div>
+  <div class="login-card" id="login-card">
+    <div class="login-logo">K<span>$</span>eftr</div>
+    <div class="login-sub">Trading Intelligence</div>
+    <div class="login-field-wrap">
+      <input id="login-input" class="login-input" type="password"
+        placeholder="Enter passphrase" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') loginSubmit()">
+      <button class="login-btn" onclick="loginSubmit()">→</button>
+    </div>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
 
 <header>
   <div class="logo"><span class="logo-w">K$eftr</span><span class="logo-b">K$eftr</span></div>
@@ -2945,5 +3061,36 @@
   }
 </script>
 
+<script>
+  // ── Login gate ──────────────────────────────────────────────
+  // Change this passphrase to whatever you want
+  const _PASS = 'ksheftr';
+  const _KEY  = 'ks_auth_v1';
+
+  (function() {
+    if (localStorage.getItem(_KEY) === 'ok') {
+      document.getElementById('login-screen').style.display = 'none';
+    }
+  })();
+
+  function loginSubmit() {
+    const val = document.getElementById('login-input').value;
+    if (val === _PASS) {
+      localStorage.setItem(_KEY, 'ok');
+      const screen = document.getElementById('login-screen');
+      screen.classList.add('fade-out');
+      setTimeout(() => screen.style.display = 'none', 650);
+    } else {
+      const card = document.getElementById('login-card');
+      const err  = document.getElementById('login-error');
+      card.classList.remove('login-shake');
+      void card.offsetWidth; // reflow to restart animation
+      card.classList.add('login-shake');
+      err.textContent = 'Incorrect passphrase';
+      document.getElementById('login-input').value = '';
+      setTimeout(() => err.textContent = '', 2500);
+    }
+  }
+</script>
 </body>
 </html>
