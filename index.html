@@ -1104,7 +1104,7 @@
   }
 
 
-  function openTd(id) {
+  function openTd(id) { alert("openTd: " + id);
     const t = trades.find(x => x.id === id);
     if (!t) return;
     const pnl  = calcPnl(t);
