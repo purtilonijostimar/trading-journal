@@ -846,17 +846,17 @@
   }
   .login-blob-a {
     width:520px; height:520px; top:-80px; left:-120px;
-    background:radial-gradient(circle, rgba(0,184,255,0.28) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(0,184,255,0.38) 0%, transparent 70%);
     animation:lb-a 9s infinite alternate;
   }
   .login-blob-b {
     width:440px; height:440px; bottom:-60px; right:-80px;
-    background:radial-gradient(circle, rgba(0,140,200,0.32) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(0,140,200,0.42) 0%, transparent 70%);
     animation:lb-b 11s infinite alternate;
   }
   .login-blob-c {
     width:300px; height:300px; top:40%; left:55%;
-    background:radial-gradient(circle, rgba(255,230,0,0.12) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(255,230,0,0.16) 0%, transparent 70%);
     animation:lb-c 7s infinite alternate;
   }
   @keyframes lb-a { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.1)} }
@@ -889,60 +889,65 @@
     pointer-events:none; z-index:0;
   }
 
-  .login-logo-scale { font-size:38px; }
+  .login-logo-scale { font-size:38px; letter-spacing:-0.5px; text-transform:none; }
   .login-brand {
     display:flex; flex-direction:column; align-items:center;
-    padding:36px 32px 32px;
-    gap:10px;
+    padding:44px 32px 24px;
+    gap:8px;
   }
   .login-sub {
-    font-size:10px; font-weight:500; letter-spacing:3px;
-    text-transform:uppercase; color:rgba(255,255,255,0.25);
+    font-size:9.5px; font-weight:500; letter-spacing:3.5px;
+    text-transform:uppercase; color:rgba(255,255,255,0.22);
   }
   .login-divider {
-    height:1px;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+    height:1px; margin:0 24px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 30%, rgba(255,255,255,0.07) 70%, transparent);
   }
   .login-form {
-    padding:28px 32px 32px;
-    display:flex; flex-direction:column; gap:10px;
+    padding:24px 28px 32px;
+    display:flex; flex-direction:column; gap:14px;
   }
   .login-label {
-    font-size:10px; font-weight:600; letter-spacing:1.5px;
-    text-transform:uppercase; color:rgba(255,255,255,0.3);
-    margin-bottom:2px;
+    font-size:9px; font-weight:600; letter-spacing:2px;
+    text-transform:uppercase; color:rgba(255,255,255,0.28);
   }
 
   .login-field-wrap {
-    width:100%; display:flex; align-items:center;
+    width:100%;
     background:rgba(255,255,255,0.04);
     border:1px solid rgba(255,255,255,0.08);
     border-radius:10px;
-    padding:2px 4px 2px 14px;
+    padding:0 16px;
     transition:border-color 0.2s, background 0.2s;
   }
   .login-field-wrap:focus-within {
-    border-color:rgba(255,255,255,0.18);
-    background:rgba(255,255,255,0.07);
+    border-color:rgba(255,255,255,0.16);
+    background:rgba(255,255,255,0.06);
   }
 
   .login-input {
-    flex:1; background:transparent; border:none; outline:none;
-    color:#fff; font-size:14px; font-weight:400; letter-spacing:0.3px;
-    padding:11px 0; font-family:'Inter',sans-serif;
+    width:100%; background:transparent; border:none; outline:none;
+    color:#fff; font-size:16px; font-weight:300; letter-spacing:0.3px;
+    padding:13px 0; font-family:'Inter',sans-serif;
   }
-  .login-input::placeholder { color:rgba(255,255,255,0.18); letter-spacing:2px; }
+  .login-input::placeholder { color:rgba(255,255,255,0.15); letter-spacing:3px; font-size:14px; }
 
   .login-btn {
-    background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);
-    border-radius:7px; cursor:pointer;
-    color:rgba(255,255,255,0.55); font-size:11px; font-weight:600;
-    letter-spacing:0.8px; text-transform:uppercase;
-    padding:7px 14px; margin:4px; flex-shrink:0;
-    transition:background 0.15s, color 0.15s;
+    width:100%;
+    background:linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px; cursor:pointer;
+    color:rgba(255,255,255,0.7); font-size:11px; font-weight:600;
+    letter-spacing:2px; text-transform:uppercase;
+    padding:14px; 
+    transition:background 0.15s, color 0.15s, border-color 0.15s;
     font-family:'Inter',sans-serif;
   }
-  .login-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
+  .login-btn:hover {
+    background:linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.06) 100%);
+    border-color:rgba(255,255,255,0.18); color:#fff;
+  }
+  .login-btn:active { transform:scale(0.98); }
 
   .login-error {
     font-size:11px; color:rgba(239,68,68,0.8); height:16px;
@@ -978,8 +983,8 @@
         <input id="login-input" class="login-input" type="password"
           placeholder="••••••••••••" autocomplete="current-password"
           onkeydown="if(event.key==='Enter') loginSubmit()">
-        <button class="login-btn" onclick="loginSubmit()">Enter</button>
       </div>
+      <button class="login-btn" onclick="loginSubmit()">Enter</button>
       <div id="login-error" class="login-error"></div>
     </div>
   </div>
