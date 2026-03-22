@@ -753,6 +753,40 @@
     100% { transform: translateY(-50%); }
   }
 
+
+  /* ── Trade Detail Popup ───────────────────────────────────── */
+  .td-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .td-overlay.open { display: flex; }
+  .td-modal {
+    width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+    border-radius: 24px; padding: 28px 24px 32px; position: relative; color: #fff;
+  }
+  .td-modal.win  { background:linear-gradient(145deg,rgba(16,80,40,0.97),rgba(22,101,52,0.95));border:1px solid rgba(34,197,94,0.4);box-shadow:0 0 60px rgba(34,197,94,0.25),inset 0 1px 0 rgba(34,197,94,0.3); }
+  .td-modal.loss { background:linear-gradient(145deg,rgba(80,16,16,0.97),rgba(101,22,22,0.95));border:1px solid rgba(239,68,68,0.4);box-shadow:0 0 60px rgba(239,68,68,0.25),inset 0 1px 0 rgba(239,68,68,0.3); }
+  .td-modal.open { background:linear-gradient(145deg,rgba(16,30,80,0.97),rgba(22,40,101,0.95));border:1px solid rgba(147,197,253,0.4);box-shadow:0 0 60px rgba(147,197,253,0.15),inset 0 1px 0 rgba(147,197,253,0.3); }
+  .td-close { position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+  .td-ticker { font-size:28px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px; }
+  .td-badges { display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;align-items:center; }
+  .td-hero { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px; }
+  .td-hero-cell,.td-ee-cell,.td-item { background:rgba(0,0,0,0.2);border-radius:12px; }
+  .td-hero-cell { padding:12px 14px; }
+  .td-hero-val  { font-size:26px;font-weight:800;letter-spacing:-0.5px; }
+  .td-hero-label,.td-ee-label,.td-item-label { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-top:3px; }
+  .td-entry-exit { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px; }
+  .td-ee-cell { padding:10px 14px; }
+  .td-ee-val  { font-size:18px;font-weight:700; }
+  .td-chart   { width:100%;border-radius:12px;overflow:hidden;margin-bottom:14px;background:rgba(0,0,0,0.2);min-height:140px;display:flex;align-items:center;justify-content:center; }
+  .td-chart img { width:100%;display:block;border-radius:12px; }
+  .td-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+  .td-item { padding:8px 12px; }
+  .td-item-val { font-size:13px;font-weight:700; }
+  .td-lesson { background:rgba(0,0,0,0.2);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;line-height:1.6;opacity:0.85; }
+  .td-lesson-lbl { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;opacity:0.55;margin-bottom:6px; }
 </style>
 </head>
 <body>
@@ -1069,6 +1103,53 @@
     document.getElementById('tradesLoading').style.display = 'none';
   }
 
+
+  function openTd(id) {
+    const t = trades.find(x => x.id === id);
+    if (!t) return;
+    const pnl  = calcPnl(t);
+    const rVal = calcR(t);
+    const tags = parseTags(t.tags || '');
+    const TARGET_R = 2.1337;
+    const pnlStr = pnl !== null ? (pnl >= 0 ? '+' : '-') + '€' + Math.abs(pnl).toFixed(2) : 'Open';
+    const rStr   = rVal !== null ? (rVal >= 0 ? '+' : '') + rVal.toFixed(2) + 'R' : '—';
+    const pnlCol = pnl === null ? '#fff' : pnl >= 0 ? '#86efac' : '#fca5a5';
+    const rCol   = rVal === null ? '#fff' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#86efac' : rVal >= 1 ? '#fde68a' : '#bfdbfe';
+    document.getElementById('tdModal').className = 'td-modal ' + (t.result || 'open');
+    document.getElementById('tdTicker').textContent = t.ticker.toUpperCase();
+    const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    const badge = (txt, a) => `<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,${a});color:#fff">${txt}</span>`;
+    document.getElementById('tdBadges').innerHTML =
+      badge(t.direction.toUpperCase(), 0.15) +
+      badge(t.result.toUpperCase(), 0.15) +
+      (t.setup ? badge(fmtSetup(t.setup), 0.08) : '') +
+      `<span style="font-size:11px;opacity:0.45;padding:3px 4px">${dateStr}</span>`;
+    document.getElementById('tdHero').innerHTML = `
+      <div class="td-hero-cell"><div class="td-hero-val" style="color:${pnlCol}">${pnlStr}</div><div class="td-hero-label">Net P&amp;L</div></div>
+      <div class="td-hero-cell"><div class="td-hero-val" style="color:${rCol}">${rStr}</div><div class="td-hero-label">R Multiple</div></div>`;
+    document.getElementById('tdEntryExit').innerHTML = `
+      <div class="td-ee-cell"><div class="td-ee-val">$${parseFloat(t.entry||0).toFixed(2)}</div><div class="td-ee-label">Entry</div></div>
+      <div class="td-ee-cell"><div class="td-ee-val">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '—'}</div><div class="td-ee-label">Exit</div></div>`;
+    const ch = document.getElementById('tdChart');
+    ch.innerHTML = t.screenshot ? `<img src="${t.screenshot}" alt="chart">` : `<span style="opacity:0.2;font-size:32px">📷</span>`;
+    const item = (lbl, val) => val ? `<div class="td-item"><div class="td-item-val">${val}</div><div class="td-item-label">${lbl}</div></div>` : '';
+    document.getElementById('tdGrid').innerHTML = [
+      item('Stop Loss',   t.stop   ? '$'+parseFloat(t.stop).toFixed(2) : null),
+      item('Target',      t.target ? '$'+parseFloat(t.target).toFixed(2) : null),
+      item('Position Size', t.size ? '€'+parseFloat(t.size).toFixed(0) : null),
+      item('Regime',      tags.regime ? tags.regime.replace(/[_+]/g,' ') : null),
+      item('Session',     tags.session || null),
+      item('Confidence',  tags.confidence || null),
+    ].join('');
+    document.getElementById('tdLesson').innerHTML = (t.lesson || t.reasoning)
+      ? `<div class="td-lesson"><div class="td-lesson-lbl">📝 Notes</div>${t.lesson || t.reasoning}</div>` : '';
+    document.getElementById('tdOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeTd() { document.getElementById('tdOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+  function closeTdOutside(e) { if (e.target===document.getElementById('tdOverlay')) closeTd(); }
+  document.addEventListener('keydown', e => { if (e.key==='Escape') closeTd(); });
+
   function calcPnl(t) {
     if (t.pnl != null) return parseFloat(t.pnl);
     if (!t.exit || t.result === 'open') return null;
@@ -1178,7 +1259,7 @@
 
         const barCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
-        return `<div class="trade-card-mobile ${t.result}">
+        return `<div class="trade-card-mobile ${t.result}" onclick="openTd('${t.id}')" style="cursor:pointer">
           <div class="tcm-accent-bar" style="width:4px;background:${barCol}"></div>
           <div class="tcm-body">
           <!-- Header row -->
@@ -1191,7 +1272,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
               <span style="font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap">${dateStr}</span>
-              <button onclick="deleteTrade('${t.id}')" style="width:22px;height:22px;border-radius:50%;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:rgba(239,68,68,0.7);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;line-height:1">✕</button>
+              <button onclick="event.stopPropagation();deleteTrade('${t.id}')" style="width:22px;height:22px;border-radius:50%;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:rgba(239,68,68,0.7);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;line-height:1">✕</button>
             </div>
           </div>
           <!-- Body: stats left, chart right -->
@@ -1239,7 +1320,7 @@
 
         const accentCol = t.result === 'win' ? 'var(--green)' : t.result === 'loss' ? 'var(--red)' : '#93c5fd';
 
-        return `<tr>
+        return `<tr onclick="openTd('${t.id}')" style="cursor:pointer">
           <td style="padding:0;width:3px;background:${accentCol};border-radius:0"></td>
           <td style="color:var(--text3);font-size:11px;white-space:nowrap">${dateStr}</td>
           <td><strong style="font-size:14px;font-weight:800;letter-spacing:-.3px">${t.ticker.toUpperCase()}</strong></td>
@@ -1252,7 +1333,7 @@
           <td style="color:var(--text2);font-size:12px;font-weight:600">${t.exit ? '$'+parseFloat(t.exit).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
           <td style="color:var(--red);font-size:12px;font-weight:600">${t.stop   ? '$'+parseFloat(t.stop).toFixed(2)   : '<span style="opacity:0.2">—</span>'}</td>
           <td style="color:var(--green);font-size:12px;font-weight:600">${t.target ? '$'+parseFloat(t.target).toFixed(2) : '<span style="opacity:0.2">—</span>'}</td>
-          <td style="text-align:right"><button onclick="deleteTrade('${t.id}')" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button></td>
+          <td style="text-align:right"><button onclick="event.stopPropagation();deleteTrade('${t.id}')" style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button></td>
         </tr>`;
       }).join('');
 
@@ -2003,7 +2084,7 @@
           <span class="matrix-n">${d.w}/${d.n}</span>
         </div></td>`;
       }).join('');
-      return `<tr><td class="row-head">${setup}</td>${cells}</tr>`;
+      return `<tr onclick="openTd('${t.id}')" style="cursor:pointer"><td class="row-head">${setup}</td>${cells}</tr>`;
     }).join('');
 
     el.innerHTML = `<div class="matrix-wrap"><table class="matrix-table">
@@ -2575,5 +2656,17 @@
   }
 </script>
 
+<div class="td-overlay" id="tdOverlay" onclick="closeTdOutside(event)">
+  <div class="td-modal" id="tdModal">
+    <button class="td-close" onclick="closeTd()">✕</button>
+    <div class="td-ticker" id="tdTicker"></div>
+    <div class="td-badges" id="tdBadges"></div>
+    <div class="td-hero" id="tdHero"></div>
+    <div class="td-entry-exit" id="tdEntryExit"></div>
+    <div class="td-chart" id="tdChart"></div>
+    <div class="td-grid" id="tdGrid"></div>
+    <div id="tdLesson"></div>
+  </div>
+</div>
 </body>
 </html>
