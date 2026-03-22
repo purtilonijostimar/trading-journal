@@ -1125,7 +1125,7 @@
     const pnlCol  = isVivid ? '#000' : '#fff';
     const rCol    = isVivid ? '#000' : (rVal === null ? '#fff' : rVal < 0 ? '#fca5a5' : rVal >= TARGET_R ? '#bbf7d0' : rVal >= 1 ? '#fef08a' : '#bfdbfe');
     const txtMain = isVivid ? '#000'             : '#fff';
-    const txtSub  = isVivid ? 'rgba(0,0,0,0.64)' : 'rgba(255,255,255,0.6)';
+    const txtSub  = isVivid ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.6)';
     const txtVal  = isVivid ? '#000'             : '#fff';
     const divLine = isVivid ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)';
     const rowLine = isVivid ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
@@ -1136,9 +1136,9 @@
 
     const dateStr = new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
     const divider = `<div style="height:1px;background:${divLine};margin:16px 0"></div>`;
-    const lbl = (s) => `<div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${txtSub};margin-top:6px">${s}</div>`;
+    const lbl = (s) => `<div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-top:6px">${s}</div>`;
     const badges = [t.direction, t.result, t.setup ? fmtSetup(t.setup) : null].filter(Boolean)
-      .map(s => `<span style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;padding:4px 11px;border-radius:20px;background:${bgBadge};border:1px solid ${boBadge};color:${txtMain}">${s}</span>`).join('');
+      .map(s => `<span style="font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:${bgBadge};border:1px solid ${boBadge};color:${txtMain}">${s}</span>`).join('');
 
     const dataRows = [
       ['Stop',    t.stop    ? '$'+parseFloat(t.stop).toFixed(2)    : ''],
@@ -1149,7 +1149,7 @@
       ['Conf.',   tags.confidence || ''],
     ].filter(r => r[1]).map(([l,v], i, a) =>
       `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i < a.length-1 ? 'border-bottom:1px solid '+rowLine : ''}">
-        <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub}">${l}</span>
+        <span style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub}">${l}</span>
         <span style="font-size:14px;font-weight:700;color:${txtVal}">${v}</span>
       </div>`
     ).join('');
@@ -1160,7 +1160,7 @@
       <div data-td-card style="position:relative;width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:${isMob?'0':'22px'};padding:${isMob?'28px 20px 40px':'24px 22px 26px'};background:${modalBg};${isMob?'flex:1;max-height:100vh;':''}">
         <button onclick="closeTd()" style="position:absolute;top:14px;right:14px;width:24px;height:24px;border-radius:50%;background:${bgClose};border:none;color:${txtSub};font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>
 
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${txtSub};margin-bottom:8px">${dateStr}</div>
+        <div style="font-size:10px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;color:${txtSub};margin-bottom:8px">${dateStr}</div>
         <div style="font-size:36px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:14px;color:${txtMain}">${t.ticker.toUpperCase()}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${badges}</div>
 
@@ -1191,7 +1191,7 @@
 
         <div>${dataRows}</div>
 
-        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${t.lesson||t.reasoning}</div></div>` : ''}
+        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${t.lesson||t.reasoning}</div></div>` : ''}
 
         ${t.screenshot ? `${divider}<div style="border-radius:10px;overflow:hidden"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
       </div>
