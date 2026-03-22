@@ -1119,10 +1119,7 @@
     const badge = (txt, a) => `<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,${a});color:#fff">${txt}</span>`;
     const item = (lbl, val) => val ? `<div class="td-item"><div class="td-item-val">${val}</div><div class="td-item-label">${lbl}</div></div>` : '';
     const modalBg = t.result === 'win'
-      ? 'linear-gradient(160deg,#0d5c2e 0%,#145e30 60%,#0a3d1f 100%);border:1px solid rgba(34,197,94,0.35);box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(34,197,94,0.1) inset'
-      : t.result === 'loss'
-      ? 'linear-gradient(160deg,#6b1212 0%,#5a1010 60%,#3d0a0a 100%);border:1px solid rgba(239,68,68,0.35);box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(239,68,68,0.1) inset'
-      : 'linear-gradient(160deg,#0f2460 0%,#0d1e52 60%,#080f30 100%);border:1px solid rgba(147,197,253,0.25);box-shadow:0 32px 80px rgba(0,0,0,0.6)';
+      ? '#166534' : t.result === 'loss' ? '#991b1b' : '#1e3a5f';
     const divider = `<div style="height:1px;background:rgba(255,255,255,0.1);margin:16px 0"></div>`;
     const lbl = (s) => `<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:5px">${s}</div>`;
     const html = `
