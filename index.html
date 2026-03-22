@@ -1148,7 +1148,7 @@
       ['Session', tags.session  || ''],
       ['Conf.',   tags.confidence || ''],
     ].filter(r => r[1]).map(([l,v], i, a) =>
-      `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;${i < a.length-1 ? 'border-bottom:1px solid '+rowLine : ''}">
+      `<div style="display:grid;grid-template-columns:1fr 1fr;align-items:baseline;padding:9px 0;${i < a.length-1 ? 'border-bottom:1px solid '+rowLine : ''}">
         <span style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub}">${l}</span>
         <span style="font-size:14px;font-weight:700;color:${txtVal}">${v}</span>
       </div>`
