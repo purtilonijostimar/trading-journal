@@ -846,17 +846,17 @@
   }
   .login-blob-a {
     width:520px; height:520px; top:-80px; left:-120px;
-    background:radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(120,80,160,0.3) 0%, transparent 70%);
     animation:lb-a 9s infinite alternate;
   }
   .login-blob-b {
     width:440px; height:440px; bottom:-60px; right:-80px;
-    background:radial-gradient(circle, rgba(20,184,166,0.28) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(60,60,100,0.4) 0%, transparent 70%);
     animation:lb-b 11s infinite alternate;
   }
   .login-blob-c {
     width:300px; height:300px; top:40%; left:55%;
-    background:radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);
+    background:radial-gradient(circle, rgba(90,60,130,0.25) 0%, transparent 70%);
     animation:lb-c 7s infinite alternate;
   }
   @keyframes lb-a { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.1)} }
@@ -866,29 +866,27 @@
   .login-card {
     position:relative; z-index:1;
     width:320px;
-    background:rgba(255,255,255,0.03);
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%),
+      var(--glass-bg);
     border-radius:20px;
     padding:40px 36px 36px;
-    backdrop-filter:blur(24px);
+    backdrop-filter:var(--glass-blur);
+    -webkit-backdrop-filter:var(--glass-blur);
+    box-shadow:var(--glass-shadow), 0 24px 80px rgba(0,0,0,0.4);
     display:flex; flex-direction:column; align-items:center; gap:8px;
-    /* Blue:yellow 9:1 gradient border */
-    background-clip:padding-box;
-    border:1px solid transparent;
-    box-shadow:
-      0 0 0 1px rgba(0,184,255,0.45),
-      0 0 32px rgba(0,184,255,0.12),
-      0 0 80px rgba(0,184,255,0.06),
-      0 24px 80px rgba(0,0,0,0.5);
   }
   .login-card::before {
-    content:''; position:absolute; inset:-1px; border-radius:21px; z-index:-1;
-    background:linear-gradient(135deg, #00b8ff 0%, #00dcff 60%, #00c8ff 80%, #ffe600 100%);
-    opacity:0.35;
-    mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite:exclude;
+    content:''; position:absolute; inset:0; border-radius:20px; padding:1px;
+    background:linear-gradient(180deg,
+      rgba(255,255,255,0.18) 0%,
+      rgba(255,255,255,0.06) 40%,
+      rgba(255,255,255,0.01) 100%
+    );
     -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite:destination-out;
-    padding:1px;
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    pointer-events:none; z-index:0;
   }
 
   .login-logo-scale { font-size:32px; margin-bottom:2px; }
