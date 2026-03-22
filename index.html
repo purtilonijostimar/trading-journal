@@ -832,7 +832,7 @@
   /* ── LOGIN SCREEN ──────────────────────────────────────────── */
   #login-screen {
     position:fixed; inset:0; z-index:9999;
-    background:#050a14;
+    background:#000;
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
     transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1);
@@ -891,25 +891,21 @@
 
   .login-logo-scale { font-size:26px; }
   .login-brand {
-    display:flex; flex-direction:column; align-items:center;
-    padding:44px 32px 24px;
-    gap:8px;
+    display:flex; flex-direction:column; align-items:flex-start;
+    padding:52px 32px 20px;
+    gap:6px;
   }
   .login-sub {
-    font-size:9.5px; font-weight:500; letter-spacing:3.5px;
-    text-transform:uppercase; color:rgba(255,255,255,0.22);
-  }
-  .login-divider {
-    height:1px; margin:0 24px;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 30%, rgba(255,255,255,0.07) 70%, transparent);
+    font-size:8.5px; font-weight:500; letter-spacing:3px;
+    text-transform:uppercase; color:rgba(255,255,255,0.28);
   }
   .login-form {
-    padding:24px 28px 32px;
-    display:flex; flex-direction:column; gap:14px;
+    padding:20px 32px 36px;
+    display:flex; flex-direction:column; gap:12px;
   }
   .login-label {
     font-size:9px; font-weight:600; letter-spacing:2px;
-    text-transform:uppercase; color:rgba(255,255,255,0.28);
+    text-transform:uppercase; color:rgba(255,255,255,0.45);
   }
 
   .login-field-wrap {
@@ -927,7 +923,7 @@
 
   .login-input {
     width:100%; background:transparent; border:none; outline:none;
-    color:#fff; font-size:16px; font-weight:300; letter-spacing:0.3px;
+    color:#fff; font-size:16px; font-weight:400; letter-spacing:0.3px;
     padding:13px 0; font-family:'Inter',sans-serif;
   }
   .login-input::placeholder { color:rgba(255,255,255,0.15); letter-spacing:3px; font-size:14px; }
@@ -937,7 +933,7 @@
     background:linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
     border:1px solid rgba(255,255,255,0.1);
     border-radius:10px; cursor:pointer;
-    color:rgba(255,255,255,0.7); font-size:11px; font-weight:600;
+    color:rgba(255,255,255,0.85); font-size:11px; font-weight:600;
     letter-spacing:2px; text-transform:uppercase;
     padding:14px; 
     transition:background 0.15s, color 0.15s, border-color 0.15s;
@@ -976,7 +972,6 @@
       <div class="logo login-logo-scale"><span class="logo-w">K$eftr</span><span class="logo-b">K$eftr</span></div>
       <div class="login-sub">Trade like a machine.</div>
     </div>
-    <div class="login-divider"></div>
     <div class="login-form">
       <div class="login-label">Passphrase</div>
       <div class="login-field-wrap">
