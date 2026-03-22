@@ -2084,7 +2084,7 @@
           <span class="matrix-n">${d.w}/${d.n}</span>
         </div></td>`;
       }).join('');
-      return `<tr onclick="openTd('${t.id}')" style="cursor:pointer"><td class="row-head">${setup}</td>${cells}</tr>`;
+      return `<tr><td class="row-head">${setup}</td>${cells}</tr>`;
     }).join('');
 
     el.innerHTML = `<div class="matrix-wrap"><table class="matrix-table">
