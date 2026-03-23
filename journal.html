@@ -3119,15 +3119,15 @@
       timeScale: { borderColor:'#2e3347', timeVisible:true, secondsVisible:false },
     });
     const cs = chart.addCandlestickSeries({
-      upColor:'var(--green)', downColor:'var(--red)',
-      borderUpColor:'var(--green)', borderDownColor:'var(--red)',
-      wickUpColor:'var(--green)', wickDownColor:'var(--red)'
+      upColor:'#22c55e', downColor:'#ef4444',
+      borderUpColor:'#22c55e', borderDownColor:'#ef4444',
+      wickUpColor:'#22c55e', wickDownColor:'#ef4444'
     });
     cs.setData(candles);
     if (vwap)      { const vs = chart.addLineSeries({color:'#f59e0b',lineWidth:1,lineStyle:2,title:'VWAP'});   vs.setData(candles.map(c=>({time:c.time,value:vwap}))); }
     if (pos.entry) { const es = chart.addLineSeries({color:'#00b8ff',lineWidth:1,title:'Entry'});              es.setData(candles.map(c=>({time:c.time,value:pos.entry}))); }
-    if (pos.stop)  { const ss = chart.addLineSeries({color:'var(--red)',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
-    if (pos.target){ const ts = chart.addLineSeries({color:'var(--green)',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
+    if (pos.stop)  { const ss = chart.addLineSeries({color:'#ef4444',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
+    if (pos.target){ const ts = chart.addLineSeries({color:'#22c55e',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
     chart.timeScale().fitContent();
     liveCharts[sym] = chart;
     // Bug fix #4: store observer so we can disconnect on card remove
