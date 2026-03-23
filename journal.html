@@ -632,7 +632,7 @@
   .pos-dir           { padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; text-transform:uppercase; }
   .pos-dir.long      { background:rgba(34,197,94,.15); color:var(--green); }
   .pos-dir.short     { background:rgba(239,68,68,.15); color:var(--red); }
-  .pos-chart-container { width:100%; height:220px; }
+  .pos-sparkline { width:100%; height:80px; display:block; margin-top:10px; }
   .pos-footer        { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 16px; border-top:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.015); }
   .pos-meta-item     { text-align:center; }
   .pos-meta-label    { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
@@ -2831,8 +2831,6 @@
   // ── Live Dashboard ─────────────────────────────────────────────────────────
   const LIVE_SERVER = 'http://localhost:5000';
   let liveTimer   = null;
-  let liveCharts  = {};      // sym → LightweightCharts instance
-  let liveObservers = {};    // sym → ResizeObserver (cleanup on card remove)
   let liveInited  = false;
   let liveColCount = 0;      // track last col count to avoid layout thrash
   let liveLastEmpty = false; // track empty state to avoid wiping live cards on blip
@@ -2881,15 +2879,8 @@
       document.getElementById('live-status').textContent = 'Local only';
       return;
     }
-    if (!window.LightweightCharts) {
-      const s = document.createElement('script');
-      s.src = 'https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js';
-      s.onload = () => { liveRefresh(); liveTimer = setInterval(liveRefresh, 30000); };
-      document.head.appendChild(s);
-    } else {
-      liveRefresh();
-      liveTimer = setInterval(liveRefresh, 30000);
-    }
+    liveRefresh();
+    liveTimer = setInterval(liveRefresh, 30000);
   }
 
   async function liveRefresh() {
@@ -2998,7 +2989,7 @@
       } else {
         const card = liveBuildCard(pos);
         grid.appendChild(card);
-        setTimeout(() => liveFetchChart(sym, pos, card.querySelector('.pos-chart-container')), 120);
+        liveDrawSparkline(sym, pos);
       }
     });
   }
@@ -3006,15 +2997,9 @@
   // Bug fix #4: clean up chart + observer when card is removed
   function liveRemoveCard(sym) {
     if (!sym) return;
-    // Destroy chart
-    if (liveCharts[sym]) {
-      try { liveCharts[sym].remove(); } catch(e) {}
-      delete liveCharts[sym];
-    }
-    // Disconnect resize observer
-    if (liveObservers[sym]) {
-      try { liveObservers[sym].disconnect(); } catch(e) {}
-      delete liveObservers[sym];
+    // Clear sparkline SVG
+    const sp = document.getElementById('spark-' + sym);
+    if (sp) sp.innerHTML = '';
     }
     // Remove DOM card
     const card = document.querySelector(`[data-sym="${sym}"]`);
@@ -3041,7 +3026,7 @@
           ${(pnl>=0?'+':'')+'€'+Math.abs(pnl).toFixed(2)}
         </span>
       </div>
-      <div class="pos-chart-container" id="lchart-${sym}"></div>
+      <svg class="pos-sparkline" id="spark-${sym}" viewBox="0 0 400 80" preserveAspectRatio="none"></svg>
       <div class="r-wrap">
         <div class="r-labels">
           <span>Stop 0R</span>
@@ -3077,64 +3062,53 @@
     if (rf) { rf.style.width = rPct+'%'; rf.style.background = rCol; }
   }
 
-  async function liveFetchChart(sym, pos, container, _retries=0) {
-    // Wait for LightweightCharts CDN to load (up to 5s)
-    if (!window.LightweightCharts && _retries < 25) {
-      setTimeout(() => liveFetchChart(sym, pos, container, _retries + 1), 200);
-      return;
-    }
+  async function liveDrawSparkline(sym, pos) {
+    const svg = document.getElementById('spark-' + sym);
+    if (!svg) return;
     try {
-      const res = await fetch(`${LIVE_SERVER}/candles/${sym}`);
+      const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
       const data = await res.json();
-      liveDrawChart(sym, pos, container, data.candles||[], data.vwap);
-    } catch(e) {
-      container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">Chart unavailable</div>';
-    }
-  }
+      const candles = data.candles || [];
+      if (!candles.length) { svg.style.display='none'; return; }
 
-  function liveDrawChart(sym, pos, container, candles, vwap) {
-    if (!candles.length) {
-      container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">No data</div>';
-      return;
+      const W = 400, H = 80, PAD = 4;
+      const closes = candles.map(c => c.close);
+      const lo = Math.min(...closes, pos.stop  || Infinity);
+      const hi = Math.max(...closes, pos.target || -Infinity);
+      const range = hi - lo || 1;
+      const px = (v) => ((v - lo) / range) * (H - PAD*2);
+      const py = (v) => H - PAD - px(v);
+      const cx = (i) => PAD + (i / (candles.length - 1 || 1)) * (W - PAD*2);
+
+      // Build polyline points
+      const pts = closes.map((v,i) => `${cx(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
+
+      // Horizontal lines
+      const hline = (val, color, dash='') =>
+        val ? `<line x1="${PAD}" y1="${py(val).toFixed(1)}" x2="${W-PAD}" y2="${py(val).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="${dash}" opacity="0.7"/>` : '';
+
+      // Fill gradient path
+      const fillPts = `${cx(0).toFixed(1)},${H} ` + pts + ` ${cx(closes.length-1).toFixed(1)},${H}`;
+      const lineColor = closes[closes.length-1] >= closes[0] ? '#22c55e' : '#ef4444';
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="sg-${sym}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        ${hline(pos.target, '#22c55e', '3,3')}
+        ${hline(pos.entry,  '#00b8ff', '')}
+        ${hline(pos.stop,   '#ef4444', '3,3')}
+        <polygon points="${fillPts}" fill="url(#sg-${sym})"/>
+        <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="1.5" stroke-linejoin="round"/>
+        ${hline(data.vwap,  '#f59e0b', '2,2')}
+      `;
+    } catch(e) {
+      const svg2 = document.getElementById('spark-' + sym);
+      if (svg2) svg2.style.display = 'none';
     }
-    // Wait for LightweightCharts CDN script to finish loading
-    if (!window.LightweightCharts) {
-      setTimeout(() => liveDrawChart(sym, pos, container, candles, vwap), 200);
-      return;
-    }
-    if (container.offsetWidth === 0) {
-      setTimeout(() => liveDrawChart(sym, pos, container, candles, vwap), 150);
-      return;
-    }
-    // Destroy existing chart if present (Bug fix #4)
-    if (liveCharts[sym]) {
-      try { liveCharts[sym].remove(); } catch(e) {}
-      delete liveCharts[sym];
-    }
-    const chart = LightweightCharts.createChart(container, {
-      width: container.offsetWidth, height: 220,
-      layout: { background:{color:'#000000'}, textColor:'#64748b' },
-      grid: { vertLines:{color:'#2e3347'}, horzLines:{color:'#2e3347'} },
-      rightPriceScale: { borderColor:'#2e3347' },
-      timeScale: { borderColor:'#2e3347', timeVisible:true, secondsVisible:false },
-    });
-    const cs = chart.addCandlestickSeries({
-      upColor:'#22c55e', downColor:'#ef4444',
-      borderUpColor:'#22c55e', borderDownColor:'#ef4444',
-      wickUpColor:'#22c55e', wickDownColor:'#ef4444'
-    });
-    cs.setData(candles);
-    if (vwap)      { const vs = chart.addLineSeries({color:'#f59e0b',lineWidth:1,lineStyle:2,title:'VWAP'});   vs.setData(candles.map(c=>({time:c.time,value:vwap}))); }
-    if (pos.entry) { const es = chart.addLineSeries({color:'#00b8ff',lineWidth:1,title:'Entry'});              es.setData(candles.map(c=>({time:c.time,value:pos.entry}))); }
-    if (pos.stop)  { const ss = chart.addLineSeries({color:'#ef4444',lineWidth:1,lineStyle:3,title:'Stop'});   ss.setData(candles.map(c=>({time:c.time,value:pos.stop}))); }
-    if (pos.target){ const ts = chart.addLineSeries({color:'#22c55e',lineWidth:1,lineStyle:3,title:'Target'}); ts.setData(candles.map(c=>({time:c.time,value:pos.target}))); }
-    chart.timeScale().fitContent();
-    liveCharts[sym] = chart;
-    // Bug fix #4: store observer so we can disconnect on card remove
-    if (liveObservers[sym]) { try { liveObservers[sym].disconnect(); } catch(e) {} }
-    const obs = new ResizeObserver(() => chart.applyOptions({width:container.offsetWidth}));
-    obs.observe(container);
-    liveObservers[sym] = obs;
   }
 
   async function liveClose(sym) {
