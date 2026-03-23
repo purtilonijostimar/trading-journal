@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Ksheftr</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -3111,6 +3111,12 @@
       document.getElementById('login-screen').style.display = 'none';
     }
   })();
+
+  // Snap zoom on orientation change (iOS workaround)
+  window.addEventListener('orientationchange', () => {
+    const mv = document.querySelector('meta[name=viewport]');
+    mv.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
+  });
 
   function logout() {
     localStorage.removeItem(_KEY);
