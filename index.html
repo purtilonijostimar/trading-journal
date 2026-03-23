@@ -993,6 +993,7 @@
     <span class="live-dot" id="liveStatus">Live</span>
     <button class="btn btn-secondary" onclick="exportData()">↓ Export</button>
     <button class="btn btn-primary" onclick="openModal()">+ Log Trade</button>
+    <button class="btn btn-secondary" onclick="logout()" title="Log out" style="padding:7px 10px;opacity:0.5;font-size:14px;border-color:transparent">⏏</button>
   </div>
 </header>
 
@@ -3110,6 +3111,17 @@
       document.getElementById('login-screen').style.display = 'none';
     }
   })();
+
+  function logout() {
+    localStorage.removeItem(_KEY);
+    const screen = document.getElementById('login-screen');
+    screen.style.display = 'flex';
+    screen.style.opacity = '0';
+    screen.classList.remove('fade-out');
+    requestAnimationFrame(() => { screen.style.transition = 'opacity 0.3s'; screen.style.opacity = '1'; });
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-error').textContent = '';
+  }
 
   function loginSubmit() {
     const val = document.getElementById('login-input').value;
