@@ -2957,7 +2957,7 @@
       } else {
         const card = liveBuildCard(pos);
         grid.appendChild(card);
-        liveFetchChart(sym, pos, card.querySelector('.pos-chart-container'));
+        setTimeout(() => liveFetchChart(sym, pos, card.querySelector('.pos-chart-container')), 120);
       }
     });
   }
@@ -3049,6 +3049,10 @@
   function liveDrawChart(sym, pos, container, candles, vwap) {
     if (!candles.length || !window.LightweightCharts) {
       container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">No data</div>';
+      return;
+    }
+    if (container.offsetWidth === 0) {
+      setTimeout(() => liveDrawChart(sym, pos, container, candles, vwap), 150);
       return;
     }
     // Destroy existing chart if present (Bug fix #4)
