@@ -2905,6 +2905,24 @@
         ? await _fetchRemoteState()
         : await fetch(`${LIVE_SERVER}/state`).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
       document.getElementById('live-error').style.display = 'none';
+      // Show stale warning if last update > 5 min ago (outside market hours)
+      const updatedAt = data.server_time;
+      const staleErr  = document.getElementById('live-error');
+      if (_isRemote && updatedAt) {
+        const [h, m, s] = updatedAt.split(':').map(Number);
+        const now = new Date();
+        const thenMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h||0, m||0, s||0).getTime();
+        const ageMin = (Date.now() - thenMs) / 60000;
+        if (ageMin > 5) {
+          staleErr.style.display = 'block';
+          staleErr.style.background = 'rgba(245,158,11,0.1)';
+          staleErr.style.borderColor = '#f59e0b';
+          staleErr.style.color = '#f59e0b';
+          staleErr.textContent = `⏸ Last update ${Math.round(ageMin)}min ago — bot is outside market hours or paused.`;
+        } else {
+          staleErr.style.display = 'none';
+        }
+      }
       document.getElementById('live-dot').style.background = 'var(--green)';
       document.getElementById('live-status').textContent = _isRemote ? 'Supabase' : 'Live';
       renderLive(data);
@@ -3089,6 +3107,10 @@
         // Remote/Supabase path: bot pre-fetched close prices
         closes = pos._closes.map(c => parseFloat(c)).filter(v => isFinite(v));
         vwap   = null;
+      } else if (_isRemote) {
+        // On remote with no pre-fetched closes — hide, can't reach localhost
+        svg.style.display = 'none';
+        return;
       } else {
         // Local path: fetch from dashboard server
         const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
