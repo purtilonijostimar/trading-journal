@@ -1112,6 +1112,13 @@
       </button>
       <div id="bot-cmd-status" style="margin-left:6px;font-size:11px;font-weight:500;letter-spacing:0.2px;color:var(--text3)"></div>
     </div>
+    <!-- Watchlist -->
+    <div id="live-watchlist-wrap" style="margin-bottom:24px;display:none">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        📡 Watchlist <span id="live-wl-time" style="font-weight:400;opacity:0.5;font-size:10px;margin-left:6px"></span>
+      </div>
+      <div id="live-watchlist" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
     <!-- Positions grid -->
     <div id="live-positions-title" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Open Positions</div>
     <div id="live-positions" style="display:grid;gap:20px"></div>
@@ -2923,6 +2930,28 @@
     const regime = (data.regime || 'unknown').split('+')[0];
     document.getElementById('live-regime').innerHTML =
       `<span class="regime-pill regime-${regime}">${regime.replace(/_/g,' ').toUpperCase()}</span>`;
+
+    // Watchlist
+    const wl = data.watchlist || [];
+    const wlWrap = document.getElementById('live-watchlist-wrap');
+    const wlEl   = document.getElementById('live-watchlist');
+    if (wl.length) {
+      wlWrap.style.display = 'block';
+      document.getElementById('live-wl-time').textContent = data.server_time ? new Date(data.server_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+      wlEl.innerHTML = wl.map(c => {
+        const rvColor = c.rel_vol >= 2 ? 'var(--green)' : c.rel_vol >= 1.2 ? 'var(--accent)' : 'var(--text3)';
+        return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:130px;flex:1">
+          <div style="font-weight:700;font-size:15px;letter-spacing:0.3px">${c.symbol}</div>
+          <div style="font-size:11px;color:var(--text3);margin:2px 0 6px">${(c.setup||'').replace(/_/g,' ')}</div>
+          <div style="display:flex;gap:10px;font-size:11px">
+            <span>📊 <span style="color:${rvColor}">${c.rel_vol?.toFixed(1)}x vol</span></span>
+            <span style="color:var(--text3)">gap ${c.gap_pct >= 0 ? '+' : ''}${(c.gap_pct*100).toFixed(1)}%</span>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      wlWrap.style.display = 'none';
+    }
 
     const grid = document.getElementById('live-positions');
 
