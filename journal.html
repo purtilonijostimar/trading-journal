@@ -3068,46 +3068,45 @@
     try {
       const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
       const data = await res.json();
-      const candles = data.candles || [];
+      const candles = (data.candles || []).filter(c => c && !isNaN(c.close));
       if (!candles.length) { svg.style.display='none'; return; }
 
-      const W = 400, H = 80, PAD = 4;
-      const closes = candles.map(c => c.close);
-      const lo = Math.min(...closes, pos.stop  || Infinity);
-      const hi = Math.max(...closes, pos.target || -Infinity);
-      const range = hi - lo || 1;
-      const px = (v) => ((v - lo) / range) * (H - PAD*2);
-      const py = (v) => H - PAD - px(v);
-      const cx = (i) => PAD + (i / (candles.length - 1 || 1)) * (W - PAD*2);
+      const W = 400, H = 80, PAD = 6;
+      const closes = candles.map(c => parseFloat(c.close));
 
-      // Build polyline points
-      const pts = closes.map((v,i) => `${cx(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
+      // Safe level parser — returns number or null
+      const lvl = (v) => { const n = parseFloat(v); return isFinite(n) && n > 0 ? n : null; };
+      const entry  = lvl(pos.entry);
+      const stop   = lvl(pos.stop);
+      const target = lvl(pos.target);
+      const vwap   = lvl(data.vwap);
 
-      // Horizontal lines
-      const hline = (val, color, dash='') =>
-        val ? `<line x1="${PAD}" y1="${py(val).toFixed(1)}" x2="${W-PAD}" y2="${py(val).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="${dash}" opacity="0.7"/>` : '';
+      const allVals = [...closes, entry, stop, target].filter(v => v !== null);
+      const lo = Math.min(...allVals);
+      const hi = Math.max(...allVals);
+      const range = hi - lo || lo * 0.01 || 1;
 
-      // Fill gradient path
-      const fillPts = `${cx(0).toFixed(1)},${H} ` + pts + ` ${cx(closes.length-1).toFixed(1)},${H}`;
+      const toY = (v) => H - PAD - ((v - lo) / range) * (H - PAD * 2);
+      const toX = (i) => PAD + (i / (closes.length - 1 || 1)) * (W - PAD * 2);
+
+      const pts = closes.map((v,i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
       const lineColor = closes[closes.length-1] >= closes[0] ? '#22c55e' : '#ef4444';
 
+      const hline = (v, color, dash='') => v !== null
+        ? `<line x1="${PAD}" y1="${toY(v).toFixed(1)}" x2="${W-PAD}" y2="${toY(v).toFixed(1)}" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" opacity="0.8"/>`
+        : '';
+
       svg.innerHTML = `
-        <defs>
-          <linearGradient id="sg-${sym}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.02"/>
-          </linearGradient>
-        </defs>
-        ${hline(pos.target, '#22c55e', '3,3')}
-        ${hline(pos.entry,  '#00b8ff', '')}
-        ${hline(pos.stop,   '#ef4444', '3,3')}
-        <polygon points="${fillPts}" fill="url(#sg-${sym})"/>
-        <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="1.5" stroke-linejoin="round"/>
-        ${hline(data.vwap,  '#f59e0b', '2,2')}
+        ${hline(target, '#22c55e', '4,3')}
+        ${hline(stop,   '#ef4444', '4,3')}
+        ${hline(vwap,   '#f59e0b', '2,2')}
+        ${hline(entry,  '#00b8ff', '')}
+        <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${toX(closes.length-1).toFixed(1)}" cy="${toY(closes[closes.length-1]).toFixed(1)}" r="3" fill="${lineColor}"/>
       `;
     } catch(e) {
-      const svg2 = document.getElementById('spark-' + sym);
-      if (svg2) svg2.style.display = 'none';
+      const s = document.getElementById('spark-' + sym);
+      if (s) s.style.display = 'none';
     }
   }
 
