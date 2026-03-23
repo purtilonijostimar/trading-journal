@@ -2864,38 +2864,56 @@
     setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 4000);
   }
 
+  const _isRemote = location.protocol === 'https:' || !location.hostname.match(/^(localhost|127\.0\.0\.1)$/);
+
   function initLive() {
     if (liveInited) return;
     liveInited = true;
-    // Live tab requires localhost — block on remote (GitHub Pages / HTTPS mixed content)
-    const isRemote = location.protocol === 'https:' || !location.hostname.match(/^(localhost|127\.0\.0\.1)$/);
-    if (isRemote) {
-      const err = document.getElementById('live-error');
-      if (err) {
-        err.style.display = 'block';
-        err.innerHTML = `🖥️ <strong>Live tab only available locally.</strong><br>Open <a href="http://localhost:5000" target="_blank" style="color:var(--accent)">http://localhost:5000</a> on your trading machine to access real-time charts and bot controls.`;
-      }
-      document.getElementById('live-dot').style.background = '#666';
-      document.getElementById('live-status').textContent = 'Local only';
-      return;
-    }
     liveRefresh();
     liveTimer = setInterval(liveRefresh, 30000);
   }
 
+  async function _fetchRemoteState() {
+    // Fetch live_state from Supabase kv_store (pushed by bot every 30s)
+    const { data, error } = await db.from('kv_store').select('value').eq('key','live_state').single();
+    if (error || !data) throw new Error('No live state in Supabase');
+    const state = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+    // Normalise to same shape as localhost /state
+    return {
+      regime:       state.regime || 'unknown',
+      trades_today: state.trades_today || 0,
+      daily_pnl:    state.daily_pnl || 0,
+      open_trades:  (state.positions || []).map(p => ({
+        ticker:    p.symbol,
+        entry:     p.entry,
+        stop:      p.stop,
+        target:    p.target,
+        shares:    p.shares,
+        setup:     p.setup,
+        direction: p.direction,
+        _closes:   p.closes || [],   // pre-fetched by bot
+      })),
+      watchlist:    state.watchlist || [],
+      server_time:  state.updated_at,
+      _source:      'supabase',
+    };
+  }
+
   async function liveRefresh() {
     try {
-      const res = await fetch(`${LIVE_SERVER}/state`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = _isRemote
+        ? await _fetchRemoteState()
+        : await fetch(`${LIVE_SERVER}/state`).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
       document.getElementById('live-error').style.display = 'none';
       document.getElementById('live-dot').style.background = 'var(--green)';
-      document.getElementById('live-status').textContent = 'Live';
+      document.getElementById('live-status').textContent = _isRemote ? 'Supabase' : 'Live';
       renderLive(data);
     } catch(e) {
       const err = document.getElementById('live-error');
       err.style.display = 'block';
-      err.textContent = `⚠️ Cannot reach dashboard server at ${LIVE_SERVER}. Make sure dashboard_server.py is running (update.bat starts it automatically).`;
+      err.textContent = _isRemote
+        ? '⚠️ No live data yet — bot must be running to push state.'
+        : `⚠️ Cannot reach dashboard server at ${LIVE_SERVER}. Make sure update.bat is running.`;
       document.getElementById('live-dot').style.background = 'var(--red)';
       document.getElementById('live-status').textContent = 'Disconnected';
       // Do NOT wipe cards on disconnect — keep showing last known state
@@ -3066,20 +3084,26 @@
     const svg = document.getElementById('spark-' + sym);
     if (!svg) return;
     try {
-      const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
-      const data = await res.json();
-      const candles = (data.candles || []).filter(c => c && !isNaN(c.close));
-      if (!candles.length) { svg.style.display='none'; return; }
+      let closes, vwap;
+      if (pos._closes && pos._closes.length) {
+        // Remote/Supabase path: bot pre-fetched close prices
+        closes = pos._closes.map(c => parseFloat(c)).filter(v => isFinite(v));
+        vwap   = null;
+      } else {
+        // Local path: fetch from dashboard server
+        const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
+        const json = await res.json();
+        closes = (json.candles || []).filter(c => c && !isNaN(c.close)).map(c => parseFloat(c.close));
+        vwap   = (json.vwap && isFinite(json.vwap)) ? parseFloat(json.vwap) : null;
+      }
+      if (!closes.length) { svg.style.display='none'; return; }
 
       const W = 400, H = 80, PAD = 6;
-      const closes = candles.map(c => parseFloat(c.close));
-
-      // Safe level parser — returns number or null
       const lvl = (v) => { const n = parseFloat(v); return isFinite(n) && n > 0 ? n : null; };
       const entry  = lvl(pos.entry);
       const stop   = lvl(pos.stop);
       const target = lvl(pos.target);
-      const vwap   = lvl(data.vwap);
+      vwap = vwap !== null ? vwap : lvl(pos.vwap);
 
       const allVals = [...closes, entry, stop, target].filter(v => v !== null);
       const lo = Math.min(...allVals);
@@ -3088,10 +3112,8 @@
 
       const toY = (v) => H - PAD - ((v - lo) / range) * (H - PAD * 2);
       const toX = (i) => PAD + (i / (closes.length - 1 || 1)) * (W - PAD * 2);
-
       const pts = closes.map((v,i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
       const lineColor = closes[closes.length-1] >= closes[0] ? '#22c55e' : '#ef4444';
-
       const hline = (v, color, dash='') => v !== null
         ? `<line x1="${PAD}" y1="${toY(v).toFixed(1)}" x2="${W-PAD}" y2="${toY(v).toFixed(1)}" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" opacity="0.8"/>`
         : '';
