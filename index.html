@@ -3036,7 +3036,12 @@
     if (rf) { rf.style.width = rPct+'%'; rf.style.background = rCol; }
   }
 
-  async function liveFetchChart(sym, pos, container) {
+  async function liveFetchChart(sym, pos, container, _retries=0) {
+    // Wait for LightweightCharts CDN to load (up to 5s)
+    if (!window.LightweightCharts && _retries < 25) {
+      setTimeout(() => liveFetchChart(sym, pos, container, _retries + 1), 200);
+      return;
+    }
     try {
       const res = await fetch(`${LIVE_SERVER}/candles/${sym}`);
       const data = await res.json();
@@ -3047,8 +3052,13 @@
   }
 
   function liveDrawChart(sym, pos, container, candles, vwap) {
-    if (!candles.length || !window.LightweightCharts) {
+    if (!candles.length) {
       container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px;text-align:center">No data</div>';
+      return;
+    }
+    // Wait for LightweightCharts CDN script to finish loading
+    if (!window.LightweightCharts) {
+      setTimeout(() => liveDrawChart(sym, pos, container, candles, vwap), 200);
       return;
     }
     if (container.offsetWidth === 0) {
