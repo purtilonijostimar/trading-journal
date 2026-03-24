@@ -1320,14 +1320,24 @@
 
   // ── Data ──────────────────────────────────────────────────────────────────
   async function loadTrades() {
-    const { data, error } = await db.from('trades').select('*').order('date', { ascending: false });
-    const status = document.getElementById('liveStatus');
-    if (error) { status.textContent = 'Error'; status.classList.add('err'); return; }
-    status.textContent = 'Live';
-    status.classList.remove('err');
-    trades = data || [];
-    refresh();
-    document.getElementById('tradesLoading').style.display = 'none';
+    try {
+      const { data, error } = await db.from('trades').select('*').order('date', { ascending: false });
+      const status = document.getElementById('liveStatus');
+      if (error) {
+        console.error('[loadTrades] Supabase error:', error);
+        status.textContent = 'Error';
+        status.classList.add('err');
+      } else {
+        status.textContent = 'Live';
+        status.classList.remove('err');
+        trades = data || [];
+        refresh();
+      }
+    } catch(e) {
+      console.error('[loadTrades] Exception:', e);
+    } finally {
+      document.getElementById('tradesLoading').style.display = 'none';
+    }
   }
 
 
