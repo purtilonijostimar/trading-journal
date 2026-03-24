@@ -2942,6 +2942,7 @@
       }
       document.getElementById('live-dot').style.background = 'var(--green)';
       document.getElementById('live-status').textContent = _isRemote ? 'Supabase' : 'Live';
+      window._liveData = data;  // expose for chart modal
       renderLive(data);
     } catch(e) {
       const err = document.getElementById('live-error');
@@ -3078,7 +3079,10 @@
           ${(pnl>=0?'+':'')+'€'+Math.abs(pnl).toFixed(2)}
         </span>
       </div>
-      <div style="padding:0 12px 10px;"><svg class="pos-sparkline" id="spark-${sym}" viewBox="0 0 400 80" preserveAspectRatio="none"></svg></div>
+      <div style="padding:0 12px 4px;position:relative;">
+        <svg class="pos-sparkline" id="spark-${sym}" viewBox="0 0 400 120" preserveAspectRatio="none"></svg>
+        <button onclick="liveOpenChart('${sym}')" style="position:absolute;top:8px;right:20px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.6);font-size:11px;padding:3px 8px;cursor:pointer;" title="Expand chart">⛶</button>
+      </div>
       <div class="r-wrap">
         <div class="r-labels">
           <span>Stop 0R</span>
@@ -3133,7 +3137,10 @@
       } else {
         const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
         const json = await res.json();
-        candles = (json.candles || []).filter(c => c && isFinite(c.c));
+        // Normalise both {o,h,l,c} (live_push) and {open,high,low,close,time} (dashboard_server)
+        candles = (json.candles || []).map(c => ({
+          o: c.o ?? c.open, h: c.h ?? c.high, l: c.l ?? c.low, c: c.c ?? c.close, t: c.t ?? c.time
+        })).filter(c => isFinite(c.c));
       }
       if (!candles.length) { svg.style.display = 'none'; return; }
 
@@ -3212,6 +3219,84 @@
         alert(`⚠️ Dismiss failed: ${(await r.json()).error}`);
       }
     } catch(e) { alert('⚠️ Server not reachable'); }
+  }
+
+  // ── Zoomable chart modal ───────────────────────────────────────
+  let _lwcScript = null;
+  async function _ensureLWC() {
+    if (window.LightweightCharts) return true;
+    if (_lwcScript) return new Promise(r => _lwcScript.addEventListener('load', () => r(true)));
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js';
+      s.onload = () => res(true); s.onerror = () => rej(new Error('LWC load failed'));
+      document.head.appendChild(s); _lwcScript = s;
+    });
+  }
+
+  async function liveOpenChart(sym) {
+    // Build or reuse modal
+    let modal = document.getElementById('lwc-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'lwc-modal';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="width:min(96vw,900px);background:#0d1117;border:1px solid rgba(255,255,255,0.12);border-radius:14px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <span id="lwc-title" style="font-weight:700;font-size:16px;color:#fff;"></span>
+            <button onclick="document.getElementById('lwc-modal').style.display='none'" style="background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;">✕</button>
+          </div>
+          <div id="lwc-container" style="width:100%;height:400px;"></div>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('lwc-title').textContent = sym + ' — 1min';
+    const container = document.getElementById('lwc-container');
+    container.innerHTML = '<div style="color:#aaa;padding:20px;text-align:center">Loading…</div>';
+
+    try {
+      await _ensureLWC();
+      // Fetch candles
+      let candles = [];
+      if (_isRemote) {
+        // Use pre-fetched from Supabase state
+        const pos = (window._liveData?.open_trades || []).find(p => (p.ticker||p.symbol) === sym);
+        candles = (pos?.candles || []).map(c => ({time: c.t||0, open:c.o, high:c.h, low:c.l, close:c.c}));
+      } else {
+        const r = await fetch(`${LIVE_SERVER}/candles/${sym}`);
+        const d = await r.json();
+        candles = (d.candles||[]).map(c => ({time: c.time||c.t||0, open:c.open??c.o, high:c.high??c.h, low:c.low??c.l, close:c.close??c.c})).filter(c=>isFinite(c.close));
+      }
+      if (!candles.length) { container.innerHTML = '<div style="color:#aaa;padding:20px;text-align:center">No candle data available</div>'; return; }
+
+      container.innerHTML = '';
+      const chart = LightweightCharts.createChart(container, {
+        width: container.clientWidth, height: 400,
+        layout: { background: { color: '#0d1117' }, textColor: '#aaa' },
+        grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)' },
+        timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true, secondsVisible: false },
+      });
+      const series = chart.addCandlestickSeries({ upColor:'#22c55e', downColor:'#ef4444', borderVisible:false, wickUpColor:'#22c55e', wickDownColor:'#ef4444' });
+      series.setData(candles);
+
+      // Draw entry/stop/target lines if available
+      const pos = _isRemote
+        ? (window._liveData?.open_trades||[]).find(p=>(p.ticker||p.symbol)===sym)
+        : (window._liveData?.open_trades||[]).find(p=>(p.ticker||p.symbol)===sym);
+      if (pos) {
+        const priceLine = (price, color, title) => price && isFinite(price) && price > 0 && series.createPriceLine({ price, color, lineWidth:1, lineStyle:2, axisLabelVisible:true, title });
+        priceLine(pos.entry||pos._entry, '#60a5fa', 'Entry');
+        priceLine(pos.stop||pos._stop,   '#ef4444', 'Stop');
+        priceLine(pos.target||pos._target,'#22c55e', 'Target');
+      }
+      chart.timeScale().fitContent();
+    } catch(e) {
+      container.innerHTML = `<div style="color:#f87171;padding:20px;text-align:center">Chart error: ${e.message}</div>`;
+    }
   }
 
   async function liveClose(sym) {
