@@ -2904,7 +2904,8 @@
         shares:    p.shares,
         setup:     p.setup,
         direction: p.direction,
-        _closes:   p.closes || [],   // pre-fetched by bot
+        _candles:  p.candles || [],   // OHLC pre-fetched by bot
+        _closes:   p.closes  || [],   // close-only fallback
       })),
       watchlist:    state.watchlist || [],
       server_time:  state.updated_at,
@@ -3117,53 +3118,73 @@
     const svg = document.getElementById('spark-' + sym);
     if (!svg) return;
     try {
-      let closes, vwap;
-      if (pos._closes && pos._closes.length) {
-        // Remote/Supabase path: bot pre-fetched close prices
-        closes = pos._closes.map(c => parseFloat(c)).filter(v => isFinite(v));
-        vwap   = null;
+      let candles = [];
+
+      if (pos._candles && pos._candles.length) {
+        candles = pos._candles;
+      } else if (pos._closes && pos._closes.length) {
+        // fallback: closes-only → synthetic candles
+        candles = pos._closes.map(c => ({ o:c, h:c, l:c, c }));
       } else if (_isRemote) {
-        // On remote with no pre-fetched closes — hide, can't reach localhost
-        svg.style.display = 'none';
-        return;
+        svg.style.display = 'none'; return;
       } else {
-        // Local path: fetch from dashboard server
         const res  = await fetch(`${LIVE_SERVER}/candles/${sym}`);
         const json = await res.json();
-        closes = (json.candles || []).filter(c => c && !isNaN(c.close)).map(c => parseFloat(c.close));
-        vwap   = (json.vwap && isFinite(json.vwap)) ? parseFloat(json.vwap) : null;
+        candles = (json.candles || []).filter(c => c && isFinite(c.c));
       }
-      if (!closes.length) { svg.style.display='none'; return; }
+      if (!candles.length) { svg.style.display = 'none'; return; }
 
-      const W = 400, H = 80, PAD = 6;
+      const W = 400, H = 120;
+      const PAD = { t: 8, r: 8, b: 8, l: 8 };
+      const chartW = W - PAD.l - PAD.r;
+      const chartH = H - PAD.t - PAD.b;
+
       const lvl = (v) => { const n = parseFloat(v); return isFinite(n) && n > 0 ? n : null; };
       const entry  = lvl(pos.entry);
       const stop   = lvl(pos.stop);
       const target = lvl(pos.target);
-      vwap = vwap !== null ? vwap : lvl(pos.vwap);
 
-      const allVals = [...closes, entry, stop, target].filter(v => v !== null);
-      const lo = Math.min(...allVals);
-      const hi = Math.max(...allVals);
-      const range = hi - lo || lo * 0.01 || 1;
+      const allPrices = candles.flatMap(c => [c.h, c.l])
+        .concat([entry, stop, target].filter(v => v !== null));
+      const lo = Math.min(...allPrices);
+      const hi = Math.max(...allPrices);
+      const range = hi - lo || lo * 0.005 || 1;
 
-      const toY = (v) => H - PAD - ((v - lo) / range) * (H - PAD * 2);
-      const toX = (i) => PAD + (i / (closes.length - 1 || 1)) * (W - PAD * 2);
-      const pts = closes.map((v,i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-      const lineColor = closes[closes.length-1] >= closes[0] ? '#22c55e' : '#ef4444';
-      const hline = (v, color, dash='') => v !== null
-        ? `<line x1="${PAD}" y1="${toY(v).toFixed(1)}" x2="${W-PAD}" y2="${toY(v).toFixed(1)}" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" opacity="0.8"/>`
+      const toY = (v) => PAD.t + chartH - ((v - lo) / range) * chartH;
+      const n = candles.length;
+      const candleW = Math.max(1.5, Math.min(8, chartW / n * 0.7));
+      const gap     = chartW / n;
+      const toX = (i) => PAD.l + i * gap + gap / 2;
+
+      const hline = (v, color, dash = '') => v !== null
+        ? `<line x1="${PAD.l}" y1="${toY(v).toFixed(1)}" x2="${W - PAD.r}" y2="${toY(v).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="${dash}" opacity="0.75"/>`
         : '';
 
+      let candleSVG = '';
+      for (let i = 0; i < n; i++) {
+        const { o, h, l, c } = candles[i];
+        const bull    = c >= o;
+        const color   = bull ? '#22c55e' : '#ef4444';
+        const bodyTop = toY(Math.max(o, c));
+        const bodyBot = toY(Math.min(o, c));
+        const bodyH   = Math.max(1, bodyBot - bodyTop);
+        const cx      = toX(i);
+        // wick
+        candleSVG += `<line x1="${cx.toFixed(1)}" y1="${toY(h).toFixed(1)}" x2="${cx.toFixed(1)}" y2="${toY(l).toFixed(1)}" stroke="${color}" stroke-width="1" opacity="0.7"/>`;
+        // body
+        candleSVG += `<rect x="${(cx - candleW/2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${candleW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}" opacity="0.9"/>`;
+      }
+
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
       svg.innerHTML = `
+        <rect width="${W}" height="${H}" fill="rgba(0,0,0,0.15)" rx="4"/>
         ${hline(target, '#22c55e', '4,3')}
         ${hline(stop,   '#ef4444', '4,3')}
-        ${hline(vwap,   '#f59e0b', '2,2')}
-        ${hline(entry,  '#00b8ff', '')}
-        <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        <circle cx="${toX(closes.length-1).toFixed(1)}" cy="${toY(closes[closes.length-1]).toFixed(1)}" r="3" fill="${lineColor}"/>
+        ${hline(entry,  '#60a5fa', '2,2')}
+        ${candleSVG}
       `;
-      svg.style.display = 'block'; // only show after successful draw
+      svg.style.height = '120px';
+      svg.style.display = 'block';
     } catch(e) {
       console.error('[sparkline]', sym, e);
       const s = document.getElementById('spark-' + sym);
