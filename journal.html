@@ -641,8 +641,11 @@
   .r-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text3); margin-bottom:4px; }
   .r-track  { height:6px; background:rgba(255,255,255,0.06); border-radius:3px; }
   .r-fill   { height:100%; border-radius:3px; transition:width .5s; }
-  .btn-close-pos { width:calc(100% - 32px); margin:0 16px 12px; padding:8px; border:1px solid rgba(239,68,68,.4); border-radius:8px; background:rgba(239,68,68,.08); color:var(--red); font-size:12px; font-weight:600; cursor:pointer; }
+  .btn-close-pos { flex:1; padding:8px; border:1px solid rgba(239,68,68,.4); border-radius:8px; background:rgba(239,68,68,.08); color:var(--red); font-size:12px; font-weight:600; cursor:pointer; }
   .btn-close-pos:hover { background:var(--red); color:white; }
+  .btn-dismiss-pos { flex:1; padding:8px; border:1px solid rgba(100,116,139,.3); border-radius:8px; background:rgba(100,116,139,.08); color:var(--text3); font-size:12px; font-weight:600; cursor:pointer; }
+  .btn-dismiss-pos:hover { background:rgba(100,116,139,.25); color:white; }
+  .pos-action-row { display:flex; gap:8px; margin:0 16px 12px; }
   .live-empty { text-align:center; padding:60px 20px; color:var(--text3); }
 
   /* Regime pills (live tab) */
@@ -3077,7 +3080,10 @@
         <div class="pos-meta-item"><div class="pos-meta-label">Target</div><div class="pos-meta-val" style="color:var(--green)">$${(pos.target||0).toFixed(2)}</div></div>
         <div class="pos-meta-item"><div class="pos-meta-label">Shares</div><div class="pos-meta-val">${pos.shares||0}</div></div>
       </div>
-      <button class="btn-close-pos" onclick="liveClose('${sym}')">✕ Close ${sym}</button>
+      <div class="pos-action-row">
+        <button class="btn-close-pos" onclick="liveClose('${sym}')">✕ Close ${sym}</button>
+        <button class="btn-dismiss-pos" onclick="liveDismiss('${sym}')" title="Remove from live view without sending IBKR order">⊘ Dismiss</button>
+      </div>
     `;
     return card;
   }
@@ -3154,6 +3160,25 @@
       const s = document.getElementById('spark-' + sym);
       if (s) s.style.display = 'none';
     }
+  }
+
+  async function liveDismiss(sym) {
+    if (!confirm(`Dismiss ${sym}? This removes it from the live view without sending an IBKR order.\n\nUse only if the position is already closed in IBKR.`)) return;
+    if (_isRemote) {
+      // On remote: just remove the card visually (bot will sync on next push)
+      liveRemoveCard(sym);
+      return;
+    }
+    try {
+      const r = await fetch(`${LIVE_SERVER}/dismiss/${sym}`, {method:'POST'});
+      if (r.ok) {
+        liveRemoveCard(sym);
+        const el = document.getElementById('live-open-count');
+        if (el) el.textContent = Math.max(0, parseInt(el.textContent||'0') - 1);
+      } else {
+        alert(`⚠️ Dismiss failed: ${(await r.json()).error}`);
+      }
+    } catch(e) { alert('⚠️ Server not reachable'); }
   }
 
   async function liveClose(sym) {
