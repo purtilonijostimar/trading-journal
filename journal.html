@@ -1330,7 +1330,10 @@
       } else {
         status.textContent = 'Live';
         status.classList.remove('err');
-        trades = data || [];
+        const raw = data || [];
+        // Deduplicate: if a closed record exists for ticker+date, suppress the open record
+        const closedKeys = new Set(raw.filter(t => t.result !== 'open').map(t => `${t.ticker}_${t.date}`));
+        trades = raw.filter(t => !(t.result === 'open' && closedKeys.has(`${t.ticker}_${t.date}`)));
         refresh();
       }
     } catch(e) {
