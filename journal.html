@@ -1429,7 +1429,26 @@
 
         <div>${dataRows}</div>
 
-        ${(t.lesson||t.reasoning) ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${t.lesson||t.reasoning}</div></div>` : ''}
+        ${(() => {
+          const raw = t.lesson || t.reasoning || '';
+          const traceSplit = raw.split('||TRACE||');
+          const notes = traceSplit[0].trim();
+          const traceStr = traceSplit[1] ? traceSplit[1].trim() : '';
+          // Parse trace key:value pairs
+          const traceRows = traceStr ? traceStr.split(' | ').map(p => {
+            const idx = p.indexOf(':');
+            if (idx < 0) return null;
+            const k = p.slice(0, idx).trim();
+            const v = p.slice(idx + 1).trim();
+            const label = {order_id:'Order ID', entry_exec:'Entry Exec ID', exit_exec:'Exit Exec ID', placed:'Order Placed', filled:'Entry Filled', closed:'Exit Closed'}[k] || k;
+            return `<div style="display:grid;grid-template-columns:1fr 1fr;align-items:baseline;padding:7px 0;border-bottom:1px solid ${rowLine}">
+              <span style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub}">${label}</span>
+              <span style="font-size:12px;font-weight:600;font-family:monospace;color:${txtVal}">${v}</span>
+            </div>`;
+          }).filter(Boolean).join('') : '';
+          return (notes ? `${divider}<div style="border-left:2px solid ${divLine};padding-left:12px"><div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-bottom:6px">Notes</div><div style="font-size:13px;line-height:1.75;color:${txtVal}">${notes}</div></div>` : '')
+               + (traceRows ? `${divider}<div><div style="font-size:10px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:${txtSub};margin-bottom:4px">🔍 IBKR Trace</div>${traceRows}</div>` : '');
+        })()}
 
         ${t.screenshot ? `${divider}<div style="border-radius:10px;overflow:hidden"><img src="${t.screenshot}" onclick="event.stopPropagation();openLightbox('${t.screenshot}')" style="width:100%;display:block;cursor:zoom-in"></div>` : ''}
       </div>
