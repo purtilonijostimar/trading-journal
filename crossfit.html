@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>CrossFit Goal Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1c1c1c;
+  --surface3: #242424;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f0;
+  --text2: #9a9a9a;
+  --text3: #666;
+  --accent: #f97316;
+  --accent-soft: rgba(249,115,22,0.12);
+  --accent-glow: rgba(249,115,22,0.25);
+  --green: #22c55e;
+  --green-soft: rgba(34,197,94,0.12);
+  --yellow: #eab308;
+  --yellow-soft: rgba(234,179,8,0.12);
+  --red: #ef4444;
+  --red-soft: rgba(239,68,68,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --nav-h: 72px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; font-size: 16px; line-height: 1.5; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Scrollable content area ── */
+#app { position: fixed; top: 0; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
+.view { display: none; padding: 20px 16px 8px; }
+.view.active { display: block; }
+
+/* ── Bottom nav ── */
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(10,10,10,0.96);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  z-index: 100;
+}
+.nav-btn {
+  touch-action: manipulation;
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; padding-top: 12px;
+  border: none; background: none; color: var(--text3);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+  text-transform: uppercase; cursor: pointer; transition: color 0.2s;
+}
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn.active { color: var(--accent); }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.card-sm { padding: 14px 16px; }
+.card-accent { border-color: var(--accent); background: var(--accent-soft); }
+.card-green { border-color: var(--green); background: var(--green-soft); }
+
+/* ── Typography ── */
+.title { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+.subtitle { font-size: 13px; color: var(--text2); font-weight: 500; margin-top: 2px; }
+.label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 8px; }
+.section-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+.coach-text { font-size: 14px; line-height: 1.7; color: var(--text2); font-style: italic; }
+
+/* ── Progress bar ── */
+.progress-wrap { background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; margin: 10px 0 4px; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); }
+
+/* ── Buttons ── */
+.btn {
+  touch-action: manipulation;
+  width: 100%; padding: 18px; border-radius: var(--radius);
+  border: none; font-size: 16px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.2px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:active { opacity: 0.7; }
+.btn-ghost { background: none; color: var(--text2); font-size: 14px; padding: 12px; }
+
+/* ── Week dots ── */
+.week-dots { display: flex; gap: 8px; align-items: center; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-done { background: var(--accent); }
+.dot-today { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.dot-next { background: var(--surface3); border: 1.5px solid var(--accent); }
+.dot-rest { background: var(--surface3); }
+
+/* ── Session header ── */
+.session-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.back-btn { touch-action: manipulation; background: var(--surface2); border: 1px solid var(--border2); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.week-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  color: var(--accent); border-radius: 99px;
+  padding: 4px 12px; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+
+/* ── Workout sections ── */
+.workout-section { margin-bottom: 16px; }
+.workout-section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.section-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.icon-warmup { background: var(--yellow-soft); }
+.icon-skill { background: var(--accent-soft); }
+.icon-wod { background: var(--red-soft); }
+.icon-coach { background: var(--green-soft); }
+.workout-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.5;
+}
+.workout-item:last-child { border-bottom: none; }
+.bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 6px; }
+
+/* ── WOD box ── */
+.wod-box {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-top: 8px;
+}
+.wod-type { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 10px; }
+.wod-movement { font-size: 15px; padding: 6px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+.wod-movement:last-child { border-bottom: none; }
+
+/* ── Coach note ── */
+.coach-box {
+  background: var(--green-soft);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-top: 4px;
+}
+.coach-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--green); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+
+/* ── Log form ── */
+.score-input {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 16px; color: var(--text);
+  font-size: 20px; font-weight: 700; text-align: center; font-family: 'Inter', sans-serif;
+  outline: none; transition: border-color 0.2s;
+}
+.score-input:focus { border-color: var(--accent); }
+.score-input::placeholder { color: var(--text3); font-weight: 400; font-size: 16px; }
+.notes-input {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 14px; color: var(--text);
+  font-size: 14px; font-family: 'Inter', sans-serif;
+  outline: none; resize: none; min-height: 80px; transition: border-color 0.2s;
+}
+.notes-input:focus { border-color: var(--accent); }
+.notes-input::placeholder { color: var(--text3); }
+
+/* ── Mood selector ── */
+.mood-row { display: flex; gap: 8px; justify-content: space-between; }
+.mood-btn {
+  touch-action: manipulation;
+  flex: 1; padding: 12px 4px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border2); background: var(--surface2);
+  cursor: pointer; font-size: 22px; text-align: center; transition: all 0.15s;
+}
+.mood-btn.selected { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.1); }
+
+/* ── History items ── */
+.history-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.history-item:last-child { border-bottom: none; }
+.history-dot { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.history-score { font-size: 15px; font-weight: 700; }
+.history-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.history-date { font-size: 12px; color: var(--text3); margin-left: auto; text-align: right; }
+
+/* ── PR board ── */
+.pr-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.pr-item:last-child { border-bottom: none; }
+.pr-name { font-size: 14px; font-weight: 600; }
+.pr-score { font-size: 15px; font-weight: 800; color: var(--accent); }
+.pr-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.pr-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 20px 0; }
+
+/* ── Celebration ── */
+@keyframes pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+.celebrate { animation: pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+@keyframes shimmer { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.pr-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--yellow-soft); border: 1px solid var(--yellow); color: var(--yellow); border-radius: 99px; padding: 2px 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; animation: shimmer 1.5s ease-in-out infinite; }
+
+/* ── Setup screen ── */
+.goal-option {
+  touch-action: manipulation;
+  display: flex; align-items: center; gap: 16px; padding: 18px;
+  background: var(--surface); border: 1.5px solid var(--border2);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.15s; margin-bottom: 10px;
+}
+.goal-option:active { border-color: var(--accent); background: var(--accent-soft); }
+.goal-emoji { font-size: 28px; }
+.goal-label { font-size: 16px; font-weight: 700; }
+.goal-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: var(--surface); border: 1px solid var(--border2);
+  padding: 12px 20px; border-radius: 99px; font-size: 14px; font-weight: 600;
+  z-index: 999; transition: transform 0.3s; white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- VIEW: Setup -->
+  <div class="view active" id="view-setup">
+    <div style="padding-top:12px">
+      <div style="font-size:13px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">CrossFit Goal Machine 🏋️</div>
+      <div class="title">Choose your<br>first goal</div>
+      <div class="subtitle" style="margin-top:8px;margin-bottom:28px">A structured programme. One session at a time.</div>
+
+      <div class="goal-option" onclick="startProgramme('muscle-up')">
+        <div class="goal-emoji">💪</div>
+        <div>
+          <div class="goal-label">First Muscle-Up</div>
+          <div class="goal-desc">10 weeks · 3 sessions/week · All levels</div>
+        </div>
+      </div>
+      <div class="goal-option" style="opacity:0.4;cursor:not-allowed">
+        <div class="goal-emoji">🔥</div>
+        <div>
+          <div class="goal-label">Sub-5 Fran</div>
+          <div class="goal-desc">Coming soon</div>
+        </div>
+      </div>
+      <div class="goal-option" style="opacity:0.4;cursor:not-allowed">
+        <div class="goal-emoji">💀</div>
+        <div>
+          <div class="goal-label">Murph Unbroken</div>
+          <div class="goal-desc">Coming soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: Home -->
+  <div class="view" id="view-home">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px" id="home-date"></div>
+        <div class="title" id="home-goal">First Muscle-Up</div>
+      </div>
+      <div onclick="showExport()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-weight:600">Export</div>
+    </div>
+
+    <!-- Programme progress -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="label">Programme Progress</div>
+      <div style="font-size:26px;font-weight:900" id="home-progress-text">Week 1 of 10</div>
+      <div class="progress-wrap"><div class="progress-fill" id="home-progress-bar" style="width:0%"></div></div>
+      <div class="progress-label"><span id="home-sessions-done">0 sessions done</span><span id="home-sessions-left">30 remaining</span></div>
+    </div>
+
+    <!-- Today's session -->
+    <div id="home-session-card"></div>
+
+    <!-- Week overview -->
+    <div class="card card-sm">
+      <div class="label">This week</div>
+      <div class="week-dots" id="home-week-dots"></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:8px" id="home-week-label"></div>
+    </div>
+
+    <!-- Recent sessions -->
+    <div id="home-recent"></div>
+  </div>
+
+  <!-- VIEW: Session detail -->
+  <div class="view" id="view-session">
+    <div class="session-header">
+      <div class="back-btn" onclick="navTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="week-badge" id="session-badge">Week 1 · Session 1</div>
+        <div class="section-title" id="session-focus"></div>
+      </div>
+    </div>
+    <div id="session-body"></div>
+    <div style="margin-top:20px" id="session-cta"></div>
+  </div>
+
+  <!-- VIEW: Log -->
+  <div class="view" id="view-log">
+    <div class="session-header">
+      <div class="back-btn" onclick="navTo('session')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </div>
+      <div>
+        <div style="font-size:20px;font-weight:800">Log session</div>
+        <div style="font-size:13px;color:var(--text2)" id="log-session-name"></div>
+      </div>
+    </div>
+
+    <div class="card" id="log-wod-reminder" style="margin-bottom:20px"></div>
+
+    <div style="margin-bottom:20px">
+      <div class="label">Your score</div>
+      <input class="score-input" id="log-score" placeholder="e.g. 7 rounds + 12 reps" />
+      <div style="font-size:12px;color:var(--text3);margin-top:6px;text-align:center" id="log-score-hint"></div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div class="label">How did it feel?</div>
+      <div class="mood-row" id="log-mood-row">
+        <div class="mood-btn" onclick="selectMood(0)" data-mood="💀">💀</div>
+        <div class="mood-btn" onclick="selectMood(1)" data-mood="😓">😓</div>
+        <div class="mood-btn" onclick="selectMood(2)" data-mood="😐">😐</div>
+        <div class="mood-btn" onclick="selectMood(3)" data-mood="🙂">🙂</div>
+        <div class="mood-btn" onclick="selectMood(4)" data-mood="🔥">🔥</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div class="label">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(optional)</span></div>
+      <textarea class="notes-input" id="log-notes" placeholder="How'd the false grip feel? Anything to remember next time..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitLog()">Save session ✓</button>
+    <button class="btn btn-ghost" onclick="skipLog()" style="margin-top:8px">Skip logging</button>
+  </div>
+
+  <!-- VIEW: History -->
+  <div class="view" id="view-history">
+    <div style="margin-bottom:20px">
+      <div class="title">History</div>
+      <div class="subtitle" id="history-subtitle">All your sessions</div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- VIEW: PRs -->
+  <div class="view" id="view-prs">
+    <div style="margin-bottom:20px">
+      <div class="title">PRs & Benchmarks</div>
+      <div class="subtitle">Your personal records</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="label">Benchmark WODs</div>
+      <div id="pr-benchmarks"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Programme milestones</div>
+      <div id="pr-milestones"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div id="nav">
+  <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" id="nav-session" onclick="openCurrentSession()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+    Session
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="navTo('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    History
+  </button>
+  <button class="nav-btn" id="nav-prs" onclick="navTo('prs')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    PRs
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// PROGRAMME DATA — 10 weeks, 3 sessions/week = 30 sessions
+// ══════════════════════════════════════════════════════════════════
+const PROGRAMME = [
+  // ── WEEK 1: Building the Foundation ──────────────────────────────
+  {
+    id:'w1s1', week:1, s:1,
+    focus:'False Grip Fundamentals',
+    theme:'The muscle-up lives or dies on your false grip.',
+    warmup:['3 min easy row or 200m jog','2 rounds: 10 arm circles, 10 band pull-aparts, 5 wrist circles each direction'],
+    skill:['False grip hang: 5 × 20 sec (rest 40 sec between)','False grip ring row: 4 × 8 (slow and controlled)','Ring dip bottom hold: 4 × 15 sec'],
+    wod_type:'AMRAP 10',
+    wod:['5 ring rows (false grip if possible)','10 push-ups','15 air squats'],
+    score:'Rounds + reps (e.g. 4 rounds + 8 reps)',
+    benchmark:null,
+    coach:"The false grip feels awkward. That's normal — your wrists aren't used to this position yet. These hangs are building tendon strength that will eventually support your entire bodyweight through the muscle-up transition. Don't rush. 20 seconds feels like forever at first. By week 4 you'll do it without thinking."
+  },
+  {
+    id:'w1s2', week:1, s:2,
+    focus:'Ring Dip Capacity',
+    theme:'Build the pushing half of the muscle-up.',
+    warmup:['2 rounds: 10 banded face pulls, 10 scap push-ups, 30 sec hollow hold'],
+    skill:['Ring support hold (top of dip): 5 × 20 sec','Ring push-up: 4 × 8','Ring dip (or box-assisted): 5 × 5'],
+    wod_type:'For time',
+    wod:['21 ring push-ups','21 box jumps 60cm','15 ring push-ups','15 box jumps','9 ring push-ups','9 box jumps'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"Ring dips are brutally harder than bar dips because the rings force your stabiliser muscles to work overtime. If you can't do strict ring dips yet, use a box under your feet. The goal today is to own the top position: shoulders packed down, rings turned out, body tight. That top position IS the finish of every muscle-up."
+  },
+  {
+    id:'w1s3', week:1, s:3,
+    focus:'Pulling Baseline — Cindy',
+    theme:'Establish where you are. This is your starting point.',
+    warmup:['400m easy jog','2 rounds: 10 dead hang scap pull-ups, 10 band pull-aparts'],
+    skill:['Dead hang: 3 × 30 sec','Strict pull-up: 5 sets to near failure — record your max','Kipping swing practice: 5 min (swing only, no pull-up yet)'],
+    wod_type:'AMRAP 20',
+    wod:['5 pull-ups','10 push-ups','15 air squats'],
+    score:'Rounds + reps — WRITE THIS DOWN',
+    benchmark:'cindy',
+    coach:"This is your Cindy baseline. You will retest this exact WOD in Week 7 and the difference will be visible and concrete. Don't pace it — give it everything. The kipping swing you practiced today is the same swing that generates the hip drive in the muscle-up. Right now it looks nothing like one. By week 7 it will be."
+  },
+  // ── WEEK 2: Building the Pull ─────────────────────────────────────
+  {
+    id:'w2s1', week:2, s:1,
+    focus:'False Grip Loading',
+    theme:'The grip should feel slightly less foreign now.',
+    warmup:['2 rounds: 10 ring rows, 10 banded pull-aparts, 10 wrist circles each direction'],
+    skill:['False grip hang: 5 × 25 sec','False grip ring pull-up (strict): 5 × 3–5 reps','Ring row: 3 × 10'],
+    wod_type:'AMRAP 12',
+    wod:['3 false grip ring pull-ups (or 6 ring rows)','6 ring push-ups','9 goblet squats (24/16 kg)'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"Every rep in false grip is building the wrist conditioning you'll need later. Notice how different the pull feels compared to a bar pull-up — that's your lats engaging differently. If you can't do false grip pull-ups yet, do ring rows in false grip. The grip is the point, not the movement."
+  },
+  {
+    id:'w2s2', week:2, s:2,
+    focus:'Dip Depth & Control',
+    theme:'The bottom of the ring dip is where muscle-ups are lost.',
+    warmup:['2 rounds: 10 scap push-ups, 10 band pull-aparts, 30 sec plank'],
+    skill:['Ring support → lower to bottom, hold 5 sec: 4 × 5','Ring dip: 5 × 3–5 reps','Dip negative (3 sec down): 3 × 5'],
+    wod_type:'For time',
+    wod:['50 push-ups','40 sit-ups','30 ring push-ups','20 ring dips (or 40 box dips)'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"If your elbows flare out or shoulders cave at the bottom of the ring dip, you'll stall at the same position in your muscle-up for months. Today we're fixing that now. Hold the bottom for 5 seconds on every skill rep. It should feel deeply uncomfortable. That discomfort is called progress."
+  },
+  {
+    id:'w2s3', week:2, s:3,
+    focus:'Pulling Power',
+    theme:'Build strength endurance in the pull.',
+    warmup:['500m row','2 rounds: 10 dead hang scap pulls, 10 band pull-aparts'],
+    skill:['Chest-to-bar pull-up: 5 × 3–5 reps','Strict pull-up: 3 × max reps','Hollow body hold: 3 × 30 sec'],
+    wod_type:'5 rounds for time',
+    wod:['7 pull-ups','10 push-ups','200m run'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"Chest-to-bar pull-ups are the direct predecessor to the muscle-up. When your chest touches the bar, you're almost in the transition position. Today your pull-ups probably look like chin-to-bar. By week 5 they'll automatically look like chest-to-bar because your pulling strength will have caught up."
+  },
+  // ── WEEK 3: Transition Awareness ─────────────────────────────────
+  {
+    id:'w3s1', week:3, s:1,
+    focus:'The Hip Pop',
+    theme:'Connect the pull and push for the first time.',
+    warmup:['2 rounds: 10 ring rows, 10 ring push-ups, 5 wrist rolls'],
+    skill:['False grip ring pull-up: 5 × 4','Hip pop drill (feet on box, simulate transition): 4 × 5 reps','Ring dip: 4 × 4'],
+    wod_type:'AMRAP 8',
+    wod:['4 false grip ring pull-ups','4 ring dips','8 box jumps 60cm'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"The hip pop drill is where the muscle-up starts to make physical sense. You're simulating the moment your hips drive forward and your bodyweight shifts from below the rings to above them. It feels weird because it IS weird — this movement doesn't exist anywhere else in fitness. Take your time understanding it today."
+  },
+  {
+    id:'w3s2', week:3, s:2,
+    focus:'Pulling Stamina — Death by Pull-ups',
+    theme:'How far can you go before you fall off a cliff?',
+    warmup:['400m run','2 rounds: 10 dead hangs, 10 band pull-aparts'],
+    skill:['Kipping pull-up: 5 × 5–8 (focus on rhythm and consistency)','False grip dead hang: 4 × 30 sec','Chest-to-bar: 4 × 3'],
+    wod_type:'Death by Pull-ups',
+    wod:['Min 1: 1 pull-up','Min 2: 2 pull-ups','Continue adding 1 rep each minute until you cannot complete the round'],
+    score:'Total rounds completed (e.g. 13 rounds = made it through round 13)',
+    benchmark:'death_by_pullups',
+    coach:"Death by pull-ups exposes the cliff between strength and stamina. You might make it to round 12 on raw strength, then fall off instantly. That cliff is your stamina limit — and every week it moves further back. Write your score down. This one comes back in week 9."
+  },
+  {
+    id:'w3s3', week:3, s:3,
+    focus:'Push-Pull Complex',
+    theme:'Train the two halves of the muscle-up back to back.',
+    warmup:['3 rounds: 5 ring rows, 5 ring push-ups, 10 hollow rocks'],
+    skill:['Ring row + ring push-up complex: 5 × (5 rows + 5 push-ups, no rest between)','False grip ring pull-up: 4 × 4','Ring support hold: 4 × 25 sec'],
+    wod_type:'For time',
+    wod:['21 ring rows','21 ring push-ups','21 sit-ups','15 ring rows','15 ring push-ups','15 sit-ups','9 ring rows','9 ring push-ups','9 sit-ups'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"The muscle-up is a pull immediately followed by a push. Your body needs to be comfortable transitioning between the two under fatigue. This complex builds that pattern without the full movement complexity. When this feels easy — the movement pieces are ready to be connected."
+  },
+  // ── WEEK 4: Strength Week ─────────────────────────────────────────
+  {
+    id:'w4s1', week:4, s:1,
+    focus:'Weighted Pull-up',
+    theme:'If a muscle-up needs 100% of your strength, you\'ll never get one.',
+    warmup:['2 rounds: 10 scap pull-ups, 10 band pull-aparts, 30 sec hollow'],
+    skill:['Weighted pull-up: Work up to heavy 3RM (dumbbell between feet)','False grip ring pull-up: 4 × 4','L-sit hang: 3 × 20 sec'],
+    wod_type:'AMRAP 10',
+    wod:['5 pull-ups','5 ring dips','10 wall balls (9/6 kg)'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"We need to build your ceiling so 100% effort feels like 70% of max. Weighted pull-ups raise that ceiling fast. Today's 3RM is your baseline. Write down the weight — we retest in week 8. If you can't add weight yet, focus on strict pull-ups with a 3-second pause at the top."
+  },
+  {
+    id:'w4s2', week:4, s:2,
+    focus:'Weighted Ring Dip',
+    theme:'Load the dip. What feels heavy today will feel light in week 9.',
+    warmup:['2 rounds: 10 ring push-ups, 10 scap push-ups, 30 sec plank'],
+    skill:['Weighted ring dip: Work up to heavy 3RM (dumbbell between feet)','Ring dip negative (5 sec down): 4 × 4','Ring push-up: 3 × 10'],
+    wod_type:'5 rounds for time',
+    wod:['6 deadlifts (70/47.5 kg)','6 hang power cleans (70/47.5 kg)','6 push jerks (70/47.5 kg)'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"Even 2–3 kg of extra load significantly changes the demand on ring dips. If you can't add weight, focus on slow negatives — 5 seconds down, controlled. The eccentric phase builds strength faster than the concentric. Every slow negative you do now is direct investment in your muscle-up."
+  },
+  {
+    id:'w4s3', week:4, s:3,
+    focus:'Gymnastics Stamina',
+    theme:'Pull + push + repeat. This is what a WOD muscle-up feels like.',
+    warmup:['500m row','2 rounds: 10 ring rows, 10 ring push-ups'],
+    skill:['False grip ring pull-up: 3 × 5','Ring dip: 3 × 5','Kipping swing: 10 min practice — focus on hollow/arch cycle'],
+    wod_type:'AMRAP 15',
+    wod:['3 ring pull-ups (false grip)','3 ring dips','6 burpees'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"3 ring pull-ups + 3 ring dips = one muscle-up done in two parts. You are doing the muscle-up in pieces today. When this AMRAP feels genuinely easy — not just completable, but easy — you're close to doing it in one piece."
+  },
+  // ── WEEK 5: Transition Work ───────────────────────────────────────
+  {
+    id:'w5s1', week:5, s:1,
+    focus:'Low Ring Transition',
+    theme:'Feel the movement without any fear.',
+    warmup:['2 rounds: 10 ring rows, 10 scap pull-ups, 10 hollow rocks'],
+    skill:['Low ring transition drill: 5 × 8 (rings hip height, feet on floor — pull to transition, lockout)','False grip pull to transition (mid-height rings): 4 × 3','Ring dip: 4 × 5'],
+    wod_type:'AMRAP 10',
+    wod:['5 low ring transitions','10 box jumps 60cm','15 double-unders (or 45 singles)'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"The low ring drill lets you feel the exact movement your upper body needs to make, without the fear of being at full height. Focus entirely on the moment your elbows pass your wrists — that's the hinge point of the entire muscle-up. Understand that position before you try it at full height."
+  },
+  {
+    id:'w5s2', week:5, s:2,
+    focus:'Jumping Muscle-Up',
+    theme:'Your first full muscle-up — with a little help.',
+    warmup:['2 rounds: 10 false grip hangs 15 sec, 5 ring dips, 10 kipping swings'],
+    skill:['Jumping muscle-up: 5 × 3 (box under feet, focus on the transition, lock out at top)','False grip ring pull-up: 3 × 5','Ring dip: 3 × 5'],
+    wod_type:'For time',
+    wod:['10 jumping muscle-ups','20 pull-ups','10 jumping muscle-ups','20 push-ups'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"You are doing muscle-ups today. They're assisted — but you're doing the full movement. Focus on the lockout at the top: arms fully extended, body upright. Many people pull perfectly and miss the lockout. Arms straight at the top. That's completion. That feeling of locking out is what you're chasing."
+  },
+  {
+    id:'w5s3', week:5, s:3,
+    focus:'Hip Drive Development',
+    theme:'The kipping muscle-up is 40% hip drive.',
+    warmup:['2 rounds: 10 kipping swings, 10 hollow rocks, 10 superman holds'],
+    skill:['Kipping swing + hip pop: 5 × 5 (swing forward, drive hips aggressively to rings, don\'t pull yet)','False grip kipping pull-up: 4 × 3','Ring dip: 4 × 4'],
+    wod_type:'AMRAP 12',
+    wod:['5 kipping pull-ups','5 ring dips','200m run'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"When your hips snap forward and upward, your bodyweight shifts. If your pull is strong enough to meet that shift, the transition happens almost automatically. Today we're training the hip drive in isolation so you can feel it working. Everything else — the pull, the dip — you've been building for 5 weeks. The hip drive is the last piece."
+  },
+  // ── WEEK 6: Combining the Pieces ─────────────────────────────────
+  {
+    id:'w6s1', week:6, s:1,
+    focus:'Muscle-Up Negative',
+    theme:'The movement in reverse is the fastest way to build it forward.',
+    warmup:['2 rounds: 5 ring dips, 5 chest-to-bar pull-ups, 10 hollow rocks'],
+    skill:['Muscle-up negative: 5 × 3 (jump to support position at top, lower slowly through transition to hang — 4 sec down)','False grip pull-up: 4 × 5','Ring dip: 4 × 5'],
+    wod_type:'AMRAP 8',
+    wod:['3 muscle-up negatives','6 ring push-ups','9 air squats'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"The negative is the muscle-up in reverse — and it's one of the most powerful tools available. You're lowering through the exact position you need to press through on the way up. Your brain is mapping the movement at the same time. Do 15 high-quality negatives this week and your week 7 attempts will be dramatically different."
+  },
+  {
+    id:'w6s2', week:6, s:2,
+    focus:'Banded Muscle-Up',
+    theme:'Assisted full muscle-up. Make each rep feel identical.',
+    warmup:['2 rounds: 10 kipping swings, 5 jumping muscle-ups, 5 ring dips'],
+    skill:['Banded muscle-up: 5 × 3 (band looped through rings, foot in band — use least assistance possible)','False grip strict ring pull-up: 3 × max reps','Ring dip: 3 × 5'],
+    wod_type:'5 rounds for time',
+    wod:['3 banded muscle-ups','10 box jumps 60cm','15 air squats'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"The band gives you just enough help to complete the movement without doing it for you. Focus on making each rep feel identical — same setup, same hip drive, same lockout. Consistency in the movement pattern builds the neuromuscular groove. By the third set today it should feel slightly more natural than the first. That's your nervous system learning."
+  },
+  {
+    id:'w6s3', week:6, s:3,
+    focus:'Nicole — Pull-up Capacity Under Fatigue',
+    theme:'In a WOD, you never attempt the muscle-up fresh.',
+    warmup:['500m row','2 rounds: 10 scap pull-ups, 10 false grip ring rows'],
+    skill:['Chest-to-bar pull-up: 5 × 5','False grip hang: 4 × 30 sec','Hollow body: 4 × 30 sec'],
+    wod_type:'AMRAP 20 (Nicole)',
+    wod:['Run 400m','Max pull-ups — record reps each round'],
+    score:'Total pull-ups (also note per-round breakdown)',
+    benchmark:'nicole',
+    coach:"Nicole reveals your pull-up capacity when your lungs are already burning. The muscle-up in a WOD context is always done under fatigue — you won't get to choose when you're ready. Today's score shows exactly where your pulling capacity sits when everything else hurts. This is the realistic baseline."
+  },
+  // ── WEEK 7: First Attempts ────────────────────────────────────────
+  {
+    id:'w7s1', week:7, s:1,
+    focus:'Attempt Day 🎯',
+    theme:'Everything was preparation. This is the point.',
+    warmup:['400m easy jog','3 rounds: 5 kipping swings, 3 false grip ring pull-ups, 3 ring dips','2 jumping muscle-ups — feel the movement'],
+    skill:['🎯 MUSCLE-UP ATTEMPTS: 20 min — take full 2–3 min rest between every attempt','Note: did you get it? Where did you stall? How many tries?','Weighted pull-up: retest 3RM from week 4'],
+    wod_type:'AMRAP 10',
+    wod:['5 kipping pull-ups','5 ring dips','10 wall balls 9 kg'],
+    score:'Rounds + reps (keep it light — attempts were the main work)',
+    benchmark:null,
+    coach:"You might get it today. You might not. Both are OK. What matters is you make 10–15 genuine attempts with proper setup and full effort. After each attempt, rest completely — 2–3 minutes. If you get it: log it as a PR immediately. If not: note exactly where you stalled. The data tells us what to work on next."
+  },
+  {
+    id:'w7s2', week:7, s:2,
+    focus:'Fix the Weakness',
+    theme:'Your stall point is your training target.',
+    warmup:['2 rounds: 10 kipping swings, 5 false grip ring pull-ups, 5 ring dips'],
+    skill:['If stalling at TRANSITION: 5 × 8 low ring transitions + 5 × 5 hip pop drills','If stalling at the PULL: 5 × 5 false grip chest-to-bar + 3 × 3 weighted pull-up','If stalling at the DIP: 5 × 5 ring dip negatives (slow) + 3 × 3 weighted ring dip'],
+    wod_type:'5 rounds for time',
+    wod:['3 banded muscle-ups','10 ring push-ups','15 KB swings (24/16 kg)'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"Every person stalls at a different point. Transition = more drilling. Pull = ceiling not high enough yet. Dip = ring dip strength. Each one has a direct fix. Be honest with yourself about where you're failing. That's where we focus today. Targeted work on your specific weakness is worth 10x generic training right now."
+  },
+  {
+    id:'w7s3', week:7, s:3,
+    focus:'Cindy Retest',
+    theme:'6 weeks of progress. Measure it.',
+    warmup:['2 rounds: 10 kipping swings, 3 jumping muscle-ups, 5 ring dips'],
+    skill:['5 perfect banded muscle-ups (beautiful form, no rush)','5 muscle-up negatives (slow and controlled)','3 actual attempts (no pressure — just feel where you are)'],
+    wod_type:'AMRAP 20 (Cindy)',
+    wod:['5 pull-ups','10 push-ups','15 air squats'],
+    score:'Rounds + reps — COMPARE TO WEEK 1',
+    benchmark:'cindy',
+    coach:"Compare today's Cindy to week 1. The number should be meaningfully higher — that's 6 weeks of real fitness gains made concrete. Write both scores side by side. The muscle-up itself may or may not have clicked yet. Either way, the athlete you are today is measurably better than week 1. That's not nothing. That's everything."
+  },
+  // ── WEEK 8: Consolidation ─────────────────────────────────────────
+  {
+    id:'w8s1', week:8, s:1,
+    focus:'Attempts + Accessory',
+    theme:'More attempts. You\'re closer than you think.',
+    warmup:['400m easy jog','3 rounds: 8 kipping swings, 3 false grip pull-ups, 3 ring dips','2 perfect jumping muscle-ups'],
+    skill:['🎯 MUSCLE-UP ATTEMPTS: 20 min (full rest between every attempt — 3+ min)','Accessory: 3 × 5 false grip chest-to-bar pull-ups'],
+    wod_type:'AMRAP 12',
+    wod:['3 muscle-up attempts (or 3 banded muscle-ups)','9 box jumps 60cm','15 double-unders'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"If you got your first muscle-up last week — this week is about making the second one easier than the first. If you're still working toward it — every attempt is training. The attempts themselves are building the movement pattern in your nervous system. You are closer than you think."
+  },
+  {
+    id:'w8s2', week:8, s:2,
+    focus:'Pulling Density',
+    theme:'Maintain pulling strength when everything else is tired.',
+    warmup:['2 rounds: 10 scap pull-ups, 10 false grip ring rows'],
+    skill:['Every 90 sec for 12 min: 3 chest-to-bar + 2 ring dips','False grip hang: 3 × 30 sec','Weighted pull-up: retest 3RM from week 4 — compare'],
+    wod_type:'Fight Gone Bad format (3 rounds, 1 min each station, 1 min rest)',
+    wod:['Row (calories)','Wall balls (9 kg)','Pull-ups','Push press (40/25 kg)','Burpees'],
+    score:'Total reps across all rounds',
+    benchmark:null,
+    coach:"The EMOM pulls train you to express pulling strength on a clock — which is exactly what muscle-ups in a WOD require. You don't get to choose when you're ready in a workout. You do them when the programme says to do them. Today you're training that skill directly."
+  },
+  {
+    id:'w8s3', week:8, s:3,
+    focus:'Active Recovery + Skills',
+    theme:'Rest is strategy. Your body builds strength during recovery.',
+    warmup:['Easy 800m jog or 1000m row at conversational pace'],
+    skill:['Hollow body: 5 × 30 sec','Ring support hold: 5 × 30 sec','5 perfect jumping muscle-ups — beautiful form, no rush','5 muscle-up negatives (5 sec down — count it)'],
+    wod_type:'Easy AMRAP 15 (recovery pace)',
+    wod:['5 ring rows','10 push-ups','200m easy walk or slow jog'],
+    score:'Rounds (recovery session — do not push the intensity)',
+    benchmark:null,
+    coach:"Recovery sessions are not weakness. They're strategy. Your body doesn't build strength during work — it builds it during rest. Today's light session keeps movement patterns fresh without adding fatigue. The muscle-up often clicks after a rest day. Come back tomorrow feeling good."
+  },
+  // ── WEEK 9: You're Ready ──────────────────────────────────────────
+  {
+    id:'w9s1', week:9, s:1,
+    focus:'Final Approach 🏁',
+    theme:'The fitness is there. Now trust it.',
+    warmup:['400m easy','3 rounds: 8 kipping swings, 3 false grip pull-ups, 3 ring dips','2 perfect jumping muscle-ups','2 muscle-up negatives','2 min complete rest before attempts'],
+    skill:['🎯 MUSCLE-UP ATTEMPTS: 25 min — absolute full rest, 3+ min between every single attempt','Video at least one attempt on your phone if possible'],
+    wod_type:'AMRAP 8 (easy)',
+    wod:['5 ring push-ups','10 box step-ups','15 air squats'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"You have 9 weeks of specific training behind you. Your pulling strength is dramatically higher than week 1. Your ring dip is stronger. You've drilled the transition hundreds of times. The fitness is real. Set up perfectly — false grip locked in, hollow body on the swing, hip snap at the bottom, aggressive pull, fast elbows. You've done every piece. Now put it together."
+  },
+  {
+    id:'w9s2', week:9, s:2,
+    focus:'Death by Pull-ups — Retest',
+    theme:'9 weeks of pulling strength. See the number.',
+    warmup:['2 rounds: 10 kipping swings, 5 false grip ring pull-ups, 5 ring dips'],
+    skill:['Pick your stall point and drill it one final time: 15 focused reps','False grip hang: 3 × 30 sec'],
+    wod_type:'Death by Pull-ups',
+    wod:['Min 1: 1 pull-up','Min 2: 2 pull-ups','Continue until you cannot complete the round'],
+    score:'Total rounds — COMPARE TO WEEK 3',
+    benchmark:'death_by_pullups',
+    coach:"Compare today to week 3. The number should be meaningfully higher. This is concrete evidence of 9 weeks of training — regardless of whether the muscle-up has clicked yet. The fitness gain is real and it's in this number. Write both scores side by side."
+  },
+  {
+    id:'w9s3', week:9, s:3,
+    focus:'Attempt + Fran Baseline',
+    theme:'One more attempt block, then a new benchmark.',
+    warmup:['Full gymnastics warm-up as previous attempt sessions'],
+    skill:['🎯 MUSCLE-UP ATTEMPTS: 20 min (3+ min rest between)','Note any changes in the movement feel vs week 7'],
+    wod_type:'Fran — 21-15-9 for time',
+    wod:['Thrusters (43/30 kg)','Pull-ups'],
+    score:'Time (minutes:seconds) — record this number',
+    benchmark:'fran',
+    coach:"Fran is one of CrossFit's most famous benchmarks. Your Fran time today reflects 9 weeks of serious training. Write it down — it becomes your new baseline for everything that follows. Even if the muscle-up isn't there yet, finishing Fran is a meaningful achievement that most people never do."
+  },
+  // ── WEEK 10: Achievement ──────────────────────────────────────────
+  {
+    id:'w10s1', week:10, s:1,
+    focus:'Final Attempt Block 🏆',
+    theme:'This is it. You\'ve earned this.',
+    warmup:['400m easy jog','3 rounds: 8 kipping swings, 3 pull-ups, 3 ring dips','3 jumping muscle-ups','2 muscle-up negatives','2 min complete rest'],
+    skill:['🎯 MUSCLE-UP ATTEMPTS: 30 min — full rest between every attempt (3–4 min)','Video your attempts','This is your final dedicated attempt session'],
+    wod_type:'AMRAP 10 (easy — attempts were the workout)',
+    wod:['5 ring rows','10 push-ups','15 air squats'],
+    score:'Rounds + reps',
+    benchmark:null,
+    coach:"10 weeks of consistent work. Your body knows what to do. Set up perfectly: false grip locked in, hollow body, hip snap at the bottom, aggressive pull, fast elbows through. You've done every piece of this hundreds of times. Trust the process. Trust the work. Go."
+  },
+  {
+    id:'w10s2', week:10, s:2,
+    focus:'Own the Movement',
+    theme:'Make the second one easier than the first.',
+    warmup:['Standard gymnastics warm-up'],
+    skill:['If muscle-up achieved: 5 sets of 1 perfect rep + 2 ring dips. Own every lockout.','If still working: 20 min attempts + 10 min banded muscle-ups with minimum assistance'],
+    wod_type:'Fran — 21-15-9 for time',
+    wod:['Thrusters (43/30 kg)','Pull-ups'],
+    score:'Time — compare to week 9',
+    benchmark:'fran',
+    coach:"Whether you've got it or you're still chasing it — you're a dramatically better athlete than 10 weeks ago. Fran is the mirror. The time on the clock reflects everything you've built. Write it down. This is the start of a new baseline, not the end of anything."
+  },
+  {
+    id:'w10s3', week:10, s:3,
+    focus:'Celebration Session 🎉',
+    theme:'10 weeks. Look at what you built.',
+    warmup:['Whatever feels good — this is yours'],
+    skill:['10 min: your favourite movements, the things you can do now that you couldn\'t in week 1','Muscle-up reps if you have them — do as many as you want, they\'re yours now','OR attempt block if still chasing it'],
+    wod_type:'Programme Finisher — for time',
+    wod:['10 false grip ring pull-ups','10 ring dips','8-8, 6-6, 4-4, 2-2 (alternating pull-ups and ring dips, decreasing)'],
+    score:'Time (minutes:seconds)',
+    benchmark:null,
+    coach:"10 weeks ago you were introduced to false grip for the first time. Today you just did a ladder of them. That's what 10 weeks of consistent work looks like. The muscle-up came or it's very close. Either way, you've built a foundation that will pay dividends for years. Rest. Come back ready for the next goal."
+  }
+];
+
+const BENCHMARKS = {
+  cindy:            { name:'Cindy', icon:'🔥', desc:'AMRAP 20: 5 pull-ups, 10 push-ups, 15 squats', unit:'rounds+reps', higher_better:true },
+  fran:             { name:'Fran', icon:'⚡', desc:'21-15-9: Thrusters + Pull-ups', unit:'time', higher_better:false },
+  nicole:           { name:'Nicole', icon:'🏃', desc:'AMRAP 20: 400m run + max pull-ups', unit:'total pull-ups', higher_better:true },
+  death_by_pullups: { name:'Death by Pull-ups', icon:'💀', desc:'Add 1 rep each minute until failure', unit:'rounds', higher_better:true },
+};
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'cf_gm_v1';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveState(s) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+let state = loadState();
+// state shape: { goal, startDate, logs: [{sessionId, date, score, mood, notes}] }
+
+let selectedMood = null;
+let currentSessionIdx = 0;
+
+// ══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function navTo(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + viewName).classList.add('active');
+  const nb = document.getElementById('nav-' + viewName);
+  if (nb) nb.classList.add('active');
+
+  if (viewName === 'home') renderHome();
+  if (viewName === 'history') renderHistory();
+  if (viewName === 'prs') renderPRs();
+  if (viewName === 'session') renderSession(currentSessionIdx);
+}
+
+function openCurrentSession() {
+  const logs = (state.logs || []);
+  currentSessionIdx = Math.min(logs.length, PROGRAMME.length - 1);
+  navTo('session');
+  document.getElementById('nav-session').classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════════════════════════════
+function startProgramme(goal) {
+  state = { goal, startDate: new Date().toISOString().split('T')[0], logs: [] };
+  saveState(state);
+  navTo('home');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════════════════════
+function renderHome() {
+  if (!state.goal) { navTo('setup'); return; }
+
+  const logs = state.logs || [];
+  const done = logs.length;
+  const total = PROGRAMME.length;
+  const pct = Math.round((done / total) * 100);
+  const nextIdx = Math.min(done, total - 1);
+  const next = PROGRAMME[nextIdx];
+
+  // Date
+  const now = new Date();
+  document.getElementById('home-date').textContent = now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+
+  // Progress
+  document.getElementById('home-progress-text').textContent = `Week ${next.week} of 10`;
+  document.getElementById('home-progress-bar').style.width = pct + '%';
+  document.getElementById('home-sessions-done').textContent = `${done} sessions done`;
+  document.getElementById('home-sessions-left').textContent = `${total - done} remaining`;
+
+  // Session card
+  const scEl = document.getElementById('home-session-card');
+  if (done >= total) {
+    scEl.innerHTML = `<div class="card card-green"><div style="font-size:32px;margin-bottom:8px">🏆</div><div class="section-title">Programme complete!</div><div class="subtitle" style="margin-top:6px">10 weeks done. You showed up every time.</div></div>`;
+  } else {
+    scEl.innerHTML = `
+      <div class="card card-accent" style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px">Up next</div>
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px">${next.focus}</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Week ${next.week} · Session ${next.s} of 3 &nbsp;·&nbsp; ${next.wod_type}</div>
+        <button class="btn btn-primary" onclick="openCurrentSession()">Start session →</button>
+      </div>`;
+  }
+
+  // Week dots
+  const weekStart = (next.week - 1) * 3;
+  const weekEnd   = weekStart + 3;
+  const dots = document.getElementById('home-week-dots');
+  dots.innerHTML = '';
+  for (let i = weekStart; i < weekEnd; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot ' + (i < done ? 'dot-done' : i === done ? 'dot-today' : 'dot-rest');
+    dots.appendChild(d);
+  }
+  document.getElementById('home-week-label').textContent = PROGRAMME[weekStart].theme || '';
+
+  // Recent
+  const recentEl = document.getElementById('home-recent');
+  if (logs.length === 0) { recentEl.innerHTML = ''; return; }
+  const recent = [...logs].reverse().slice(0, 3);
+  recentEl.innerHTML = `<div class="card card-sm"><div class="label">Recent sessions</div>${recent.map(l => {
+    const sess = PROGRAMME.find(p => p.id === l.sessionId);
+    return `<div class="history-item">
+      <div class="history-dot">${l.mood || '🙂'}</div>
+      <div style="flex:1">
+        <div class="history-score">${sess ? sess.focus : l.sessionId}</div>
+        <div class="history-meta">${l.score || '—'}</div>
+      </div>
+      <div class="history-date">${formatDate(l.date)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════════════════════════
+function renderSession(idx) {
+  const sess = PROGRAMME[idx];
+  if (!sess) return;
+
+  const logs = state.logs || [];
+  const isLogged = logs.some(l => l.sessionId === sess.id);
+
+  document.getElementById('session-badge').textContent = `Week ${sess.week} · Session ${sess.s} of 3`;
+  document.getElementById('session-focus').textContent = sess.focus;
+
+  const body = document.getElementById('session-body');
+  body.innerHTML = `
+    <p style="font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.6;font-style:italic">"${sess.theme}"</p>
+
+    <div class="workout-section">
+      <div class="workout-section-header">
+        <div class="section-icon icon-warmup">🔥</div>
+        <div><div class="section-title">Warm Up</div><div style="font-size:12px;color:var(--text3)">~5 minutes</div></div>
+      </div>
+      <div class="card card-sm">
+        ${sess.warmup.map(w => `<div class="workout-item"><div class="bullet"></div><div>${w}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="workout-section">
+      <div class="workout-section-header">
+        <div class="section-icon icon-skill">💪</div>
+        <div><div class="section-title">Skill / Strength</div><div style="font-size:12px;color:var(--text3)">~20 minutes</div></div>
+      </div>
+      <div class="card card-sm">
+        ${sess.skill.map(s => `<div class="workout-item"><div class="bullet" style="background:var(--accent)"></div><div>${s}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="workout-section">
+      <div class="workout-section-header">
+        <div class="section-icon icon-wod">⚡</div>
+        <div><div class="section-title">WOD</div><div style="font-size:12px;color:var(--text3)">${sess.wod_type}</div></div>
+      </div>
+      <div class="wod-box">
+        <div class="wod-type">${sess.wod_type}</div>
+        ${sess.wod.map(m => `<div class="wod-movement">${m}</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="workout-section">
+      <div class="coach-box">
+        <div class="coach-label">🎙 Coach note</div>
+        <div class="coach-text">${sess.coach}</div>
+      </div>
+    </div>
+  `;
+
+  const cta = document.getElementById('session-cta');
+  if (isLogged) {
+    const log = logs.find(l => l.sessionId === sess.id);
+    cta.innerHTML = `
+      <div class="card card-green" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px">✓ Logged</div>
+        <div style="font-size:18px;font-weight:800">${log.score || '—'}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:4px">${log.mood || ''} ${log.notes || ''}</div>
+      </div>`;
+  } else {
+    cta.innerHTML = `<button class="btn btn-primary" onclick="openLog(${idx})">Done — Log my score →</button>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════════════════════════
+function openLog(idx) {
+  currentSessionIdx = idx;
+  const sess = PROGRAMME[idx];
+  document.getElementById('log-session-name').textContent = `Week ${sess.week} · ${sess.focus}`;
+  document.getElementById('log-score-hint').textContent = sess.score;
+  document.getElementById('log-score').value = '';
+  document.getElementById('log-notes').value = '';
+  document.getElementById('log-wod-reminder').innerHTML = `<div class="wod-type">${sess.wod_type}</div>${sess.wod.map(m => `<div class="wod-movement">${m}</div>`).join('')}`;
+  selectedMood = null;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  navTo('log');
+}
+
+function selectMood(idx) {
+  const moods = ['💀','😓','😐','🙂','🔥'];
+  selectedMood = moods[idx];
+  document.querySelectorAll('.mood-btn').forEach((b, i) => {
+    b.classList.toggle('selected', i === idx);
+  });
+}
+
+function submitLog() {
+  const score = document.getElementById('log-score').value.trim();
+  const notes = document.getElementById('log-notes').value.trim();
+  const sess  = PROGRAMME[currentSessionIdx];
+
+  const entry = {
+    sessionId: sess.id,
+    date: new Date().toISOString().split('T')[0],
+    score: score || null,
+    mood: selectedMood || '😐',
+    notes: notes || null,
+  };
+
+  if (!state.logs) state.logs = [];
+
+  // Check for PR on benchmarks
+  let isPR = false;
+  if (sess.benchmark && score) {
+    const prev = state.logs.filter(l => {
+      const ps = PROGRAMME.find(p => p.id === l.sessionId);
+      return ps && ps.benchmark === sess.benchmark && l.score;
+    });
+    if (prev.length > 0) isPR = true; // simplified: any repeat of same benchmark = potential PR
+  }
+
+  state.logs.push(entry);
+  saveState(state);
+
+  showToast(isPR ? '🏆 Possible PR! Check your history' : '✓ Session logged!');
+  navTo('home');
+}
+
+function skipLog() {
+  const sess = PROGRAMME[currentSessionIdx];
+  if (!state.logs) state.logs = [];
+  state.logs.push({ sessionId: sess.id, date: new Date().toISOString().split('T')[0], score: null, mood: null, notes: null });
+  saveState(state);
+  navTo('home');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════════════
+function renderHistory() {
+  const logs = [...(state.logs || [])].reverse();
+  document.getElementById('history-subtitle').textContent = `${logs.length} session${logs.length !== 1 ? 's' : ''} logged`;
+
+  if (logs.length === 0) {
+    document.getElementById('history-list').innerHTML = `<div class="pr-empty">No sessions logged yet.<br>Complete your first session to start.</div>`;
+    return;
+  }
+
+  document.getElementById('history-list').innerHTML = `<div class="card">${logs.map((l, i) => {
+    const sess = PROGRAMME.find(p => p.id === l.sessionId);
+    return `<div class="history-item">
+      <div class="history-dot">${l.mood || '📋'}</div>
+      <div style="flex:1">
+        <div class="history-score">${sess ? sess.focus : 'Session'}</div>
+        <div class="history-meta">
+          ${sess ? `W${sess.week}·S${sess.s}` : ''} · ${l.score || 'no score logged'}
+          ${l.notes ? `<br><span style="color:var(--text3)">"${l.notes}"</span>` : ''}
+        </div>
+      </div>
+      <div class="history-date">${formatDate(l.date)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════// PRs
+// ══════════════════════════════════════════════════════════════════
+function renderPRs() {
+  const logs = state.logs || [];
+
+  // Benchmarks
+  const bmEl = document.getElementById('pr-benchmarks');
+  const bmKeys = Object.keys(BENCHMARKS);
+  if (bmKeys.every(k => !logs.some(l => { const p = PROGRAMME.find(s => s.id === l.sessionId); return p && p.benchmark === k && l.score; }))) {
+    bmEl.innerHTML = `<div class="pr-empty">Complete benchmark WODs to see PRs here.<br>First one appears in Week 1 Session 3 (Cindy).</div>`;
+  } else {
+    bmEl.innerHTML = bmKeys.map(k => {
+      const bm = BENCHMARKS[k];
+      const relevant = logs.filter(l => { const p = PROGRAMME.find(s => s.id === l.sessionId); return p && p.benchmark === k && l.score; });
+      if (relevant.length === 0) return '';
+      const best = relevant[relevant.length - 1];
+      const prev = relevant.length > 1 ? relevant[relevant.length - 2] : null;
+      return `<div class="pr-item">
+        <div>
+          <div class="pr-name">${bm.icon} ${bm.name}</div>
+          <div style="font-size:12px;color:var(--text3)">${bm.desc}</div>
+          ${prev ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">Previous: ${prev.score}</div>` : ''}
+        </div>
+        <div style="text-align:right">
+          <div class="pr-score">${best.score}</div>
+          <div class="pr-date">${formatDate(best.date)}</div>
+          ${relevant.length > 1 ? '<span class="pr-badge">↑ Updated</span>' : ''}
+        </div>
+      </div>`;
+    }).filter(Boolean).join('') || `<div class="pr-empty">No benchmarks yet.</div>`;
+  }
+
+  // Milestones
+  const mlEl = document.getElementById('pr-milestones');
+  const milestones = [
+    { label:'First muscle-up attempt session', sessionId:'w7s1', icon:'🎯' },
+    { label:'Cindy baseline', sessionId:'w1s3', icon:'🔥' },
+    { label:'Cindy retest', sessionId:'w7s3', icon:'📈' },
+    { label:'Programme complete', check: () => logs.length >= 30, icon:'🏆' },
+  ];
+  mlEl.innerHTML = milestones.map(m => {
+    const done = m.check ? m.check() : logs.some(l => l.sessionId === m.sessionId && l.score);
+    const log = m.sessionId ? logs.find(l => l.sessionId === m.sessionId) : null;
+    return `<div class="pr-item">
+      <div>
+        <div class="pr-name">${m.icon} ${m.label}</div>
+        ${log && log.score ? `<div style="font-size:12px;color:var(--text3)">${log.score}</div>` : ''}
+      </div>
+      <div style="text-align:right">
+        ${done ? `<span style="color:var(--green);font-weight:700;font-size:14px">✓ Done</span>` : `<span style="color:var(--text3);font-size:13px">Pending</span>`}
+        ${log ? `<div class="pr-date">${formatDate(log.date)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════════════
+function showExport() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'crossfit-goal-machine-backup.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📦 Backup saved');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+(function init() {
+  if (!state.goal) {
+    document.getElementById('view-setup').classList.add('active');
+  } else {
+    document.getElementById('view-setup').classList.remove('active');
+    navTo('home');
+  }
+})();
+</script>
+</body>
+</html>
