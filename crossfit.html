@@ -127,6 +127,22 @@ body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-app
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--surface);border:1px solid var(--border2);padding:12px 20px;border-radius:99px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 ::-webkit-scrollbar{width:0}
+
+/* Counters */
+.ctr-wrap{display:flex;gap:12px;justify-content:center}
+.ctr{flex:1;background:var(--surface2);border-radius:var(--r);padding:16px 12px;text-align:center}
+.ctr-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px}
+.ctr-row{display:flex;align-items:center;justify-content:center;gap:10px}
+.ctr-btn{touch-action:manipulation;width:54px;height:54px;border-radius:12px;border:none;background:var(--surface3);color:var(--text);font-size:26px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.ctr-btn:active{background:var(--accent);color:#fff;transform:scale(.9)}
+.ctr-val{font-size:40px;font-weight:900;min-width:56px;text-align:center;letter-spacing:-1px}
+.got-row{display:flex;gap:10px;margin-top:14px}
+.got-btn{touch-action:manipulation;flex:1;padding:14px;border-radius:var(--rsm);border:1.5px solid var(--border2);background:var(--surface2);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;font-family:'Inter',sans-serif}
+.got-btn.on-no{border-color:var(--text3);background:var(--surface3)}
+.got-btn.on-yes{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+/* Tags */
+.tag{touch-action:manipulation;display:inline-flex;align-items:center;padding:8px 14px;border-radius:99px;border:1.5px solid var(--border2);background:var(--surface2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin:4px}
+.tag.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -195,11 +211,7 @@ body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-app
     </div>
   </div>
   <div class="card card-sm" id="log-wod" style="margin-bottom:20px"></div>
-  <div style="margin-bottom:20px">
-    <div class="lbl">Your score</div>
-    <input class="score-in" id="log-score" placeholder="e.g. 6 rounds + 11 reps"/>
-    <div style="font-size:12px;color:var(--text3);margin-top:6px;text-align:center" id="log-hint"></div>
-  </div>
+  <div style="margin-bottom:20px" id="log-score-section"></div>
   <div style="margin-bottom:20px">
     <div class="lbl">How did it feel?</div>
     <div class="mood-row">
@@ -211,11 +223,11 @@ body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-app
     </div>
   </div>
   <div style="margin-bottom:24px">
-    <div class="lbl">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(optional)</span></div>
-    <textarea class="notes-in" id="log-notes" placeholder="What worked? What didn't? Anything to remember..."></textarea>
+    <div class="lbl">Session tags</div>
+    <div id="log-tags"></div>
   </div>
   <button class="btn btn-primary" onclick="submitLog()">Save session ✓</button>
-  <button class="btn btn-ghost" onclick="skipLog()" style="margin-top:8px">Skip logging</button>
+  <button class="btn btn-ghost" onclick="skipLog()" style="margin-top:8px">Skip</button>
 </div>
 
 <!-- HISTORY -->
@@ -272,94 +284,94 @@ const PROGS = {
   phases:['Foundation','Build','Push'],
   sessions:[
     // Phase 1 — Foundation (weeks 1-2)
-    {id:'z1',w:1,s:1,ph:1,focus:'Scap Control',
+    {id:'z1',st:'amrap',w:1,s:1,ph:1,focus:'Scap Control',
      wu:['2 rounds: 10 arm circles, 10 band pull-aparts, 10 sec dead hang'],
      sk:['Dead hang: 5 × 20 sec','Scap pull-up: 5 × 5 (hang, squeeze shoulder blades DOWN without bending elbows)','Ring row: 4 × 10'],
      wt:'AMRAP 10',wm:['10 ring rows','10 push-ups','15 air squats'],sc:'Rounds + reps',bm:null,
      co:"Before you can pull yourself up, your shoulders need to know how to move. The scap pull-up is the foundation of every pull-up. Hang from the bar, then without bending your elbows, squeeze your shoulder blades down toward your back pockets. That tiny movement is your lats engaging. That's what pulls you up."},
-    {id:'z2',w:1,s:2,ph:1,focus:'Pushing Baseline',
+    {id:'z2',st:'time',w:1,s:2,ph:1,focus:'Pushing Baseline',
      wu:['2 rounds: 10 scap push-ups, 30 sec hollow hold, 10 wrist circles'],
      sk:['Push-up max: 1 set to failure — write this number down','Ring push-up: 4 × 8','Dip negative (3 sec down): 4 × 5'],
      wt:'For time',wm:['21-15-9:','Push-ups','Sit-ups','Air squats'],sc:'Time (mm:ss)',bm:'pushup_baseline',
      co:"The push-up max today is your week 1 baseline. Write it down now — in 6 weeks you'll retest it and the comparison will be concrete evidence of what this programme built. If you can't do a standard push-up yet, do knee push-ups and note that."},
-    {id:'z3',w:1,s:3,ph:1,focus:'First Negative',
+    {id:'z3',st:'amrap',w:1,s:3,ph:1,focus:'First Negative',
      wu:['2 rounds: 10 dead hangs, 10 band pull-aparts, 5 scap pull-ups'],
      sk:['Dead hang: 3 × 30 sec','Negative pull-up (jump to bar, 3 sec down): 5 × 3','Ring row: 3 × 10'],
      wt:'AMRAP 12',wm:['3 ring rows','6 push-ups','9 box jumps (or step-ups)'],sc:'Rounds + reps',bm:null,
      co:"The negative is the most powerful tool in this programme. Jump to the bar so your chin is above it, hold for 1 second, then take exactly 3 seconds to lower yourself. Count out loud. That 3-second lowering builds more strength than any other exercise here — and it's building the exact same muscles you need to pull yourself up."},
-    {id:'z4',w:2,s:1,ph:1,focus:'Hang Strength',
+    {id:'z4',st:'time',w:2,s:1,ph:1,focus:'Hang Strength',
      wu:['2 rounds: 10 arm circles, dead hang 15 sec, 10 scap pull-ups'],
      sk:['Dead hang: 5 × 30 sec','Scap pull-up: 5 × 8','Ring row (feet elevated if possible): 4 × 8'],
      wt:'5 rounds for time',wm:['5 ring rows','10 push-ups','200m run'],sc:'Time (mm:ss)',bm:null,
      co:"Your hangs should feel slightly more manageable than week 1. That's real adaptation — your grip and shoulder stability are building. The scap pull-ups should feel more deliberate now. Focus on the DOWN squeeze, not just hanging. Squeeze, hold 2 sec, release. That's one rep."},
-    {id:'z5',w:2,s:2,ph:1,focus:'Core Foundation',
+    {id:'z5',st:'amrap',w:2,s:2,ph:1,focus:'Core Foundation',
      wu:['2 rounds: 10 hollow rocks, 10 superman holds, 30 sec plank'],
      sk:['Hollow body hold: 4 × 30 sec','L-sit attempt: 3 × max sec','Ring push-up: 4 × 10'],
      wt:'AMRAP 8',wm:['5 push-ups','10 hollow rocks','15 air squats'],sc:'Rounds + reps',bm:null,
      co:"The hollow body is the shape your body needs to be in at the top of a pull-up — lower back pressed flat, legs together, arms overhead, shoulders off the ground. This position transfers directly to the bar. Get 30 solid seconds today. If you break, reset and keep going. It's harder than it looks. That means it's working."},
-    {id:'z6',w:2,s:3,ph:1,focus:'Negative Volume',
+    {id:'z6',st:'time',w:2,s:3,ph:1,focus:'Negative Volume',
      wu:['2 rounds: 5 dead hangs, 5 scap pull-ups, 5 ring rows'],
      sk:['Negative pull-up: 5 × 4 (3 sec down — count it every rep)','Banded pull-up: 3 × 5 (use band for assistance)','Dead hang: 3 × 30 sec'],
      wt:'For time',wm:['3 rounds:','8 banded pull-ups (or ring rows)','8 push-ups','12 air squats'],sc:'Time (mm:ss)',bm:null,
      co:"By the end of week 2, your negatives should feel noticeably more controlled than day 1. That control is strength. You now have 12 negatives under your belt. Next week we introduce jumping pull-ups — the bridge between assisted work and the real thing."},
     // Phase 2 — Build (weeks 3-4)
-    {id:'z7',w:3,s:1,ph:2,focus:'Jumping Pull-Up',
+    {id:'z7',st:'amrap',w:3,s:1,ph:2,focus:'Jumping Pull-Up',
      wu:['2 rounds: 10 scap pull-ups, 5 ring rows, dead hang 20 sec'],
      sk:['Jumping pull-up (4 sec negative): 5 × 5','Scap pull-up: 5 × 8','Negative: 3 × 4 (3 sec down)'],
      wt:'AMRAP 10',wm:['5 jumping pull-ups','10 push-ups','15 air squats'],sc:'Rounds + reps',bm:null,
      co:"The jumping pull-up lets your body experience the top position of the movement — the hardest part to reach through strength alone. Use your legs to get there, hold 1 second at the top, then 4 seconds down. You're building the exact same muscles as a strict pull-up. The jump is just a tool — use it."},
-    {id:'z8',w:3,s:2,ph:2,focus:'Push Strength',
+    {id:'z8',st:'time',w:3,s:2,ph:2,focus:'Push Strength',
      wu:['2 rounds: 10 ring push-ups, 10 scap push-ups, 30 sec plank'],
      sk:['Strict dip (or box dip): 5 × max reps','Ring push-up: 4 × 10','Hollow body: 4 × 30 sec'],
      wt:'For time',wm:['21 push-ups','21 sit-ups','15 push-ups','15 sit-ups','9 push-ups','9 sit-ups'],sc:'Time (mm:ss)',bm:null,
      co:"Push strength matters for pull-ups because your core stability in the push pattern directly transfers to the pull. This session balances the pulling work you've been doing. Your push-up reps from week 1 should feel more comfortable now — that's 2 weeks of accumulated adaptation showing up."},
-    {id:'z9',w:3,s:3,ph:2,focus:'Pulling Volume',
+    {id:'z9',st:'amrap',w:3,s:3,ph:2,focus:'Pulling Volume',
      wu:['2 rounds: 10 dead hangs, 5 jumping pull-ups, 5 scap pull-ups'],
      sk:['Jumping pull-up: 5 × 5','Negative: 4 × 4 (4 sec down this week)','Banded pull-up: 3 × max reps'],
      wt:'AMRAP 12',wm:['3 jumping pull-ups','6 push-ups','9 burpees'],sc:'Rounds + reps',bm:null,
      co:"Four seconds down on the negatives this week. One second slower than last week. That extra second is harder and more productive. If your hands are ripping, use chalk or tape. Your pulling muscles are adapting faster than your skin right now. Temporary and worth it."},
-    {id:'z10',w:4,s:1,ph:2,focus:'First Attempt Block 🎯',
+    {id:'z10',st:'attempts',w:4,s:1,ph:2,focus:'First Attempt Block 🎯',
      wu:['3 rounds: 5 scap pull-ups, 3 jumping pull-ups, dead hang 20 sec'],
      sk:['🎯 PULL-UP ATTEMPTS: 15 min — 2 min full rest between every attempt','Note: where did you stall? How many attempts?','Jumping pull-up: 3 × 5'],
      wt:'AMRAP 10',wm:['5 ring rows','10 push-ups','200m run'],sc:'Rounds + reps',bm:null,
      co:"First real attempt block. You might get it. You might get partway. Both are information. If you got to chin level but couldn't finish — your ceiling is almost there. If you got halfway — more negatives. If you barely moved — more jumping pull-ups and patience. Write exactly what happened. That data guides the next 2 weeks."},
-    {id:'z11',w:4,s:2,ph:2,focus:'Volume Build',
+    {id:'z11',st:'time',w:4,s:2,ph:2,focus:'Volume Build',
      wu:['2 rounds: 10 scap pull-ups, 5 jumping pull-ups, 5 ring rows'],
      sk:['5 sets: max jumping pull-ups (slow 4-sec negative) + 10 push-ups — rest 90 sec between','Banded pull-up: 3 × max reps'],
      wt:'5 rounds for time',wm:['5 jumping pull-ups','5 dips (or box dips)','10 air squats'],sc:'Time (mm:ss)',bm:null,
      co:"High volume today. Your muscles are adapting to the movement pattern. The combination of jumping pull-ups and dips builds the full push-pull capacity that makes pull-ups feel lighter over time. Today chase the volume, not the speed."},
-    {id:'z12',w:4,s:3,ph:2,focus:'Strength Test',
+    {id:'z12',st:'amrap',w:4,s:3,ph:2,focus:'Strength Test',
      wu:['2 rounds: 10 dead hangs, 5 scap pull-ups, 5 ring rows'],
      sk:['Dead hang: 3 × 45 sec','Negative: 5 × 5 (4 sec down)','Ring row: 4 × 8 (add weight if possible)'],
      wt:'AMRAP 8',wm:['3 pull-up attempts (or jumping pull-ups)','6 push-ups','9 box jumps'],sc:'Rounds + reps',bm:null,
      co:"45-second hangs. Compare to 20 seconds in week 1. That grip endurance is real strength you didn't have before. The weighted ring rows are harder than they look — even a 5kg plate changes everything. Harder now means easier on the bar later."},
     // Phase 3 — Push (weeks 5-6)
-    {id:'z13',w:5,s:1,ph:3,focus:'Attempt Day 🎯',
+    {id:'z13',st:'attempts',w:5,s:1,ph:3,focus:'Attempt Day 🎯',
      wu:['Long warm-up: 3 rounds: 5 scap pull-ups, 3 jumping pull-ups, dead hang 20 sec','2 min full rest before attempts'],
      sk:['🎯 PULL-UP ATTEMPTS: 20 min — 2+ min full rest between every attempt','Video at least one attempt on your phone if possible'],
      wt:'AMRAP 8 (easy)',wm:['5 ring rows','10 push-ups','15 air squats'],sc:'Attempts made / any successes',bm:null,
      co:"Five weeks of work behind you. Your lats, grip, and scap stability are all stronger than week 1. Set up with hands just outside shoulder width, squeeze the bar hard, drive your elbows down and back toward your hips. Don't think about going UP — think about pulling the bar DOWN to your chest. That cue alone changes everything for most people."},
-    {id:'z14',w:5,s:2,ph:3,focus:'Fix the Weakness',
+    {id:'z14',st:'time',w:5,s:2,ph:3,focus:'Fix the Weakness',
      wu:['2 rounds: 10 scap pull-ups, 5 jumping pull-ups, dead hang 20 sec'],
      sk:['Identify your stall point, then drill it:','→ Stall at bottom: 5×10 scap pull-ups + 5×5 negatives (5 sec down)','→ Stall halfway: 5×8 jumping pull-ups + 5×4 negatives','→ Stall near top: 5×max banded pull-ups + 3×3 slow negatives'],
      wt:'For time',wm:['3 rounds:','8 banded pull-ups (or jumping)','8 ring push-ups','12 sit-ups'],sc:'Time (mm:ss)',bm:null,
      co:"Targeted drilling on your specific stall point is worth 10x generic volume at this stage. Be honest about where you're failing. Stalling at the bottom means not enough lat activation — squeeze the bar, scap down before you pull. Stalling halfway means your ceiling isn't high enough yet — more negatives. Near the top means you're almost there."},
-    {id:'z15',w:5,s:3,ph:3,focus:'Pulling Benchmark',
+    {id:'z15',st:'attempts',w:5,s:3,ph:3,focus:'Pulling Benchmark',
      wu:['400m run','2 rounds: 10 scap pull-ups, 10 ring rows'],
      sk:['Jumping pull-up: 3 × 5 (warm up the pattern)','Pull-up attempts: 5 tries with full rest'],
      wt:'AMRAP 15',wm:['200m run','Max pull-up attempts — record reps each round'],sc:'Total attempts + any successes (note per round)',bm:'pull_capacity',
      co:"This WOD tests your pulling capacity under cardiovascular fatigue — which is always how it feels when you're chasing your first pull-up under any real pressure. How many rounds? How many attempts per round? Does the number drop as you get tired? All of it is information. Write it all down."},
-    {id:'z16',w:6,s:1,ph:3,focus:'Final Attempt Block 🏁',
+    {id:'z16',st:'attempts',w:6,s:1,ph:3,focus:'Final Attempt Block 🏁',
      wu:['Very thorough: 3 rounds: 8 scap pull-ups, 5 jumping pull-ups, dead hang 25 sec','2 min full rest'],
      sk:['🎯 PULL-UP ATTEMPTS: 25 min — 3 min rest between every attempt','This is your final dedicated attempt session — give it everything'],
      wt:'AMRAP 10 (easy)',wm:['5 ring rows','10 push-ups','15 air squats'],sc:'Pull-up attempts / any successes',bm:null,
      co:"6 weeks of work behind you. Squeeze the bar like you're trying to break it. Hollow body — ribs down, abs tight. Drive elbows down toward your hips. Don't think about going up — think about bringing the bar to your chest. You have the strength. Now use it."},
-    {id:'z17',w:6,s:2,ph:3,focus:'Own the Movement',
+    {id:'z17',st:'reps',w:6,s:2,ph:3,focus:'Own the Movement',
      wu:['2 rounds: 5 scap pull-ups, 5 jumping pull-ups, dead hang 20 sec'],
      sk:['If achieved: 5 sets of 1 perfect pull-up — full hang to chin over bar, no momentum','If still working: 20 min focused attempts, 100% rest between'],
      wt:'Push-up retest',wm:['1 set max push-ups — compare to week 1 baseline','Then: AMRAP 10: 5 ring rows, 10 push-ups, 15 squats'],sc:'Push-up max (compare to week 1) + AMRAP rounds',bm:'pushup_retest',
      co:"Compare your push-up max to week 1 right now. That number tells the story of 6 weeks. Whether the pull-up came or not, you are measurably stronger. The pull-up is in there — the work doesn't disappear. If it didn't come this week, come back next week with fresh arms and go again."},
-    {id:'z18',w:6,s:3,ph:3,focus:'Celebration 🎉',
+    {id:'z18',st:'time',w:6,s:3,ph:3,focus:'Celebration 🎉',
      wu:['Whatever feels good — this session is yours'],
      sk:['Max pull-ups in 5 min (jump-assisted counts)','3 perfect negatives: 5 sec each — feel how far you\'ve come'],
      wt:'For time — The Ladder',wm:['1 pull-up attempt + 2 ring rows','2 + 4','3 + 6','4 + 8','5 + 10'],sc:'Time (mm:ss)',bm:null,
@@ -374,94 +386,94 @@ const PROGS = {
   phases:['Foundation','Build','Push'],
   sessions:[
     // Phase 1 — Foundation (weeks 1-2)
-    {id:'m1',w:1,s:1,ph:1,focus:'False Grip Fundamentals',
+    {id:'m1',st:'amrap',w:1,s:1,ph:1,focus:'False Grip Fundamentals',
      wu:['3 min easy row or 200m jog','2 rounds: 10 arm circles, 10 band pull-aparts, 5 wrist circles each direction'],
      sk:['False grip hang: 5 × 20 sec (rest 40 sec)','False grip ring row: 4 × 8 (slow and controlled)','Ring dip bottom hold: 4 × 15 sec'],
      wt:'AMRAP 10',wm:['5 ring rows (false grip if possible)','10 push-ups','15 air squats'],sc:'Rounds + reps',bm:null,
      co:"The false grip feels awkward. That's normal — your wrists aren't used to this position yet. These hangs are building the tendon strength that will eventually support your entire bodyweight through the muscle-up transition. 20 seconds feels like forever at first. By week 3 you'll do it without thinking."},
-    {id:'m2',w:1,s:2,ph:1,focus:'Ring Dip Capacity',
+    {id:'m2',st:'time',w:1,s:2,ph:1,focus:'Ring Dip Capacity',
      wu:['2 rounds: 10 banded face pulls, 10 scap push-ups, 30 sec hollow hold'],
      sk:['Ring support hold (top of dip): 5 × 20 sec','Ring push-up: 4 × 8','Ring dip (or box-assisted): 5 × 5'],
      wt:'For time',wm:['21 ring push-ups','21 box jumps 60cm','15 ring push-ups','15 box jumps','9 ring push-ups','9 box jumps'],sc:'Time (mm:ss)',bm:null,
      co:"Ring dips are brutally harder than bar dips because the rings force your stabilisers to work overtime. If you can't do strict ring dips yet, use a box under your feet. The goal today is to own the top position: shoulders packed, rings turned out, body tight. That IS the finish of every muscle-up."},
-    {id:'m3',w:1,s:3,ph:1,focus:'Pulling Baseline — Cindy',
+    {id:'m3',st:'amrap',w:1,s:3,ph:1,focus:'Pulling Baseline — Cindy',
      wu:['400m easy jog','2 rounds: 10 dead hang scap pull-ups, 10 band pull-aparts'],
      sk:['Dead hang: 3 × 30 sec','Strict pull-up: 5 sets to near failure — write your max','Kipping swing practice: 5 min (swing only, no pull yet)'],
      wt:'AMRAP 20',wm:['5 pull-ups','10 push-ups','15 air squats'],sc:'Rounds + reps — WRITE THIS DOWN',bm:'cindy',
      co:"This is your Cindy baseline. You will retest this exact WOD in Phase 3 and the difference will be concrete. Don't pace it — give it everything. The kipping swing you practiced today is the same swing that generates the hip drive in the muscle-up. Right now it looks nothing like one. By week 5 it will."},
-    {id:'m4',w:2,s:1,ph:1,focus:'False Grip Loading',
+    {id:'m4',st:'amrap',w:2,s:1,ph:1,focus:'False Grip Loading',
      wu:['2 rounds: 10 ring rows, 10 band pull-aparts, 10 wrist circles'],
      sk:['False grip hang: 5 × 25 sec','False grip ring pull-up (strict): 5 × 3-5 reps','Ring row: 3 × 10'],
      wt:'AMRAP 12',wm:['3 false grip ring pull-ups (or 6 ring rows)','6 ring push-ups','9 goblet squats (24/16 kg)'],sc:'Rounds + reps',bm:null,
      co:"Every rep in false grip builds the wrist conditioning you'll need later. Notice how different the pull feels from a bar pull-up — that's your lats engaging differently. If you can't do false grip pull-ups yet, do ring rows in false grip. The grip is the point, not the movement."},
-    {id:'m5',w:2,s:2,ph:1,focus:'Dip Depth & Control',
+    {id:'m5',st:'time',w:2,s:2,ph:1,focus:'Dip Depth & Control',
      wu:['2 rounds: 10 scap push-ups, 10 band pull-aparts, 30 sec plank'],
      sk:['Ring support → lower to bottom, hold 5 sec: 4 × 5','Ring dip: 5 × 3-5 reps','Dip negative (3 sec down): 3 × 5'],
      wt:'For time',wm:['50 push-ups','40 sit-ups','30 ring push-ups','20 ring dips (or 40 box dips)'],sc:'Time (mm:ss)',bm:null,
      co:"If your elbows flare out or shoulders cave at the bottom of the ring dip, you'll stall at the same position in your muscle-up for months. Today we fix that. Hold the bottom for 5 seconds on every skill rep. It should feel deeply uncomfortable. That discomfort is called progress."},
-    {id:'m6',w:2,s:3,ph:1,focus:'Pulling Power',
+    {id:'m6',st:'time',w:2,s:3,ph:1,focus:'Pulling Power',
      wu:['500m row','2 rounds: 10 dead hang scap pulls, 10 band pull-aparts'],
      sk:['Chest-to-bar pull-up: 5 × 3-5 reps','Strict pull-up: 3 × max reps','Hollow body hold: 3 × 30 sec'],
      wt:'5 rounds for time',wm:['7 pull-ups','10 push-ups','200m run'],sc:'Time (mm:ss)',bm:null,
      co:"Chest-to-bar pull-ups are the direct predecessor to the muscle-up. When your chest touches the bar you're almost in the transition position. Today your pull-ups probably look like chin-to-bar. By phase 2 they'll automatically look like chest-to-bar because your pulling strength will have caught up."},
     // Phase 2 — Build (weeks 3-4)
-    {id:'m7',w:3,s:1,ph:2,focus:'The Hip Pop',
+    {id:'m7',st:'amrap',w:3,s:1,ph:2,focus:'The Hip Pop',
      wu:['2 rounds: 10 ring rows, 10 ring push-ups, 5 wrist rolls'],
      sk:['False grip ring pull-up: 5 × 4','Hip pop drill (feet on box, simulate transition): 4 × 5','Ring dip: 4 × 4'],
      wt:'AMRAP 8',wm:['4 false grip ring pull-ups','4 ring dips','8 box jumps 60cm'],sc:'Rounds + reps',bm:null,
      co:"The hip pop drill is where the muscle-up starts to make physical sense. You're simulating the moment your hips drive forward and your bodyweight shifts from below the rings to above them. It feels weird because it IS weird — this movement doesn't exist anywhere else in fitness. Take your time understanding it today."},
-    {id:'m8',w:3,s:2,ph:2,focus:'Weighted Pull & Dip',
+    {id:'m8',st:'amrap',w:3,s:2,ph:2,focus:'Weighted Pull & Dip',
      wu:['2 rounds: 10 scap pull-ups, 10 band pull-aparts, 30 sec hollow'],
      sk:['Weighted pull-up: work up to heavy 3RM (dumbbell between feet) — note the weight','Weighted ring dip: work up to heavy 3RM','False grip ring pull-up: 3 × 4'],
      wt:'AMRAP 10',wm:['5 pull-ups','5 ring dips','10 wall balls (9/6 kg)'],sc:'Rounds + reps',bm:null,
      co:"We need to build your ceiling so 100% effort feels like 70% of max. Weighted pull-ups and dips raise that ceiling fast. Today's 3RMs are your baselines — write down the weights. If you can't add weight yet, focus on strict reps with a 3-sec pause at the top."},
-    {id:'m9',w:3,s:3,ph:2,focus:'Jumping Muscle-Up',
+    {id:'m9',st:'time',w:3,s:3,ph:2,focus:'Jumping Muscle-Up',
      wu:['2 rounds: 10 false grip hangs 15 sec, 5 ring dips, 10 kipping swings'],
      sk:['Jumping muscle-up: 5 × 3 (box under feet — full movement, lockout at top)','False grip ring pull-up: 3 × 5','Ring dip: 3 × 5'],
      wt:'For time',wm:['10 jumping muscle-ups','20 pull-ups','10 jumping muscle-ups','20 push-ups'],sc:'Time (mm:ss)',bm:null,
      co:"You are doing muscle-ups today. They're assisted, but you're doing the full movement. Focus on the lockout at the top — arms fully extended, body upright. Many people pull perfectly and miss the lockout. Arms straight at the top. That's completion. Feel what that feels like."},
-    {id:'m10',w:4,s:1,ph:2,focus:'Muscle-Up Negative',
+    {id:'m10',st:'amrap',w:4,s:1,ph:2,focus:'Muscle-Up Negative',
      wu:['2 rounds: 5 ring dips, 5 chest-to-bar pull-ups, 10 hollow rocks'],
      sk:['Muscle-up negative: 5 × 3 (jump to support position, lower slowly through transition — 4 sec down)','False grip pull-up: 4 × 5','Ring dip: 4 × 5'],
      wt:'AMRAP 8',wm:['3 muscle-up negatives','6 ring push-ups','9 air squats'],sc:'Rounds + reps',bm:null,
      co:"The negative is the muscle-up in reverse — and it's one of the fastest ways to build muscle-up strength. You're lowering through the exact position you need to press through on the way up. Your brain is mapping the movement at the same time. 15 quality negatives this week will change your week 5 attempts dramatically."},
-    {id:'m11',w:4,s:2,ph:2,focus:'Banded Muscle-Up',
+    {id:'m11',st:'time',w:4,s:2,ph:2,focus:'Banded Muscle-Up',
      wu:['2 rounds: 10 kipping swings, 5 jumping muscle-ups, 5 ring dips'],
      sk:['Banded muscle-up: 5 × 3 (band through rings, foot in band — minimum assistance needed)','False grip strict ring pull-up: 3 × max reps','Ring dip: 3 × 5'],
      wt:'5 rounds for time',wm:['3 banded muscle-ups','10 box jumps 60cm','15 air squats'],sc:'Time (mm:ss)',bm:null,
      co:"The band gives just enough help to complete the movement without doing it for you. Focus on making each rep feel identical — same setup, same hip drive, same lockout. Consistency builds the neuromuscular groove. By the third set today it should feel slightly more natural than the first. That's your nervous system learning."},
-    {id:'m12',w:4,s:3,ph:2,focus:'Nicole — Pulling Under Fatigue',
+    {id:'m12',st:'amrap',w:4,s:3,ph:2,focus:'Nicole — Pulling Under Fatigue',
      wu:['500m row','2 rounds: 10 scap pull-ups, 10 false grip ring rows'],
      sk:['Chest-to-bar pull-up: 5 × 5','False grip hang: 4 × 30 sec','Hollow body: 4 × 30 sec'],
      wt:'AMRAP 20 (Nicole)',wm:['Run 400m','Max pull-ups — record reps each round'],sc:'Total pull-ups (note per round breakdown)',bm:'nicole',
      co:"In a WOD, you never attempt the muscle-up fresh. Nicole reveals your pulling capacity when your lungs are already burning. Today's score shows exactly where you stand when everything else hurts. This is the realistic baseline for WOD muscle-ups. How many rounds? How do your pull-up reps change each round?"},
     // Phase 3 — Push (weeks 5-6)
-    {id:'m13',w:5,s:1,ph:3,focus:'Attempt Day 🎯',
+    {id:'m13',st:'attempts',w:5,s:1,ph:3,focus:'Attempt Day 🎯',
      wu:['400m easy jog','3 rounds: 5 kipping swings, 3 false grip ring pull-ups, 3 ring dips','2 jumping muscle-ups — feel the movement'],
      sk:['🎯 MUSCLE-UP ATTEMPTS: 20 min — 2-3 min full rest between every attempt','Note: did you get it? Where did you stall?'],
      wt:'AMRAP 10',wm:['5 kipping pull-ups','5 ring dips','10 wall balls 9 kg'],sc:'Rounds + reps',bm:null,
      co:"You might get it today. You might not. Both are OK. What matters is 10-15 genuine attempts with proper setup and full effort. After each attempt, rest completely. If you get it: log it as a PR immediately. If not: note exactly where you stalled. That data guides the next week."},
-    {id:'m14',w:5,s:2,ph:3,focus:'Fix the Weakness',
+    {id:'m14',st:'time',w:5,s:2,ph:3,focus:'Fix the Weakness',
      wu:['2 rounds: 10 kipping swings, 5 false grip ring pull-ups, 5 ring dips'],
      sk:['→ Stalling at TRANSITION: 5×8 low ring transitions + 5×5 hip pop drills','→ Stalling at the PULL: 5×5 false grip chest-to-bar + 3×3 weighted pull-up','→ Stalling at the DIP: 5×5 ring dip negatives (slow) + 3×3 weighted ring dip'],
      wt:'5 rounds for time',wm:['3 banded muscle-ups','10 ring push-ups','15 KB swings (24/16 kg)'],sc:'Time (mm:ss)',bm:null,
      co:"Every person stalls at a different point. Transition = more drilling. Pull = ceiling not high enough. Dip = ring dip strength. Each has a direct fix. Be honest about where you're failing — that's the information that gets you over the line. Targeted work on your specific weakness is worth 10x generic volume right now."},
-    {id:'m15',w:5,s:3,ph:3,focus:'Cindy Retest',
+    {id:'m15',st:'amrap',w:5,s:3,ph:3,focus:'Cindy Retest',
      wu:['2 rounds: 10 kipping swings, 3 jumping muscle-ups, 5 ring dips'],
      sk:['5 perfect banded muscle-ups (form focus, no rush)','5 muscle-up negatives (slow and controlled)','3 actual attempts'],
      wt:'AMRAP 20 (Cindy)',wm:['5 pull-ups','10 push-ups','15 air squats'],sc:'Rounds + reps — COMPARE TO WEEK 1',bm:'cindy',
      co:"Compare today's Cindy to week 1. The number should be meaningfully higher — that's 5 weeks of real fitness gains made concrete. Write both scores side by side. The muscle-up may or may not have clicked yet. Either way, the athlete you are today is measurably better than week 1. That's not nothing. That's everything."},
-    {id:'m16',w:6,s:1,ph:3,focus:'Final Attempt Block 🏁',
+    {id:'m16',st:'attempts',w:6,s:1,ph:3,focus:'Final Attempt Block 🏁',
      wu:['400m easy jog','3 rounds: 8 kipping swings, 3 false grip pull-ups, 3 ring dips','2 perfect jumping muscle-ups','2 min full rest'],
      sk:['🎯 MUSCLE-UP ATTEMPTS: 25 min — 3 min full rest between every attempt','Video your attempts if possible'],
      wt:'AMRAP 10 (easy)',wm:['5 ring rows','10 push-ups','15 air squats'],sc:'Rounds + reps',bm:null,
      co:"6 weeks of work. Set up perfectly: false grip locked in, hollow body on the swing, hip snap at the bottom, aggressive pull, fast elbows through. You've done every piece of this hundreds of times. Trust the work. Go."},
-    {id:'m17',w:6,s:2,ph:3,focus:'Own the Movement',
+    {id:'m17',st:'time',w:6,s:2,ph:3,focus:'Own the Movement',
      wu:['Standard gymnastics warm-up'],
      sk:['If achieved: 5 sets of 1 perfect muscle-up + 2 ring dips — own every lockout','If still working: 20 min attempts + 10 min banded muscle-ups with minimum assistance'],
      wt:'Fran — 21-15-9 for time',wm:['Thrusters (43/30 kg)','Pull-ups'],sc:'Time (mm:ss)',bm:'fran',
      co:"Whether you have the muscle-up or you're still chasing it — you are a dramatically better athlete than 6 weeks ago. Fran is one of CrossFit's most famous benchmarks. Your Fran time today reflects everything you've built. Write it down. It's the start of a new baseline."},
-    {id:'m18',w:6,s:3,ph:3,focus:'Celebration 🎉',
+    {id:'m18',st:'time',w:6,s:3,ph:3,focus:'Celebration 🎉',
      wu:['Whatever feels good'],
      sk:['10 min: your favourite movements — things you can do now that you couldn\'t in week 1','Muscle-up reps or attempts — make them count'],
      wt:'For time — Programme Finisher',wm:['10 false grip ring pull-ups','10 ring dips','8-8, 6-6, 4-4, 2-2 (decreasing ladder)'],sc:'Time (mm:ss)',bm:null,
@@ -476,94 +488,94 @@ const PROGS = {
   phases:['Baseline','Build','Peak'],
   sessions:[
     // Phase 1 — Baseline (weeks 1-2)
-    {id:'e1',w:1,s:1,ph:1,focus:'Fran Baseline',
+    {id:'e1',st:'time',w:1,s:1,ph:1,focus:'Fran Baseline',
      wu:['2 rounds: 10 scap pull-ups, 10 push-ups, 10 air squats','2 min rest after warm-up'],
      sk:['Practice: 5 thrusters at workout weight, rest','3 pull-ups, rest — dial in grip and bar path'],
      wt:'Fran — 21-15-9 for time',wm:['Thrusters (43/30 kg)','Pull-ups'],sc:'Time (mm:ss) — WRITE THIS DOWN',bm:'fran',
      co:"Fran is the most famous benchmark in CrossFit for a reason — it's 2-10 minutes of pure suffering that reveals exactly where your engine is. There's no hiding in Fran. Go as fast as you can sustain, not as fast as you sprint the first 21. Write your time down. We're chasing it in week 6."},
-    {id:'e2',w:1,s:2,ph:1,focus:'Long Aerobic Base',
+    {id:'e2',st:'amrap',w:1,s:2,ph:1,focus:'Long Aerobic Base',
      wu:['400m easy jog','2 rounds: 10 arm circles, 10 hip circles'],
      sk:['10 min easy row at conversational pace (note avg split)','5 min rest','10 min easy bike or run'],
      wt:'AMRAP 20 (Baseline)',wm:['5 pull-ups','10 push-ups','15 air squats'],sc:'Rounds + reps',bm:'cindy',
      co:"Cindy is a 20-minute aerobic test disguised as a gymnastics workout. Your score today is your conditioning baseline. Go at a pace you can sustain for all 20 minutes — consistent rounds are better than a fast start and a crash. Write down your per-round splits if you can. They tell you more than the total."},
-    {id:'e3',w:1,s:3,ph:1,focus:'Mixed Modal Intro',
+    {id:'e3',st:'time',w:1,s:3,ph:1,focus:'Mixed Modal Intro',
      wu:['500m easy row','2 rounds: 5 push-ups, 10 air squats, 5 pull-ups'],
      sk:['Review KB swing mechanics: hip hinge, not squat','Review box jump landing: soft knees, stand tall'],
      wt:'5 rounds for time',wm:['12 KB swings (24/16 kg)','9 box jumps (60cm)','6 pull-ups'],sc:'Time (mm:ss)',bm:null,
      co:"Mixed modal conditioning — moving between different equipment and movement patterns — is what CrossFit does best. Today's combination of hinging, jumping, and pulling trains your body to transfer power between movement patterns under fatigue. Keep moving. Rest only when you have to."},
-    {id:'e4',w:2,s:1,ph:1,focus:'Rowing + Running Intervals',
+    {id:'e4',st:'time',w:2,s:1,ph:1,focus:'Rowing + Running Intervals',
      wu:['3 min easy row','2 rounds: 10 arm circles, 10 hip circles'],
      sk:['Row 500m time trial — record your split (e.g. 2:05/500m)','2 min rest','5 min easy run to clear legs'],
      wt:'4 rounds for time',wm:['500m row','Rest 1 min'],sc:'Best 500m split + total time',bm:'row_500',
      co:"The 500m row time trial is a direct measure of your aerobic power. Write down your split in meters per second — this is your rowing baseline. Four rounds with 1 min rest teaches you to recover fast and repeat quality efforts. The ability to repeat hard efforts is what separates fit athletes from one-hit wonders."},
-    {id:'e5',w:2,s:2,ph:1,focus:'Gymnastics + Conditioning',
+    {id:'e5',st:'amrap',w:2,s:2,ph:1,focus:'Gymnastics + Conditioning',
      wu:['2 rounds: 10 ring rows, 10 push-ups, 10 hollow rocks'],
      sk:['Kipping pull-up practice: 5 × 5 (focus on rhythm)','Handstand hold: 3 × 20 sec (wall kick-up OK)'],
      wt:'AMRAP 12',wm:['7 pull-ups','7 push-ups','7 KB swings (24/16 kg)','200m run'],sc:'Rounds + reps',bm:null,
      co:"Gymnastics mixed with conditioning is a completely different stimulus from pure cardio. Your pulling muscles don't know the 200m run is about to happen — and your lungs don't know the pull-ups are about to happen. That confusion is the point. It builds work capacity across all domains."},
-    {id:'e6',w:2,s:3,ph:1,focus:'Heavy Metcon Intro',
+    {id:'e6',st:'amrap',w:2,s:3,ph:1,focus:'Heavy Metcon Intro',
      wu:['2 rounds: 5 deadlifts (light), 5 hang power cleans, 5 push press at workout weight'],
      sk:['Review power clean from hang — triple extension, high pull, catch','Review push press — dip drive, press overhead'],
      wt:'AMRAP 15',wm:['3 power cleans (60/40 kg)','6 push press (same bar)','9 air squats'],sc:'Rounds + reps',bm:null,
      co:"Barbell conditioning is a different beast from gymnastics work. The load forces you to be more deliberate, which actually helps pacing. You can't sprint a barbell. Today's weights should feel challenging but not grinding. If you're breaking the set of 3 power cleans, drop the weight. Speed through the workout is more valuable than ego on the bar."},
     // Phase 2 — Build (weeks 3-4)
-    {id:'e7',w:3,s:1,ph:2,focus:'Annie',
+    {id:'e7',st:'time',w:3,s:1,ph:2,focus:'Annie',
      wu:['2 rounds: 30 single-unders, 20 sit-ups','Practice double-under if needed: 3 × 10 attempts'],
      sk:['Double-under practice: 5 min (or single-unders if needed)'],
      wt:'Annie — For time',wm:['50-40-30-20-10:','Double-unders (or 3× singles)','Sit-ups'],sc:'Time (mm:ss)',bm:'annie',
      co:"Annie is deceptively simple. Double-unders require coordination, not just fitness — they break down when you're tired in ways that jumping jacks never do. If you're still developing double-unders, do triple the reps as singles. The sit-up volume adds up fast. Brace your core and use your arms to help pull up. Move steadily, not explosively."},
-    {id:'e8',w:3,s:2,ph:2,focus:'EMOM Intervals',
+    {id:'e8',st:'reps',w:3,s:2,ph:2,focus:'EMOM Intervals',
      wu:['400m run','2 rounds: 5 pull-ups, 10 push-ups, 15 squats'],
      sk:['EMOM 10: odd mins = 5 pull-ups + 5 push-ups / even mins = 10 air squats + 10 sit-ups'],
      wt:'EMOM 16',wm:['Min 1-4: 15 KB swings (24/16 kg)','Min 5-8: 12 box jumps','Min 9-12: 10 pull-ups','Min 13-16: 200m run'],sc:'Completed rounds (any minute you miss = fail)',bm:null,
      co:"EMOMs train a specific skill: completing work in a fixed time window, then recovering before the next one starts. The discipline of the clock teaches you to push and recover on demand — which is exactly what every competition and benchmark WOD requires. If you're running out of time in any minute, that movement is your current limiter."},
-    {id:'e9',w:3,s:3,ph:2,focus:'Chipper',
+    {id:'e9',st:'time',w:3,s:3,ph:2,focus:'Chipper',
      wu:['400m jog','2 rounds: 10 arm circles, 10 hip circles, 5 burpees'],
      sk:['Review pacing strategy: break early, move fast on simpler movements'],
      wt:'For time — Chipper',wm:['50 air squats','40 sit-ups','30 push-ups','20 pull-ups','10 burpees'],sc:'Time (mm:ss)',bm:null,
      co:"A chipper works through a long list of movements — you do them once and move on. The mental challenge is knowing there are 150 total reps ahead of you. The strategy: don't sprint the squats. Start at 75% effort and build. The burpees at the end feel impossible if you redlined the squats. They feel manageable if you paced the first half."},
-    {id:'e10',w:4,s:1,ph:2,focus:'Helen',
+    {id:'e10',st:'time',w:4,s:1,ph:2,focus:'Helen',
      wu:['400m easy jog','2 rounds: 10 KB swings (light), 5 pull-ups'],
      sk:['KB swing: 3 × 10 at workout weight — note if it feels heavy','Pull-up rhythm practice: 3 × 5 kipping'],
      wt:'Helen — 3 rounds for time',wm:['400m run','21 KB swings (24/16 kg)','12 pull-ups'],sc:'Time (mm:ss)',bm:'helen',
      co:"Helen is a classic 3-round sprint. The combination of running, hip power, and pulling is a complete athletic stimulus. The key is the transition between movements — you lose more time in the transitions than in the movements themselves. Visualise moving from the run to the KB swings to the pull-ups without stopping. Three fluid transitions per round."},
-    {id:'e11',w:4,s:2,ph:2,focus:'Strength + Metcon',
+    {id:'e11',st:'amrap',w:4,s:2,ph:2,focus:'Strength + Metcon',
      wu:['2 rounds: 5 back squats (light), 10 push-ups, 10 air squats'],
      sk:['Back squat: 5-5-5 working up to a heavy set of 5 (note the weight)','Rest 2 min between sets'],
      wt:'AMRAP 12',wm:['5 front squats (60-70% of back squat weight)','10 push-ups','15 KBS (24/16 kg)'],sc:'Rounds + reps + back squat weight',bm:null,
      co:"Strength work before conditioning is called potentiation — it activates your nervous system and makes the conditioning feel different. The heavy back squats prime your legs; the metcon then asks something slightly different of them. Note whether the front squats feel heavy or light after the strength work. That contrast is useful information."},
-    {id:'e12',w:4,s:3,ph:2,focus:'Mixed Modal Complex',
+    {id:'e12',st:'time',w:4,s:3,ph:2,focus:'Mixed Modal Complex',
      wu:['500m row','2 rounds: 5 pull-ups, 5 push-ups, 10 air squats'],
      sk:['Muscle-up or pull-up practice: 5 min focused work','Bar muscle-up or chest-to-bar: 3 × 3'],
      wt:'3 rounds for time',wm:['500m row','15 KB swings (32/24 kg)','10 pull-ups','5 burpee box jumps (60cm)'],sc:'Time (mm:ss)',bm:null,
      co:"This complex hits everything: rowing (monostructural power), KB swings (hip extension), pull-ups (pulling strength), and burpee box jumps (explosive capacity). The rest between rounds is zero — it's 3 rounds straight through. Your ability to keep moving when every system is taxed is exactly what this builds."},
     // Phase 3 — Peak (weeks 5-6)
-    {id:'e13',w:5,s:1,ph:3,focus:'Grace',
+    {id:'e13',st:'time',w:5,s:1,ph:3,focus:'Grace',
      wu:['2 rounds: 5 power cleans at workout weight, 5 push press','Practise the clean and jerk: 10 singles at workout weight'],
      sk:['3-2-1-GO practice: 5 fast singles with full reset'],
      wt:'Grace — 30 reps for time',wm:['30 clean and jerks (61/43 kg)'],sc:'Time (mm:ss)',bm:'grace',
      co:"Grace is pure speed and barbell efficiency. 30 reps for time. The weight is moderate — fast singles beat slow touch-and-go every time for most people. Set up, pull, receive, jerk, drop. Re-set in under 2 seconds. Stay aggressive. Most people hit the wall around rep 20 — that wall is not physical, it's mental. Push through it."},
-    {id:'e14',w:5,s:2,ph:3,focus:'Long WOD',
+    {id:'e14',st:'amrap',w:5,s:2,ph:3,focus:'Long WOD',
      wu:['400m easy jog','5 min mobility: hips and shoulders'],
      sk:['Pacing talk: 10 min at 70% effort should feel like you could hold a conversation'],
      wt:'AMRAP 30',wm:['400m run','15 KB swings (24/16 kg)','10 push-ups'],sc:'Rounds + reps',bm:null,
      co:"30 minutes is a different stimulus. Your aerobic system — the one that keeps you going for 30+ minutes — is what this tests. The pace should feel uncomfortable but sustainable. If you're going anaerobic, slow down. This is not a sprint. Long WODs build the base that makes all shorter WODs feel easier."},
-    {id:'e15',w:5,s:3,ph:3,focus:'Benchmark Complex',
+    {id:'e15',st:'time',w:5,s:3,ph:3,focus:'Benchmark Complex',
      wu:['400m jog','2 rounds: 10 arm circles, 5 pull-ups, 10 push-ups'],
      sk:['Isabel: 30 snatches for time (43/29 kg)','Rest 10 min then:'],
      wt:'Isabel + accessory',wm:['Isabel: 30 snatches (43/29 kg)','Rest 10 min','Cindy: AMRAP 10: 5 pull-ups, 10 push-ups, 15 squats'],sc:'Isabel time + Cindy rounds',bm:'isabel',
      co:"Two benchmarks in one session. Isabel is speed and technique under fatigue. The 10-minute rest is real rest — lie down, breathe, recover. The Cindy after Isabel is the test: how well do you bounce back? Your Cindy score post-Isabel is a proxy for your recovery capacity. Note both numbers."},
-    {id:'e16',w:6,s:1,ph:3,focus:'Fran Retest',
+    {id:'e16',st:'time',w:6,s:1,ph:3,focus:'Fran Retest',
      wu:['2 rounds: 10 scap pull-ups, 10 push-ups, 10 air squats','3 thrusters at workout weight','2 min rest'],
      sk:['Visualise: 21 thrusters unbroken, big breath, 21 pull-ups broken if needed','Plan your splits before you start'],
      wt:'Fran — 21-15-9 for time',wm:['Thrusters (43/30 kg)','Pull-ups'],sc:'Time — COMPARE TO WEEK 1',bm:'fran',
      co:"Six weeks of training, retesting from day 1. The difference between your week 1 and week 6 Fran times is the most direct measure of what this programme built. Go faster than you think you can. You've earned the right to be uncomfortable. Chase the time on the clock."},
-    {id:'e17',w:6,s:2,ph:3,focus:'Helen Retest + Cindy',
+    {id:'e17',st:'time',w:6,s:2,ph:3,focus:'Helen Retest + Cindy',
      wu:['400m easy jog','2 rounds: 10 KB swings, 5 pull-ups'],
      sk:['Helen: mental rehearsal — run fast, swing fast, pull fast','Rest well between the two benchmarks'],
      wt:'Helen + Cindy',wm:['Helen: 3 rounds: 400m run + 21 KBS (24/16 kg) + 12 pull-ups','Rest 8 min','Cindy: AMRAP 20: 5 pull-ups, 10 push-ups, 15 squats'],sc:'Helen time + Cindy rounds (compare both to baselines)',bm:'helen',
      co:"Two retests in one session. You have all the data — week 1 Fran, Helen, Annie, row 500m. Today you close the loop on Helen and Cindy. The improvements you see are real and earned. They're also the floor, not the ceiling. You now know exactly what 6 weeks of focused work produces. The only question is what you do with it next."},
-    {id:'e18',w:6,s:3,ph:3,focus:'Celebration 🎉',
+    {id:'e18',st:'time',w:6,s:3,ph:3,focus:'Celebration 🎉',
      wu:['Whatever feels good'],
      sk:['10 min: your best movements — the things that improved the most this programme','1 max effort benchmark of your choice'],
      wt:'For time — The Finisher',wm:['21 KB swings (24/16 kg)','21 box jumps','15 push-ups','15 pull-ups','9 thrusters (43/30 kg)','9 burpees'],sc:'Time (mm:ss)',bm:null,
@@ -867,18 +879,161 @@ function renderSession(idx) {
 // ─────────────────────────────────────────────────────────────────
 // LOG
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// LOG — tap-only interface
+// ─────────────────────────────────────────────────────────────────
+const TAGS = [
+  'Rx','Scaled','First time','New PR felt close',
+  'Felt strong','Struggled','Tired','Breathless',
+  'Grip issues','Wrists tight','Better pacing','Worth it 🔥'
+];
+
+let logState = {rounds:0,reps:0,mins:0,secs:0,attempts:0,gotIt:null,tags:[]};
+
 function openLog(idx) {
   curIdx = idx;
   const sess = getSession(idx);
-  document.getElementById('log-name').textContent = `${PROGS[state.programmeId].name} · ${sess.focus}`;
-  document.getElementById('log-hint').textContent = sess.sc;
-  document.getElementById('log-score').value = '';
-  document.getElementById('log-notes').value = '';
+  logState = {rounds:0,reps:0,mins:0,secs:0,attempts:0,gotIt:null,tags:[]};
+  mood = null;
+  document.getElementById('log-name').textContent =
+    `${PROGS[state.programmeId].name} · ${sess.focus}`;
   document.getElementById('log-wod').innerHTML =
     `<div class="wod-type">${sess.wt}</div>${sess.wm.map(m=>`<div class="wod-mv">${m}</div>`).join('')}`;
-  mood = null;
+  renderScorePicker(sess);
+  renderTags();
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('on'));
   navTo('log');
+}
+
+function renderScorePicker(sess) {
+  const st = sess.st || 'amrap';
+  let html = '';
+  if (st === 'amrap') {
+    html = `<div class="lbl">Score</div>
+    <div class="ctr-wrap">
+      <div class="ctr">
+        <div class="ctr-lbl">Rounds</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('rounds',-1)">−</button>
+          <div class="ctr-val" id="cv-rounds">0</div>
+          <button class="ctr-btn" onclick="cAdj('rounds',1)">+</button>
+        </div>
+      </div>
+      <div class="ctr">
+        <div class="ctr-lbl">Extra reps</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('reps',-1)">−</button>
+          <div class="ctr-val" id="cv-reps">0</div>
+          <button class="ctr-btn" onclick="cAdj('reps',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  } else if (st === 'time') {
+    html = `<div class="lbl">Time</div>
+    <div class="ctr-wrap">
+      <div class="ctr">
+        <div class="ctr-lbl">Min</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('mins',-1)">−</button>
+          <div class="ctr-val" id="cv-mins">0</div>
+          <button class="ctr-btn" onclick="cAdj('mins',1)">+</button>
+        </div>
+      </div>
+      <div class="ctr">
+        <div class="ctr-lbl">Sec</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('secs',-5)">−</button>
+          <div class="ctr-val" id="cv-secs">00</div>
+          <button class="ctr-btn" onclick="cAdj('secs',5)">+</button>
+        </div>
+      </div>
+    </div>`;
+  } else if (st === 'attempts') {
+    html = `<div class="lbl">Attempts</div>
+    <div class="ctr-wrap" style="justify-content:center">
+      <div class="ctr" style="max-width:180px">
+        <div class="ctr-lbl">Attempts</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('attempts',-1)">−</button>
+          <div class="ctr-val" id="cv-attempts">0</div>
+          <button class="ctr-btn" onclick="cAdj('attempts',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="got-row">
+      <button class="got-btn" id="got-no" onclick="setGotIt(false)">Not yet</button>
+      <button class="got-btn" id="got-yes" onclick="setGotIt(true)">GOT IT 🎉</button>
+    </div>`;
+  } else if (st === 'reps') {
+    html = `<div class="lbl">Reps</div>
+    <div class="ctr-wrap" style="justify-content:center">
+      <div class="ctr" style="max-width:180px">
+        <div class="ctr-lbl">Total reps</div>
+        <div class="ctr-row">
+          <button class="ctr-btn" onclick="cAdj('reps',-1)">−</button>
+          <div class="ctr-val" id="cv-reps">0</div>
+          <button class="ctr-btn" onclick="cAdj('reps',1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('log-score-section').innerHTML = html;
+}
+
+function cAdj(key, delta) {
+  if (key === 'secs') {
+    logState.secs = ((logState.secs + delta) % 60 + 60) % 60;
+    const el = document.getElementById('cv-secs');
+    if (el) el.textContent = String(logState.secs).padStart(2,'0');
+  } else {
+    logState[key] = Math.max(0, logState[key] + delta);
+    const el = document.getElementById('cv-' + key);
+    if (el) el.textContent = logState[key];
+  }
+}
+
+function setGotIt(val) {
+  logState.gotIt = val;
+  const yBtn = document.getElementById('got-yes');
+  const nBtn = document.getElementById('got-no');
+  if (yBtn) yBtn.className = 'got-btn' + (val ? ' on-yes' : '');
+  if (nBtn) nBtn.className = 'got-btn' + (!val ? ' on-no' : '');
+}
+
+function toggleTag(t) {
+  const i = logState.tags.indexOf(t);
+  if (i === -1) logState.tags.push(t);
+  else logState.tags.splice(i,1);
+  renderTags();
+}
+
+function renderTags() {
+  const el = document.getElementById('log-tags');
+  if (!el) return;
+  el.innerHTML = TAGS.map(t =>
+    `<span class="tag${logState.tags.includes(t)?' on':''}" onclick="toggleTag('${t}')">${t}</span>`
+  ).join('');
+}
+
+function buildScore(sess) {
+  const st = sess.st || 'amrap';
+  if (st === 'amrap') {
+    if (!logState.rounds && !logState.reps) return null;
+    return logState.reps ? `${logState.rounds} rounds + ${logState.reps} reps` : `${logState.rounds} rounds`;
+  }
+  if (st === 'time') {
+    if (!logState.mins && !logState.secs) return null;
+    return `${logState.mins}:${String(logState.secs).padStart(2,'0')}`;
+  }
+  if (st === 'attempts') {
+    if (!logState.attempts) return null;
+    return logState.gotIt ? `${logState.attempts} attempts — GOT IT 🎉` : `${logState.attempts} attempts`;
+  }
+  if (st === 'reps') {
+    if (!logState.reps) return null;
+    return `${logState.reps} reps`;
+  }
+  return null;
 }
 
 function pickMood(i) {
@@ -889,16 +1044,19 @@ function pickMood(i) {
 
 function submitLog() {
   const sess = getSession(curIdx);
+  const score = buildScore(sess);
+  const notes = logState.tags.length ? logState.tags.join(', ') : null;
   if (!state.logs) state.logs = [];
   state.logs.push({
     sessionId: sess.id,
     date: new Date().toISOString().split('T')[0],
-    score: document.getElementById('log-score').value.trim() || null,
+    score,
     mood: mood || '😐',
-    notes: document.getElementById('log-notes').value.trim() || null,
+    notes,
   });
   save();
-  showToast('✓ Session logged!');
+  if (logState.gotIt) showToast('🎉 YOU GOT IT! Incredible!');
+  else showToast('✓ Session logged!');
   navTo('home');
 }
 
